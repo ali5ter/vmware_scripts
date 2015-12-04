@@ -3,14 +3,28 @@
 Scripts used in conjunction with [VMware ESXi](https://www.vmware.com/products/vsphere--hypervisor).
 
 Tested for installations of: 
-ESXi 5.x
-ESXi 6.x
+* ESXi 5.x
+* ESXi 6.x
 
 **These scripts often assume that you have [enabled SSH and ESXi Shell](http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2004746)
 on the ESXi host.**
 
+## Install the ESXi Embedded Client Host
+**The [install_esxi_client-host](install_esxi_client-host) script installs the
+[ESXi Embedded Client Host](https://labs.vmware.com/flings/esxi-embedded-host-client)
+onto an ESXi host from a remote machine.**
+
+This script prompts for the address of the ESXi host, downloads the ESXi
+Embedded Client Host VIB, copies this VIB to your ESXi host and remotely
+performs the installation and any configuration needed.
+
+The script is run in a couple of ways:
+
+    ./install_esxi_client-host
+    ./install_esxi_client-host <esxi_host_address>
+
 ## Create a virtual machine
-**The [create_esxi_vm.sh](create_esxi_vm.sh) script allows you to create a virtual 
+**The [create_esxi_vm](create_esxi_vm) script allows you to create a virtual 
 machine from the command line instead of through one of the VMware UIs.**
 
 Thi script generates the files needed to create a virtual machine and register 
@@ -24,7 +38,7 @@ script](alister/ubuntu_install_tools/).*
 ### VM creation from the ESXi cmdl
 Log into the ESXi server and download the script like this
 
-    wget http://gitlab.different.com/alister/ubuntu_install_tools/raw/master/create_esxi_vm.sh && chmod 755 create_esxi_vm.sh
+    wget http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/create_esxi_vm.sh && chmod 755 create_esxi_vm.sh
 
 Create a virtual machine using the vCPU, memory and storage defaults using one
 of the installation ISOs like this
