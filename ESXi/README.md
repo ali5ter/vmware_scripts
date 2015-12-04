@@ -18,7 +18,11 @@ This script prompts for the address of the ESXi host, downloads the ESXi
 Embedded Client Host VIB, copies this VIB to your ESXi host and remotely
 performs the installation and any configuration needed.
 
-The script is run in a couple of ways:
+Download the script to your workstation
+
+    curl http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/install_esxi_host_client
+    
+The script is run in a couple of ways
 
     ./install_esxi_client-host
     ./install_esxi_client-host <esxi_host_address>
