@@ -10,7 +10,7 @@ Tested for installations of:
 on the ESXi host.**
 
 ## Install the ESXi Embedded Client Host
-**The [install_esxi_client_host](install_esxi_client_host) script installs the
+**The [install_esxi_host_client](install_esxi_host_client) script installs the
 [ESXi Embedded Client Host](https://labs.vmware.com/flings/esxi-embedded-host-client)
 onto an ESXi host from a remote machine.**
 
