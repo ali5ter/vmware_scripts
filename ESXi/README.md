@@ -31,7 +31,7 @@ The script is run in a couple of ways
 **The [create_esxi_vm](create_esxi_vm) script allows you to create a virtual 
 machine from the command line instead of through one of the VMware UIs.**
 
-Thi script generates the files needed to create a virtual machine and register 
+This script generates the files needed to create a virtual machine and register 
 it with the ESXi system. The the [default.vmx](default.vmx) file provides a
 template specification for the virtual machine.
 
@@ -42,16 +42,16 @@ script](alister/ubuntu_install_tools/).*
 ### VM creation from the ESXi cmdl
 Log into the ESXi server and download the script like this
 
-    wget -q http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/create_esxi_vm.sh && chmod 755 create_esxi_vm.sh
+    wget -q http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/create_esxi_vm && chmod 755 create_esxi_vm.sh
 
 Create a virtual machine using the vCPU, memory and storage defaults using one
 of the installation ISOs like this
 
-    ./create_esxi_vm.sh -n server_01 -i /vmfs/volumes/datastore1/ISOs/ubuntu-14.04.3-server-amd64-unattended.iso
+    ./create_esxi_vm -n server_01 -i /vmfs/volumes/datastore1/ISOs/ubuntu-14.04.3-server-amd64-unattended.iso
 
 For help about changing the defaults run
 
-    ./create_esxi_vm.sh -h
+    ./create_esxi_vm -h
 
 Once complete, the virtual machine will automically power on.
 
