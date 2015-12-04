@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file install_esx_host_client
+# @file install_esxi_host_client
 # Download and install the ESXi html client and patch
 # @see https://labs.vmware.com/flings/esxi-embedded-host-client
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
