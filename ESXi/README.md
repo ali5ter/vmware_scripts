@@ -10,7 +10,7 @@ Tested for installations of:
 on the ESXi host.**
 
 ## Install the ESXi Embedded Client Host
-**The [install_esxi_client-host](install_esxi_client-host) script installs the
+**The [install_esxi_client_host](install_esxi_client_host) script installs the
 [ESXi Embedded Client Host](https://labs.vmware.com/flings/esxi-embedded-host-client)
 onto an ESXi host from a remote machine.**
 
@@ -54,6 +54,9 @@ Once complete, the virtual machine will automically power on.
 ### Remote VM creation
 [documentation to come]
 
-## Contribution                                                                 
-If you've stumbled upon this project and wish to contribute, please             
+## Contribution
+If you've stumbled upon this project and wish to contribute, please
 [let me know](mailto:alister@different.com)
+
+## Credits
+* [Tamaspiros's Auto-create script](https://github.com/tamaspiros/auto-create)
