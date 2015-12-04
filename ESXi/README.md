@@ -42,7 +42,7 @@ script](alister/ubuntu_install_tools/).*
 ### VM creation from the ESXi cmdl
 Log into the ESXi server and download the script like this
 
-    wget -q http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/create_esxi_vm && chmod 755 create_esxi_vm.sh
+    wget -q http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/create_esxi_vm && chmod 755 create_esxi_vm
 
 Create a virtual machine using the vCPU, memory and storage defaults using one
 of the installation ISOs like this
