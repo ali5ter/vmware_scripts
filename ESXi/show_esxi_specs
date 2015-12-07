@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# @file show_esxi_specs
+# Display routing, dns, datastore and portgroup info
+# @author Alister Lewis-Bowen <alister@lewis-bowwen.org>
+
+HOST=$1
+CMD=$(cat <<EOC
+echo -e "\nRouting:" && esxcli network ip route ipv4 list && \
+echo -e "\nBroadcast address:" && esxcli network ip interface ipv4 get && \
+echo -e "\nDNS:" && esxcli network ip dns server list && \
+echo -e "\nStorage:" && esxcli storage filesystem list && \
+echo -e "\nPortgroups:" && esxcli network vswitch standard portgroup list
+EOC
+)
+
+[ -z "$HOST" ] && {
+    echo
+    read -rp "Address of the ESXi host: " HOST
+}
+
+ssh root@"$HOST" "$CMD"
