@@ -9,6 +9,22 @@ Tested for installations of:
 **These scripts often assume that you have [enabled SSH and ESXi Shell](http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2004746)
 on the ESXi host.**
 
+## Show ESXi specifications
+**The [show_esxi_specs](show_esxi_specs) script displays routing, dns, datastore
+and portgroup information for a given ESXi host.**
+
+This script issues simple [esxcli](https://pubs.vmware.com/vsphere-50/index.jsp?topic=%2Fcom.vmware.vcli.ref.doc_50%2Fesxcli_command.html)
+commands via ssh to echo information.
+
+Download the script to your workstation
+
+    curl -Os http://gitlab.different.com/alister/vmware_scripts/raw/master/ESXi/show_esxi_specs
+    
+The script is run in a couple of ways
+
+    ./show_esxi_specs-host
+    ./show_esxi_specs-host <esxi_host_address>
+
 ## Install the ESXi Embedded Client Host
 **The [install_esxi_host_client](install_esxi_host_client) script installs the
 [ESXi Embedded Client Host](https://labs.vmware.com/flings/esxi-embedded-host-client)
