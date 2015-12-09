@@ -53,7 +53,7 @@ template specification for the virtual machine.
 
 *It has been used to conveniently stand up fresh Ubuntu Server VMs using [ISOs
 created for unattended installation and configured using a post installation
-script](alister/ubuntu_install_tools/).*
+script](http://gitlab.different.com/alister/ubuntu_install_tools/tree/master#unattended-installation-iso-creation).*
 
 ### VM creation from the ESXi cmdl
 Log into the ESXi server and download the script like this
