@@ -70,11 +70,12 @@ scp -q "$VIB" "$ACCESS":"$VIB"
 echo
 echo "Installing and configuring the VIB"
 
+## NOTE: ESXi uses BusyBox to create it's shell environment
+
 ssh "$ACCESS" \
         _VIB="$VIB" \
         _CHECKSUM="$CHECKSUM" \
         'sh -s' << 'END_OF_REMOTE_SCRIPT'
-
 set -e
 
 ## Install the VIB
@@ -92,6 +93,7 @@ fi
 esxcli software vib install -v "$_VIB" > /dev/null
 
 ## Patch http proxy endpoints
+
 ENDPOINTS="/etc/vmware/rhttpproxy/endpoints.conf"
 
 mv "$ENDPOINTS" "$ENDPOINTS".bak
@@ -101,7 +103,14 @@ sed -i '/^\/ui/d' "$ENDPOINTS"
 
 /etc/init.d/rhttpproxy restart > /dev/null 2>&1
 
+## Insert a link in the welcome web page
+
+HTML="/usr/lib/vmware/hostd/docroot/index.html"
+cp "$HTML" "$HTML.bak"
+sed -i "35 a <li><a href='https://$(hostname)/ui/'>Log into the ESXi Embedded Host Client</a><li>" "$HTML"
+
 ## Clean up
+
 rm -fr "$_VIB"
 
 END_OF_REMOTE_SCRIPT
