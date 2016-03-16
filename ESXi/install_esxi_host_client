@@ -52,7 +52,7 @@ VIB="/tmp/esxui.vib"
 [ ! -f "$VIB" ] && {
     echo
     echo "Downloading the VIB"
-    URL="http://download3.vmware.com/software/vmw-tools/esxui/esxui-signed.vib"
+    URL="http://download3.vmware.com/software/vmw-tools/esxui/esxui-signed-3623722.vib"
     download_to_file "$URL" "$VIB"
 }
 
@@ -92,7 +92,8 @@ fi
 
 esxcli software vib install -v "$_VIB" > /dev/null
 
-## Patch http proxy endpoints
+## Patch http proxy endpoints for ESXi 5.5U2 and prior, and ESXi 6.0 hosts
+## upgraded from any 5.5U2 or prior version...
 
 ENDPOINTS="/etc/vmware/rhttpproxy/endpoints.conf"
 
