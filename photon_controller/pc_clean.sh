@@ -61,8 +61,10 @@ for flavor_id in $(photon flavor list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}
     photon -n flavor delete "$flavor_id"
 done
 
-# TODO Prompt to delete images
-
-for image_id in $(photon image list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
-    photon -n image delete "$image_id"
-done
+read -p "Shall I delete all images? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    for image_id in $(photon image list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+        photon -n image delete "$image_id"
+    done
+}
