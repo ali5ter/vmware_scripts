@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# @file pc_create_flavors.sh
+# Populate an instance with some objects
+# @see https://github.com/vmware/photon-controller/wiki/Command-Line-Cheat-Sheet
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+type photon &> /dev/null || {
+    echo "Please install photon CLI by downloading it from the release page at"
+    echo "https://github.com/vmware/photon-controller/releases"
+    echo "Add execute permissions and move into your path, e.g."
+    echo "  chmod +x ~/Downloads/photon-darwin64-1.2-dd9d360"
+    echo "  sudo mv ~/Downloads/photon-darwin64-1.2-dd9d360 /usr/local/bin/photon"
+    exit 1
+}
+
+photon deployment list &> /dev/null || {
+    echo "Set your Photon Platform target and log into it, e.g."
+    echo "  photon target set -c https://192.168.0.10:443"
+    echo "  photon target login --username administrator@local --password 'passwd'"
+    exit 1
+}
+
+read -p "Shall I clear out all existing objects from this instance? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && "$PWD/pc_clean.sh"
+
+read -p "Shall I create flavors for this instance? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && "$PWD/pc_create_flavors.sh"
+
+read -p "Shall I upload images to this instance? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && "$PWD/pc_upload_images.sh"
+
+NUM_TENANTS=10
+TENANT_NAMES=$(seq $NUM_TENANTS | xargs -Iz "$PWD/generate_word_string.sh")
+
+set -x
+
+# Inconsistent option to define the name. Probably should be --name ...
+photon -n tenant create 'Test-Tenant' --limits "\
+vm 20000 COUNT, vm.cost 20000 COUNT, vm.cpu 20000 COUNT, vm.memory 20000 GB, \
+ephemeral-disk 20000 COUNT, ephemeral-disk.capacity 20000 GB, ephemeral-disk.cost 20000 GB, \
+persistent-disk 20000 COUNT, persistent-disk.capacity 20000 GB, persistent-disk.cost 20000 GB, \
+storage.LOCAL_VMFS 20000 COUNT, \
+sdn.floatingip.size 20000 COUNT"
+
+for tenant in $TENANT_NAMES; do
+    photon -n tenant create "$tenant" --limits "\
+vm 100 COUNT, vm.cost 100 COUNT, vm.cpu 100 COUNT, vm.memory 100 GB, \
+ephemeral-disk 100 COUNT, ephemeral-disk.capacity 100 GB, ephemeral-disk.cost 100 GB, \
+persistent-disk 100 COUNT, persistent-disk.capacity 100 GB, persistent-disk.cost 100 GB, \
+storage.LOCAL_VMFS 100 COUNT, \
+sdn.floatingip.size 100 COUNT"
+
+done
+
+# Should be easier to get the name of an object...
+for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | awk '{print $2}'); do
+    echo "$tenant"
+    # TODO create projects
+done
+
