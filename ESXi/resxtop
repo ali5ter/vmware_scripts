@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# @file resxtop
+# Remotely access esxtop
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+set -ex
+
+ESXHOST="$1"
+
+[ ! -n "$ESXHOST" ] && {
+    echo
+    echo "This script depends on SSH being enabled on your ESXi host."
+    echo "Please CNTRL-C out of this script and enable SSH now if you want to continue."
+    echo
+    read -rp "What is the address or IP of the ESXi host? " ESXHOST
+}
+
+ACCESS="root@$ESXHOST"
+
+TERM=xterm
+
+ssh "$ACCESS" 'export TERM=xterm; esxtop'
