@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Create a private repo on git.eng.vmware.com
+# @see https://wiki.eng.vmware.com/Git#Creating_a_.22private.22_repository
+# Usage: migrate repo_name repo_description
+
+R=$1; shift ## @param: repo_name
+D=$@        ## @param: repo_description
+
+U=bowena    ## EDIT: your username on git.eng.vmware.com
+
+[ -z "$R" ] && {
+    echo "Usage: $0 git_repo_name [description]"
+    exit 1
+}
+
+echo "Creating $R on git.eng.vmware.com"
+echo "Repo description: $D"
+
+git clone ssh://git@git.eng.vmware.com/private/${U}/${R}
+echo "$D" | ssh git@git.eng.vmware.com setdesc private/${U}/${R}
+rm -fR ${R}
+
+echo
+echo "Now clone this repo to your development directory using:"
+echo "git clone ssh://git@git.eng.vmware.com/private/${U}/${R}"
+echo
+echo "Then add the remote:"
+echo "git remote add origin ssh://git@git.eng.vmware.com/private/${U}/${R}"
+echo
+echo "Allow others to write to tthis private repo usng:"
+echo "echo \"WRITERS user1 user2\" | ssh git@git.eng.vmware.com setperms /private/${U}/${R}"
+echo
+echo "More infromation can be found at: https://wiki.eng.vmware.com/Git"
+

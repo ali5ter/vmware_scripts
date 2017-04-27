@@ -1,0 +1,35 @@
+#!/bin/bash
+# Migrate a repo from gitorious.eng.vmware.com to git.eng.vmware.com
+# @see https://wiki.eng.vmware.com/Git#Migrating_an_existing_Repository
+# Usage: migrate repo_name repo_description
+
+R=$1; shift ## @param: repo_name
+D=$@        ## @param: repo_description
+
+U=bowena    ## EDIT: your username on git.eng.vmware.com
+U1=alb      ## EDIT: folder name on gitorious (if you use one)
+
+echo "Migrating $R from gitorious.eng.vmware.com to git.eng.vmware.com"
+echo "Repo description: $D"
+
+#
+# Create repo on git.eng.vmware.com
+#
+
+git clone ssh://git@git.eng.vmware.com/private/${U}/${R}
+echo "$D" | ssh git@git.eng.vmware.com setdesc private/${U}/${R}
+rm -fR ${R}
+
+#
+# Clone repo from gitorious.eng.vmware.com
+#
+
+git clone git@gitorious.eng.vmware.com:${U1}/${R}.git
+
+#
+# Push content to git.eng.vmware.com
+#
+
+cd ${R}/
+git remote add vmware_git ssh://git@git.eng.vmware.com/private/${U}/${R}.git
+git push vmware_git refs/*:refs/*
