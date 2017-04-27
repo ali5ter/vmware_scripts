@@ -20,15 +20,19 @@ photon deployment list &> /dev/null || {
     exit 1
 }
 
-set -x
-
 ASSETS_DIR="$PWD/assets"
 
 # Downloaded from https://github.com/vmware/photon/wiki/Downloading-Photon-OS
-PHOTON_IMAGE="$ASSETS_DIR/photon-custom-hw10-1.0-62c543d.ova"
+PHOTON_IMAGE_URL="https://bintray.com/vmware/photon/download_file?file_path=photon-custom-hw10-1.0-62c543d.ova"
+PHOTON_IMAGE="$ASSETS_DIR/photon.ova"
+[ ! -f "$PHOTON_IMAGE" ] && curl -L -o "$PHOTON_IMAGE" "$PHOTON_IMAGE_URL"
 
 # Downloaded from https://github.com/vmware/photon-controller/releases/tag/v1.2.0
-KUBE_IMAGE="$ASSETS_DIR/kubernetes-1.4.3-pc-1.1.0-5de1cb7.ova"
+KUBE_IMAGE_URL="https://github.com/vmware/photon-controller/releases/download/v1.2.0/kubernetes-1.6.0-pc-1.2-dd9d360.ova"
+KUBE_IMAGE="$ASSETS_DIR/kubernetes.ova"
+[ ! -f "$KUBE_IMAGE" ] && curl -L -o "$KUBE_IMAGE" "$KUBE_IMAGE_URL"
+
+set -x
 
 # Strange that -n can mean both non-interactive AND name of the flavor
 # Even though these options are positional, this is very ambiguous for the user...
@@ -43,4 +47,8 @@ photon -n image create --name kube1 --image_replication ON_DEMAND "$KUBE_IMAGE" 
 
 # TODO upload image to a project
 
-photon image list
+set +x
+
+sleep 2
+echo "Watch images uploading using a command like:"
+echo "  while true; do clear; photon image list; sleep 5; done"
