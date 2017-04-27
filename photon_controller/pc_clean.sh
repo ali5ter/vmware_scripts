@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file pc_create_flavors.sh
-# Create some useful Photon Controller Flavors
+# Remove all objects from an instance
 # @see https://github.com/vmware/photon-controller/wiki/Command-Line-Cheat-Sheet
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
@@ -52,6 +52,8 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
         # Should be easier to get the ID of an object...
         photon -n project delete "$(photon project get | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")"
     done
+
+    photon -n tenant delete "$(photon tenant get | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")"
 
 done
 
