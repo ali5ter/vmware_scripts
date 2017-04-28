@@ -36,18 +36,21 @@ NUM_TENANTS=10
 TENANT_NAMES=$(seq $NUM_TENANTS | xargs -Iz "$PWD/generate_word_string.sh")
 TEST_TENANT='Test-Tenant'
 TEST_PROJECT='Test-Project'
-LIMITS_LARGE="\
-vm 20000 COUNT, vm.cost 20000 COUNT, vm.cpu 20000 COUNT, vm.memory 20000 GB, \
-ephemeral-disk 20000 COUNT, ephemeral-disk.capacity 20000 GB, ephemeral-disk.cost 20000 GB, \
-persistent-disk 20000 COUNT, persistent-disk.capacity 20000 GB, persistent-disk.cost 20000 GB, \
-storage.LOCAL_VMFS 20000 COUNT, \
-sdn.floatingip.size 20000 COUNT"
-LIMITS_SMALL="\
-vm 100 COUNT, vm.cost 100 COUNT, vm.cpu 100 COUNT, vm.memory 100 GB, \
-ephemeral-disk 100 COUNT, ephemeral-disk.capacity 100 GB, ephemeral-disk.cost 100 GB, \
-persistent-disk 100 COUNT, persistent-disk.capacity 100 GB, persistent-disk.cost 100 GB, \
-storage.LOCAL_VMFS 100 COUNT, \
-sdn.floatingip.size 100 COUNT"
+
+limits() {
+    local spec="\
+vm %d COUNT, vm.cost %d COUNT, vm.cpu %d COUNT, vm.memory %d GB, \
+ephemeral-disk %d COUNT, ephemeral-disk.capacity %d GB, ephemeral-disk.cost %d GB, \
+persistent-disk %d COUNT, persistent-disk.capacity %d GB, persistent-disk.cost %d GB, \
+storage.LOCAL_VMFS %d COUNT, \
+sdn.floatingip.size %d COUNT"
+    local v=${1-100}
+    printf "$spec" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v"
+}
+
+LIMITS_LARGE=$(limits 20000)
+LIMITS_SMALL=$(limits 100)
+LIMITS_TINY=$(limits 10)
 
 set -x
 
@@ -128,7 +131,7 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
 
     for project in $PROJECT_NAMES; do
 
-        photon -n project create "$project" --limits "$LIMITS_SMALL"
+        photon -n project create "$project" --limits "$LIMITS_TINY"
     done
 
 done
