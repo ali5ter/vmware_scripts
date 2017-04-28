@@ -39,20 +39,24 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
             photon -n service delete "$service_id"
         done
 
-        # TODO delete vms
+        for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+            photon vm show "$vm_id" | grep -q STARTED && photon vm stop "$vm_id"
+            photon -n vm delete "$vm_id"
+        done
+
+        for disk_id in $(photon disk list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+            photon -n disk delete "$disk_id"
+        done
 
         # Should be easier to get IDs but also they're not consistent...
         for subnet_id in $(photon subnet list | grep -Eo "[0-9a-f]{21}"); do
-
             photon -n subnet delete "$subnet_id"
         done
 
         # Be nice to have a filter option to list non-default routers...
         for router_id in $(photon router list | grep -Eo "[0-9a-f]{21}"); do
-
             photon -n router delete "$router_id"
         done
-
 
         # Should be easier to get the ID of an object...
         photon -n project delete "$(photon project get | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")"
