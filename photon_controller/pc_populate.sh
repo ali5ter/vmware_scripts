@@ -59,7 +59,8 @@ photon tenant set "$TEST_TENANT"
 
 # Should be easier to get the ID of an object...
 # Also show show default object if no ID supplied...
-photon tenant show $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+photon tenant show $(photon tenant list | grep "$TEST_TENANT" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+echo
 
 # Should be allowed to identify an object by it's name OR ID.
 # Also the name should be a named option, i.e. --name...
@@ -72,7 +73,8 @@ photon project set "$TEST_PROJECT"
 
 # Should be easier to get the ID of an object...
 # Also show show default object if no ID supplied...
-photon project show $(photon project list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+photon project show $(photon project list | grep "$TEST_PROJECT" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+echo
 
 # Should be an easier way to parse the ID...
 # Object IDs are inconsistent...
@@ -83,6 +85,7 @@ photon -n router create --name "${TEST_PROJECT}-router-2" \
     --privateIpCidr 11.0.0.0/16
 
 photon router list
+echo
 
 # Clearer alternative to --privateIpCidr would be --private-cidr...
 photon -n subnet create --name "${TEST_PROJECT}-subnet-1" \
@@ -97,6 +100,7 @@ default_subnet=$(photon subnet list | grep -Eo "[0-9a-f]{21}" | tail -n 1)
 photon -n subnet set-default "$default_subnet"
 
 photon subnet list
+echo
 
 # TODO: Create VMs
 
