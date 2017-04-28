@@ -47,28 +47,37 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
             photon -n subnet delete "$subnet_id"
         done
 
-        # TODO delete non-default routers
+        # Be nice to have a filter option to list non-default routers...
+        for router_id in $(photon router list | grep -Eo "[0-9a-f]{21}"); do
+
+            photon -n router delete "$router_id"
+        done
+
 
         # Should be easier to get the ID of an object...
         photon -n project delete "$(photon project get | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")"
     done
 
     photon -n tenant delete "$(photon tenant get | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")"
-
 done
 
+set +x
 read -p "Shall I delete all flavors? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && {
+    set -x
     for flavor_id in $(photon flavor list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
         photon -n flavor delete "$flavor_id"
     done
+    set +x
 }
 
 read -p "Shall I delete all images? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && {
+    set -x
     for image_id in $(photon image list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
         photon -n image delete "$image_id"
     done
+    set +x
 }
