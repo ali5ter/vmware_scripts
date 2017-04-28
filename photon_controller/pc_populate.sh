@@ -57,6 +57,10 @@ photon -n tenant create "$TEST_TENANT" --limits "$LIMITS_LARGE"
 # Inconsistent option to define set. Probably should be set-default...
 photon tenant set "$TEST_TENANT"
 
+# Should be easier to get the ID of an object...
+# Also show show default object if no ID supplied...
+photon tenant show $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
 # Should be allowed to identify an object by it's name OR ID.
 # Also the name should be a named option, i.e. --name...
 # Also a clearer alternative to --default-router-private-ip-cidr would be
@@ -66,12 +70,19 @@ photon -n project create "$TEST_PROJECT" --tenant "$TEST_TENANT" -limits "$LIMIT
 
 photon project set "$TEST_PROJECT"
 
+# Should be easier to get the ID of an object...
+# Also show show default object if no ID supplied...
+photon project show $(photon project list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
 # Should be an easier way to parse the ID...
+# Object IDs are inconsistent...
 router=$(photon router list | grep -Eo "[0-9a-f]{21}")
 
 # Tenant and project options should use default...
 photon -n router create --name "${TEST_PROJECT}-router-2" \
     --privateIpCidr 11.0.0.0/16
+
+photon router list
 
 # Clearer alternative to --privateIpCidr would be --private-cidr...
 photon -n subnet create --name "${TEST_PROJECT}-subnet-1" \
@@ -85,22 +96,20 @@ default_subnet=$(photon subnet list | grep -Eo "[0-9a-f]{21}" | tail -n 1)
 
 photon -n subnet set-default "$default_subnet"
 
+photon subnet list
+
 # TODO: Create VMs
 
 # TODO: Create Services
 
 #
-# Create filler Tenants
+# Create filler Tenants and Projects
 #
 
 for tenant in $TENANT_NAMES; do
 
     photon -n tenant create "$tenant" --limits "$LIMITS_SMALL"
 done
-
-#
-# Create filler projects
-#
 
 # Should be easier to get the name of an object...
 for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | awk '{print $2}'); do
@@ -109,7 +118,7 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
     photon tenant set "$tenant"
 
     set +x
-    NUM_PROJECTS=$(( (RANDOM%10)+2 ))
+    NUM_PROJECTS=$(( ( RANDOM % 10 )  + 1 ))
     PROJECT_NAMES=$(seq $NUM_PROJECTS | xargs -Iz "$PWD/generate_word_string.sh")
     set -x
 
