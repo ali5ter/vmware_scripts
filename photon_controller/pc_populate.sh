@@ -36,6 +36,7 @@ NUM_TENANTS=10
 TENANT_NAMES=$(seq $NUM_TENANTS | xargs -Iz "$PWD/generate_word_string.sh")
 TEST_TENANT='Test-Tenant'
 TEST_PROJECT='Test-Project'
+TEST_VM='Test-VM'
 
 limits() {
     local spec="\
@@ -57,6 +58,10 @@ set -x
 # Inconsistent option to define the name. Probably should be --name ...
 photon -n tenant create "$TEST_TENANT" --limits "$LIMITS_LARGE"
 
+# Inconsistent positional option for object name...
+photon -n tenant quota update "$TEST_TENANT" --limits 'ephemeral-disk.flavor.vm-disk 20000 COUNT'
+photon -n tenant quota update "$TEST_TENANT" --limits 'persistent-disk.flavor.vm-disk 20000 COUNT'
+
 # Inconsistent option to define set. Probably should be set-default...
 photon tenant set "$TEST_TENANT"
 
@@ -72,11 +77,18 @@ echo
 photon -n project create "$TEST_PROJECT" --tenant "$TEST_TENANT" -limits "$LIMITS_LARGE" \
     --default-router-private-ip-cidr 10.0.10.0/16
 
+# Should be easier to get the ID of an object...
+project_id=$(photon project list | grep "$TEST_PROJECT" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+# Inconsistent positional option for object name...
+photon -n project quota update "$project_id" --limits 'ephemeral-disk.flavor.vm-disk 20000 COUNT'
+photon -n project quota update "$project_id" --limits 'persistent-disk.flavor.vm-disk 20000 COUNT'
+
+# Should be able to use name or ID...
 photon project set "$TEST_PROJECT"
 
-# Should be easier to get the ID of an object...
 # Also show show default object if no ID supplied...
-photon project show $(photon project list | grep "$TEST_PROJECT" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+photon project show "$project_id"
 echo
 
 # Should be an easier way to parse the ID...
@@ -105,7 +117,34 @@ photon -n subnet set-default "$default_subnet"
 photon subnet list
 echo
 
-# TODO: Create VMs
+# Unable to define disk affinity with a VM - throws an error
+photon -n disk create --name "${TEST_PROJECT}-disk-1" --flavor vm-disk --capacityGB 100
+
+disk_id=$(photon disk list | grep "${TEST_PROJECT}-disk-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+photon disk show "$disk_id"
+echo
+
+image_id=$(photon image list | grep photon1 | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+photon -n vm create --name "${TEST_VM}-1" --flavor tiny-vm --image "$image_id" --boot-disk-flavor vm-disk
+photon -n vm create --name "${TEST_VM}-2" --flavor small-vm --image "$image_id" --boot-disk-flavor vm-disk
+photon -n vm create --name "${TEST_VM}-3" --flavor medium-vm --image "$image_id" --boot-disk-flavor vm-disk
+
+# Unable to attach a disk - thows an error
+photon -n vm attach-disk --disk "$disk_id" $(photon vm list | grep "${TEST_VM}-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+    photon -n vm start "$vm_id"
+done
+
+for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+    photon vm show "$vm_id"
+    echo
+done
+
+photon vm list
+echo
 
 # TODO: Create Services
 
