@@ -109,30 +109,28 @@ echo
 
 # TODO: Create Services
 
-#
-# Create filler Tenants and Projects
-#
+set +x
+read -p "Should I fill out the UI with more tenants and projects? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && {
 
-for tenant in $TENANT_NAMES; do
-
-    photon -n tenant create "$tenant" --limits "$LIMITS_SMALL"
-done
-
-# Should be easier to get the name of an object...
-for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | awk '{print $2}'); do
-
-    # Should be allowed to identify an object by it's name OR ID...
-    photon tenant set "$tenant"
-
-    set +x
-    NUM_PROJECTS=$(( ( RANDOM % 10 )  + 1 ))
-    PROJECT_NAMES=$(seq $NUM_PROJECTS | xargs -Iz "$PWD/generate_word_string.sh")
-    set -x
-
-    for project in $PROJECT_NAMES; do
-
-        photon -n project create "$project" --limits "$LIMITS_TINY"
+    for tenant in $TENANT_NAMES; do
+        photon -n tenant create "$tenant" --limits "$LIMITS_SMALL"
     done
 
-done
+    # Should be easier to get the name of an object...
+    for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | awk '{print $2}'); do
 
+        # Should be allowed to identify an object by it's name OR ID...
+        photon tenant set "$tenant"
+
+        set +x
+        NUM_PROJECTS=$(( ( RANDOM % 10 )  + 1 ))
+        PROJECT_NAMES=$(seq $NUM_PROJECTS | xargs -Iz "$PWD/generate_word_string.sh")
+        set -x
+
+        for project in $PROJECT_NAMES; do
+            photon -n project create "$project" --limits "$LIMITS_TINY"
+        done
+    done
+}
