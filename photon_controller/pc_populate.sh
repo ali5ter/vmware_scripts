@@ -152,6 +152,7 @@ set +x
 read -p "Should I fill out the UI with more tenants and projects? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && {
+    set -x
 
     for tenant in $TENANT_NAMES; do
         photon -n tenant create "$tenant" --limits "$LIMITS_SMALL"
