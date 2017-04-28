@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file pc_create_flavors.sh
+# @file pc_populate.sh
 # Populate an instance with some objects
 # @see https://github.com/vmware/photon-controller/wiki/Command-Line-Cheat-Sheet
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
@@ -34,14 +34,14 @@ echo
 
 NUM_TENANTS=10
 TENANT_NAMES=$(seq $NUM_TENANTS | xargs -Iz "$PWD/generate_word_string.sh")
-
+TEST_TENANT='Test-Tenant'
+TEST_PROJECT='Test-Project'
 LIMITS_LARGE="\
 vm 20000 COUNT, vm.cost 20000 COUNT, vm.cpu 20000 COUNT, vm.memory 20000 GB, \
 ephemeral-disk 20000 COUNT, ephemeral-disk.capacity 20000 GB, ephemeral-disk.cost 20000 GB, \
 persistent-disk 20000 COUNT, persistent-disk.capacity 20000 GB, persistent-disk.cost 20000 GB, \
 storage.LOCAL_VMFS 20000 COUNT, \
 sdn.floatingip.size 20000 COUNT"
-
 LIMITS_SMALL="\
 vm 100 COUNT, vm.cost 100 COUNT, vm.cpu 100 COUNT, vm.memory 100 GB, \
 ephemeral-disk 100 COUNT, ephemeral-disk.capacity 100 GB, ephemeral-disk.cost 100 GB, \
@@ -52,14 +52,38 @@ sdn.floatingip.size 100 COUNT"
 set -x
 
 # Inconsistent option to define the name. Probably should be --name ...
-photon -n tenant create 'Test-Tenant' --limits "$LIMITS_LARGE"
+photon -n tenant create "$TEST_TENANT" --limits "$LIMITS_LARGE"
 
-# Should be allowed to identify an object by it's name OR ID...
-photon -n project create 'Test-Project' --tenant 'Test-Tenant' -limits "$LIMITS_LARGE"
+# Inconsistent option to define set. Probably should be set-default...
+photon tenant set "$TEST_TENANT"
 
-# TODO: Create subnets in default router
+# Should be allowed to identify an object by it's name OR ID.
+# Also the name should be a named option, i.e. --name...
+# Also a clearer alternative to --default-router-private-ip-cidr would be
+#  --private-cidr...
+photon -n project create "$TEST_PROJECT" --tenant "$TEST_TENANT" -limits "$LIMITS_LARGE" \
+    --default-router-private-ip-cidr 10.0.10.0/16
 
-# TODO: Create additional routers and subnets
+photon project set "$TEST_PROJECT"
+
+# Should be an easier way to parse the ID...
+router=$(photon router list | grep -Eo "[0-9a-f]{21}")
+
+# Tenant and project options should use default...
+photon -n router create --name "${TEST_PROJECT}-router-2" \
+    --privateIpCidr 11.0.0.0/16
+
+# Clearer alternative to --privateIpCidr would be --private-cidr...
+photon -n subnet create --name "${TEST_PROJECT}-subnet-1" \
+    --description "$("$PWD/generate_word_string.sh" 12 ' ')" \
+    --privateIpCidr 10.0.10.0/24 --router "$router" --type NAT
+photon -n subnet create --name "${TEST_PROJECT}-subnet-2" \
+    --description "$("$PWD/generate_word_string.sh" 10 ' ')" \
+    --privateIpCidr 10.0.20.0/24 --router "$router" --type NAT
+
+default_subnet=$(photon subnet list | grep -Eo "[0-9a-f]{21}" | tail -n 1)
+
+photon -n subnet set-default "$default_subnet"
 
 # TODO: Create VMs
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file pc_create_flavors.sh
+# @file pc_clean.sh
 # Remove all objects from an instance
 # @see https://github.com/vmware/photon-controller/wiki/Command-Line-Cheat-Sheet
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
@@ -57,9 +57,13 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
 
 done
 
-for flavor_id in $(photon flavor list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
-    photon -n flavor delete "$flavor_id"
-done
+read -p "Shall I delete all flavors? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    for flavor_id in $(photon flavor list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+        photon -n flavor delete "$flavor_id"
+    done
+}
 
 read -p "Shall I delete all images? [y/N] " -n 1 -r
 echo

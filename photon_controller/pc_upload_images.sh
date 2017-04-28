@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file pc_create_flavors.sh
+# @file pc_upload_images.sh
 # Upload images to an instance
 # @see https://github.com/vmware/photon-controller/wiki/Command-Line-Cheat-Sheet
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
