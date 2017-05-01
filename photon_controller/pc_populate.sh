@@ -37,6 +37,7 @@ TENANT_NAMES=$(seq $NUM_TENANTS | xargs -Iz "$PWD/generate_word_string.sh")
 TEST_TENANT='Test-Tenant'
 TEST_PROJECT='Test-Project'
 TEST_VM='Test-VM'
+TEST_SERVICE="Test-Service"
 
 limits() {
     local spec="\
@@ -146,7 +147,19 @@ done
 photon vm list
 echo
 
-# TODO: Create Services
+# How do you see what service types are assigned to images?
+image_id=$(photon image list | grep kube | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+# No way to know if type already given to this image...
+photon -n deployment enable-service-type --type KUBERNETES -image-id "$image_id"
+
+# Not had a successful K8 deployment yet...
+photon -n service create --name "$TEST_CLUSTER" --type KUBERNETES \
+    --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
+    --container-network 10.2.0.0/16 --vm_flavor service-other-vm --disk_flavor vm-disk
+
+photon service list
+echo
 
 set +x
 read -p "Should I fill out the UI with more tenants and projects? [y/N] " -n 1 -r
