@@ -44,10 +44,10 @@ limits() {
 vm %d COUNT, vm.cost %d COUNT, vm.cpu %d COUNT, vm.memory %d GB, \
 ephemeral-disk %d COUNT, ephemeral-disk.capacity %d GB, ephemeral-disk.cost %d GB, \
 persistent-disk %d COUNT, persistent-disk.capacity %d GB, persistent-disk.cost %d GB, \
-storage.LOCAL_VMFS %d COUNT, \
+storage.LOCAL_VMFS %d COUNT, storage.VSAN %d COUNT, \
 sdn.floatingip.size %d COUNT"
     local v=${1-100}
-    printf "$spec" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v"
+    printf "$spec" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v" "$v"
 }
 
 LIMITS_LARGE=$(limits 20000)
@@ -154,9 +154,9 @@ image_id=$(photon image list | grep kube | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{
 photon -n deployment enable-service-type --type KUBERNETES -image-id "$image_id"
 
 # Not had a successful K8 deployment yet...
-photon -n service create --name "$TEST_CLUSTER" --type KUBERNETES \
+photon -n service create --name "$TEST_SERVICE" --type KUBERNETES \
     --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
-    --container-network 10.2.0.0/16 --vm_flavor service-other-vm --disk_flavor vm-disk
+    --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk
 
 photon service list
 echo
