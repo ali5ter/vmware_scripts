@@ -28,6 +28,7 @@ photon -n flavor create --kind vm --name tiny-vm --cost "vm.cpu 1 COUNT, vm.memo
 photon -n flavor create --kind vm --name small-vm --cost "vm.cpu 1 COUNT, vm.memory 1 MB, vm.cost 2 COUNT"
 photon -n flavor create --kind vm --name medium-vm --cost "vm.cpu 2 COUNT, vm.memory 2 MB, vm.cost 3 COUNT"
 photon -n flavor create --kind vm --name large-vm --cost "vm.cpu 2 COUNT, vm.memory 4 MB, vm.cost 4 COUNT"
+photon -n flavor create --kind vm --name kube-worker-vm --cost "vm.cpu 1 COUNT, vm.memory 2 MB, vm.cost 1 COUNT"
 
 photon -n flavor create --kind ephemeral-disk --name vm-disk --cost "ephemeral-disk 1 COUNT, ephemeral-disk.flavor.vm-disk 1 COUNT, ephemeral-disk.cost 1 COUNT"
 photon -n flavor create --kind ephemeral-disk --name cluster-vm-disk --cost "ephemeral-disk 1 COUNT, ephemeral-disk.flavor.cluster-vm-disk 1 COUNT, ephemeral-disk.cost 1 COUNT"
