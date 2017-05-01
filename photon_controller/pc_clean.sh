@@ -54,7 +54,7 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
         done
 
         # Be nice to have a filter option to list non-default routers...
-        for router_id in $(photon router list | grep -Eo "[0-9a-f]{21}"); do
+        for router_id in $(photon router list | grep false | grep -Eo "[0-9a-f]{21}"); do
             photon -n router delete "$router_id"
         done
 
