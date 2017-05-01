@@ -132,7 +132,6 @@ photon -n vm create --name "${TEST_VM}-1" --flavor tiny-vm --image "$image_id" -
 photon -n vm create --name "${TEST_VM}-2" --flavor small-vm --image "$image_id" --boot-disk-flavor vm-disk
 photon -n vm create --name "${TEST_VM}-3" --flavor medium-vm --image "$image_id" --boot-disk-flavor vm-disk
 
-# Unable to attach a disk - thows an error
 photon -n vm attach-disk --disk "$disk_id" $(photon vm list | grep "${TEST_VM}-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
 
 for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
@@ -154,7 +153,7 @@ photon system info | grep -q KUBERNETES || {
     photon -n deployment enable-service-type --type KUBERNETES -image-id "$image_id"
 }
 
-# Not had a successful K8 deployment yet...
+# Worker count option has inconsistent syntax; should be -number-of-workers...
 photon -n service create --name "$TEST_SERVICE" --type KUBERNETES \
     --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
     --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk &
