@@ -147,19 +147,17 @@ done
 photon vm list
 echo
 
-# How do you see what service types are assigned to images?
-image_id=$(photon image list | grep kube | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+# Should be able to get service type from the image list...
+photon system info | grep -q KUBERNETES || {
 
-# No way to know if type already given to this image...
-photon -n deployment enable-service-type --type KUBERNETES -image-id "$image_id"
+    image_id=$(photon image list | grep kube | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+    photon -n deployment enable-service-type --type KUBERNETES -image-id "$image_id"
+}
 
 # Not had a successful K8 deployment yet...
 photon -n service create --name "$TEST_SERVICE" --type KUBERNETES \
     --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
-    --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk
-
-photon service list
-echo
+    --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk &
 
 set +x
 read -p "Should I fill out the UI with more tenants and projects? [y/N] " -n 1 -r
@@ -183,7 +181,9 @@ echo
         set -x
 
         for project in $PROJECT_NAMES; do
-            photon -n project create "$project" --limits "$LIMITS_TINY"
+
+            # Percent option should probably be --limit-percentage...
+            photon -n project create "$project" --percent 10
         done
     done
 }
