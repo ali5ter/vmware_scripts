@@ -37,7 +37,7 @@ TENANT_NAMES=$(seq $NUM_TENANTS | xargs -Iz "$PWD/generate_word_string.sh")
 TEST_TENANT='Test-Tenant'
 TEST_PROJECT='Test-Project'
 TEST_VM='Test-VM'
-TEST_SERVICE="Test-Service"
+TEST_SERVICE='Test-Service'
 
 limits() {
     local spec="\
@@ -52,7 +52,6 @@ sdn.floatingip.size %d COUNT"
 
 LIMITS_LARGE=$(limits 20000)
 LIMITS_SMALL=$(limits 100)
-LIMITS_TINY=$(limits 10)
 
 set -x
 
@@ -68,7 +67,7 @@ photon tenant set "$TEST_TENANT"
 
 # Should be easier to get the ID of an object...
 # Also show show default object if no ID supplied...
-photon tenant show $(photon tenant list | grep "$TEST_TENANT" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+photon tenant show "$(photon tenant list | grep "$TEST_TENANT" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")"
 echo
 
 # Should be allowed to identify an object by it's name OR ID.
@@ -107,9 +106,6 @@ echo
 photon -n subnet create --name "${TEST_PROJECT}-subnet-1" \
     --description "$("$PWD/generate_word_string.sh" 12 ' ')" \
     --privateIpCidr 10.0.10.0/24 --router "$router" --type NAT
-photon -n subnet create --name "${TEST_PROJECT}-subnet-2" \
-    --description "$("$PWD/generate_word_string.sh" 10 ' ')" \
-    --privateIpCidr 10.0.20.0/24 --router "$router" --type NAT
 
 default_subnet=$(photon subnet list | grep -Eo "[0-9a-f]{21}" | tail -n 1)
 
@@ -126,19 +122,15 @@ disk_id=$(photon disk list | grep "${TEST_PROJECT}-disk-1" | grep -Eo "\w{8}-\w{
 photon disk show "$disk_id"
 echo
 
-image_id=$(photon image list | grep photon1 | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+photon -n vm attach-disk --disk "$disk_id" "$vm_id"
 
-photon -n vm create --name "${TEST_VM}-1" --flavor tiny-vm --image "$image_id" --boot-disk-flavor vm-disk
-photon -n vm create --name "${TEST_VM}-2" --flavor small-vm --image "$image_id" --boot-disk-flavor vm-disk
-photon -n vm create --name "${TEST_VM}-3" --flavor medium-vm --image "$image_id" --boot-disk-flavor vm-disk
+vm_id_list=$(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
 
-photon -n vm attach-disk --disk "$disk_id" $(photon vm list | grep "${TEST_VM}-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
-
-for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+for vm_id in $vm_id_list; do
     photon -n vm start "$vm_id"
 done
 
-for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+for vm_id in $vm_id_list; do
     photon vm show "$vm_id"
     echo
 done
