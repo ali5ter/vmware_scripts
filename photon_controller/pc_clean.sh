@@ -41,6 +41,10 @@ for tenant in $(photon tenant list | grep -E "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}" | 
 
         for vm_id in $(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
             photon vm show "$vm_id" | grep -q STARTED && photon vm stop "$vm_id"
+            for disk_id in $(photon disk list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}"); do
+                photon vm show "$vm_id" | grep -q "$disk_id" && \
+                    photon vm detach-disk --disk "$disk_id" "$vm_id"
+            done
             photon -n vm delete "$vm_id"
         done
 
