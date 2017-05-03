@@ -41,7 +41,7 @@ TEST_SERVICE="Test-Service"
 
 limits() {
     local spec="\
-vm %d COUNT, vm.cost %d COUNT, vm.cpu %d COUNT, vm.memory %d GB, \
+vm.count %d COUNT, vm.cost %d COUNT, vm.cpu %d COUNT, vm.memory %d GB, \
 ephemeral-disk %d COUNT, ephemeral-disk.capacity %d GB, ephemeral-disk.cost %d GB, \
 persistent-disk %d COUNT, persistent-disk.capacity %d GB, persistent-disk.cost %d GB, \
 storage.LOCAL_VMFS %d COUNT, storage.VSAN %d COUNT, \
