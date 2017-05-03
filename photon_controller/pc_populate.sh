@@ -114,7 +114,14 @@ photon -n subnet set-default "$default_subnet"
 photon subnet list
 echo
 
-# Unable to define disk affinity with a VM - throws an error
+image_id=$(photon image list | grep photon1 | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+photon -n vm create --name "${TEST_VM}-1" --flavor tiny-vm --image "$image_id" --boot-disk-flavor vm-disk
+
+vm_id=$(photon vm list | grep "${TEST_VM}-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+# Unable to create affinity with vm created - throws error using...
+#photon -n disk create --name "${TEST_PROJECT}-disk-1" --flavor vm-disk --capacityGB 100 --affinities "vm:$vm_id"
 photon -n disk create --name "${TEST_PROJECT}-disk-1" --flavor vm-disk --capacityGB 100
 
 disk_id=$(photon disk list | grep "${TEST_PROJECT}-disk-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
@@ -122,6 +129,7 @@ disk_id=$(photon disk list | grep "${TEST_PROJECT}-disk-1" | grep -Eo "\w{8}-\w{
 photon disk show "$disk_id"
 echo
 
+# Attach disk sometimes fails...
 photon -n vm attach-disk --disk "$disk_id" "$vm_id"
 
 vm_id_list=$(photon vm list | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
@@ -145,12 +153,18 @@ photon system info | grep -q KUBERNETES || {
     photon -n deployment enable-service-type --type KUBERNETES -image-id "$image_id"
 }
 
+set +x
+read -p "Shall I create a Kubernetes cluster service? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    set -x
 # Worker count option has inconsistent syntax; should be -number-of-workers...
 photon -n service create --name "$TEST_SERVICE" --type KUBERNETES \
     --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
     --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk &
+    set -x
+}
 
-set +x
 read -p "Should I fill out the UI with more tenants and projects? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && {
