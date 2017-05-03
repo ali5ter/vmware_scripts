@@ -158,11 +158,12 @@ read -p "Shall I create a Kubernetes cluster service? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && {
     set -x
-# Worker count option has inconsistent syntax; should be -number-of-workers...
-photon -n service create --name "$TEST_SERVICE" --type KUBERNETES \
-    --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
-    --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk &
-    set -x
+    # Currently throws error when creating etcd VM...
+    # Worker count option has inconsistent syntax; should be -number-of-workers...
+    photon -n service create --name "$TEST_SERVICE" --type KUBERNETES \
+        --number-of-masters 1 --worker_count 1 --number-of-etcds 1 \
+        --container-network 10.2.0.0/16 --vm_flavor kube-worker-vm --disk_flavor vm-disk &
+    set +x
 }
 
 read -p "Should I fill out the UI with more tenants and projects? [y/N] " -n 1 -r
