@@ -1,5 +1,5 @@
 # Photon Controller scripts
-Scripts used with Photon Controller v1.2
+Scripts used with [Photon Controller v1.2](https://github.com/vmware/photon-controller/releases/tag/v1.2.0)
 
 The [pc_populate.sh](pc_populate.sh) scripts cleans a Photon Controller (PC) instance, then re-populates it with objects to get:
 1. A photonOS image for VMs and a Kubernetes image for Clusters
