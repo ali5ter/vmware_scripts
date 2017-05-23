@@ -13,7 +13,7 @@ type photon &> /dev/null || {
     exit 1
 }
 
-photon deployment list &> /dev/null || {
+photon target info | grep -q Version || {
     echo "Set your Photon Platform target and log into it, e.g."
     echo "  photon target set -c https://192.168.0.10:443"
     echo "  photon target login --username administrator@local --password 'passwd'"

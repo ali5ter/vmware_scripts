@@ -13,7 +13,7 @@ type photon &> /dev/null || {
     exit 1
 }
 
-photon deployment list &> /dev/null || {
+photon target info | grep -q Version || {
     echo "Set your Photon Platform target and log into it, e.g."
     echo "  photon target set -c https://192.168.0.10:443"
     echo "  photon target login --username administrator@local --password 'passwd'"
@@ -119,6 +119,10 @@ image_id=$(photon image list | grep photon1 | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-
 photon -n vm create --name "${TEST_VM}-1" --flavor tiny-vm --image "$image_id" --boot-disk-flavor vm-disk
 
 vm_id=$(photon vm list | grep "${TEST_VM}-1" | grep -Eo "\w{8}-\w{4}-\w{4}-\w{4}-\w{12}")
+
+network_id=$(photon vm networks "$vm_id" | grep True | grep -Eo "[0-9a-f]{21}")
+
+photon vm acquire-floating-ip --network_id "$network_id" "$vm_id"
 
 # Unable to create affinity with vm created - throws error using...
 #photon -n disk create --name "${TEST_PROJECT}-disk-1" --flavor vm-disk --capacityGB 100 --affinities "vm:$vm_id"
