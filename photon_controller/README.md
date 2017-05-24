@@ -9,6 +9,7 @@ The [pc_populate.sh](pc_populate.sh) scripts cleans a Photon Controller (PC) ins
 5. A default subnet connected to the default project router
 6. A persistant disk for the project
 5. A test VM in the project
+6. A floating IP associated with the VM
 6. A test cluster for kubernetes
 7. The choice of 10 more tenants with between 1 and 10 projects in them.
 
