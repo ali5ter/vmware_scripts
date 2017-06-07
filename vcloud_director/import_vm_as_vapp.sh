@@ -32,64 +32,54 @@ _help() {
     return 0
 }
 
-oIFS=$IFS
-IFS=$(echo -en "\n\b")  ## Guard against spaces in path names
-
-#
-# Parse input...
-#
-
-VMNAME=$1
-VMID=$2
-SSERVER=$3
-TSERVER=$4
-SUSER=''
-SPASSWD=''
-TUSER=''
-TORG=''
-TTICKET=''
-[[ -z "$VMNAME" || -z "$VMID" || -z "$SSERVER" || -z "$TSERVER" ]] %% {
-    echo "[ERROR] I need at least the name of the VM, the VM id, the " \
-         "vSphere/ESXi hostname to export from and the vCD server to import "
-         "to." 1>&2
-    echo 1>&2
-    exit 1
-}
-
-while [[ $# -gt 1 ]]; do
-    option="$1"
-
-    case $option in
-        -u|--username)  $SUSER=$2; $TUSER=$2 shift;;
-        -p|--passwd)    $SPASSWD=$(printf "%q\n" "$2"); shift;;
-        -U|--vcdusername)   $TUSER=$2; shift;;
-        -o|--org)       $TORG=$2; shift;;
-        -t|--ticket     $TTICKET=$2; shift;;
-        *)              _help; exit 0;;
-    esac
-done
+err() { echo "$@" 1>&2; }
 
 #
 # Access to ovftool...
 #
 
-OVFTOOL_FUSION=/Applications/VMware\ Fusion.app/Contents/Library/VMware\ OVF\ Tool/
-OVFTOOL=/Applications/VMware\ OVF\ Tool
+OVFTOOL_FUSION=/Applications/VMware\ Fusion.app/Contents/Library/VMware\ OVF\ Tool/ovftool
+OVFTOOL_OSX=/Applications/VMware\ OVF\ Tool/ovftool
+OVFTOOL=LINUX=ovftool
 
-_ovftool() {
-    case "$OSTYPE" in
-        darwin*)
-            [ -d $OVFTOOL_FUSION ] && { "$OVFTOOL_FUSION/ovftool" "$@"; return 0; }
-            [ -d $OVFTOOL ] && { "$OVFTOOL/ovftool" "$@"; return 0; }
-            echo "ovftool is not installed. You can download it from " 1>&2
-            echo "https://my.vmware.com/group/vmware/details?downloadGroup=OVFTOOL420&productId=491"  1>&2
-            echo  1>&2
+case "$OSTYPE" in
+    darwin*)
+        if [ -d "$(dirname "$OVFTOOL_FUSION")" ]; then OVFTOOL="$OVFTOOL_FUSION"; 
+        elif [ -d "$(dirname "$OVFTOOL_OSX")" ]; then OVFTOOL="$OVFTOOL_OSX";
+        else
+            err "[ERROR] ovftool is not installed. You can download it from "
+            err "https://my.vmware.com/group/vmware/details?downloadGroup=OVFTOOL420&productId=491"
+            err
             exit 1
+        fi
+        ;;
+    *) OVFTOOL="$OVFTOOL_LINUX";;
+esac
+
+#
+# Parse input...
+#
+
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case $arg in
+        -u|--username)  SUSER=$2; shift;;
+        -p|--passwd)    SPASSWD=$(printf "%q\n" "$2"); shift;;
+        -U|--vcdusername)   TUSER=$2; shift;;
+        -o|--org)       TORG=$2; shift;;
+        -t|--ticket)    TTICKET=$2; shift;;
+        -h|--help|help) _help; exit 1;;
+        *)  # positional args
+            if [ -z "$VMNAME" ]; then VMNAME=$1;
+            elif [ -z "$VMID" ]; then VMID=$1;
+            elif [ -z "$SSERVER" ]; then SSERVER=$1;
+            elif [ -z "$TSERVER" ]; then TSERVER=$1; fi
             ;;
-        ## TODO: Checks for linux based ovftool
-        *) ovftool "$@" ;;
     esac
-}
+    shift
+done
+
+[ -z "$TUSER" ] && TUSER="$SUSER"
 
 #
 # Configuration storage management...
@@ -104,12 +94,12 @@ _cfg_store() {
     local data=''
     [ -f "$store" ] || touch "$store"
     case $1 in
-        viconfig)   data="$SERVER $USER $PASSWD";;
-        vcdconfig)  data="$SERVER $USER $ORG $TICKET";;
+        viconfig)   data="$SSERVER $SUSER $SPASSWD";;
+        vcdconfig)  data="$TSERVER $TUSER $TORG $TTICKET";;
     esac
     local key=${data%%\ *}
     if cat "$store" | grep -q "$key"; then
-        sed -i \'/^$key /c\\\$data\' "$store"
+        sed -i \'/^$key/c\\\$data\' "$store"
     else
         echo "$data" >> "$store"
     fi
@@ -123,15 +113,16 @@ _cfg_retrieve() {
     local data=''
     [ -f "$store" ] || { touch "$store"; return 1; }
     IFS=' ' read -a data <<< "$(cat "$store" | grep -E ^$key)"
+    [[ ${#data[@]} -eq 0 ]] && return 1
     case $1 in
         viconfig)
-            USER="${data[1]}"
-            PASSWD="${data[2]}"
+            [ -z "$SUSER" ] && SUSER="${data[1]}"
+            [ -z "$SPASSWD" ] && SPASSWD="${data[2]}"
             ;;
         vcdconfig)
-            USER="${data[1]}"
-            ORG="${data[2]}"
-            TICKET="${data[3]}"
+            [ -z "$TUSER" ] && TUSER="${data[1]}"
+            [ -z "$TORG" ] && TORG="${data[2]}"
+            [ -z "$TTICKET" ] && TTICKET="${data[3]}"
             ;;
     esac
     return 0
@@ -142,13 +133,17 @@ _cfg_retrieve() {
 #
 
 [ -z "$VMNAME" ] && {
+    echo "The name of the VM is used as the resulting vApp name."
     read -p "What is the name of the VM you want to export? " -r
     echo
     VMNAME="$REPLY"
 }
 
 [ -z "$VMID" ] && {
-    read -p "What is the moref of $VMNAME? " -r
+    echo "To effectively identify the VM, I need the VM ID (aka moref)."
+    echo "Navigate to the VM object in the web client and the VM id will"
+    echo "appear in the URL, e.g vm-42"
+    read -p "What is the vm id (aka moref) of $VMNAME? " -r
     echo
     VMID="$REPLY"
 }
@@ -158,9 +153,9 @@ _cfg_retrieve() {
 #
 
 [ -z "$SSERVER" ] && {
-    read -p "What vSphere/ESXi Server are your exporting the OVF from? " -r
+    read -p "What is the hostname/IP of the vSphere/ESXi server are your exporting the OVF from? " -r
     echo
-    SERVER="$REPLY"
+    SSERVER="$REPLY"
 }
 
 _cfg_retrieve viconfig "$SSERVER" || {
@@ -168,7 +163,7 @@ _cfg_retrieve viconfig "$SSERVER" || {
     [ -z "$SUSER" ] && {
         read -p "What is your user name on $SSERVER? " -r
         echo
-        USER="$REPLY"
+        SUSER="$REPLY"
     }
 
     [ -z "$SPASSWD" ] && {
@@ -185,7 +180,7 @@ _cfg_retrieve viconfig "$SSERVER" || {
 #
 
 [ -z "$TSERVER" ] && {
-    read -p "What vCloud Director Server are your importing the OVF to? " -r
+    read -p "What is the hostname/IP of the vCloud Director server are you importing the OVF to? " -r
     echo
     TSERVER="$REPLY"
 }
@@ -193,7 +188,7 @@ _cfg_retrieve viconfig "$SSERVER" || {
 _cfg_retrieve vcdconfig "$TSERVER" || {
 
     [ -z "$TUSER" ] && {
-        read -e -p "What is your user name on $TSERVER? " -r -i "$USER"
+        read -e -p "What is your user name on $TSERVER? " -r -i "$SUSER"
         echo
         TUSER="$REPLY"
     }
@@ -205,7 +200,12 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
     }
 
     [ -z "$TTICKET" ] && {
-        read -p "If you're using SAML authentication, what is your session ticket? ' " -r
+        echo "You will be asked for the password to your account but this may"
+        echo "not work if SAML authentication is being used. If this is the case,"
+        echo "I will need your session ticket. Find this by logging into your"
+        echo "vCD web client, open the tool you use to inspect cookies and"
+        echo "supply the browser cookie value called 'VMware Session Ticket'."
+        read -p "If you're using SAML authentication, what is your session ticket? " -r
         echo
         TTICKET="$REPLY"
     }
@@ -217,14 +217,12 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
 # Start the import...
 #
 
-[ -z "$SESSION" ] || SESSION="--I:targetSessionTicket=$TICKET"
-LOG='--X:logFile=ovftool-log.txt --X:logLevel=verbose'
+[ -z "$TTICKET" ] || SESSION="--I:targetSessionTicket=$TTICKET"
 SOURCE="vi://$SUSER:$SPASSWD@$SSERVER/?moref=vim.VirtualMachine:$VMID"
 TARGET="vcloud://$TUSER@$TSERVER:443?org=$TORG&vapp=$VMNAME"
 ## TODO: Options to overight existing vApp
 OVERWRITE='--overwrite'
 
-_ovftool --noSSLVerify --acceptAllEulas $LOG –powerOffSource "$SESSION" \
-    "$SOURCE" "$TARGET"
-
-IFS=$oIFS
+"$OVFTOOL" --noSSLVerify --acceptAllEulas \
+    --X:logFile=ovftool-log.txt --X:logLevel=verbose $SESSION \
+    --powerOffSource "$SOURCE" "$TARGET"

@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
         -o|--org)       ORG=$2; shift;;
         -t|--ticket)    TICKET=$2; shift;;
         -h|--help|help) _help; exit 1;;
-        *) 
+        *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
             elif [ -z "$SERVER" ]; then SERVER=$1; fi
             ;;
@@ -87,6 +87,7 @@ _cfg_store() {
     else
         echo "$data" >> "$store"
     fi
+    return 0
 }
 
 _cfg_retrieve() {

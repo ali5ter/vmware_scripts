@@ -56,7 +56,7 @@ while [[ $# -gt 0 ]]; do
         -u|--username)  UNAME=$2; shift;;
         -p|--passwd)    PASSWD=$(printf "%q\n" "$2"); shift;;
         -h|--help|help) _help; exit 1;;
-        *) 
+        *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
             elif [ -z "$VMID" ]; then VMID=$1;
             elif [ -z "$SERVER" ];then SERVER=$1; fi
@@ -82,6 +82,7 @@ _cfg_store() {
     else
         echo "$data" >> "$store"
     fi
+    return 0
 }
 
 _cfg_retrieve() {
