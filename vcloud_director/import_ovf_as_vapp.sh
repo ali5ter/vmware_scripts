@@ -163,9 +163,8 @@ _cfg_retrieve "$SERVER" || {
         echo
         TICKET="$REPLY"
     }
-
-    _cfg_store
 }
+_cfg_store
 
 #
 # Start the import...

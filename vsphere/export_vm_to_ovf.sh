@@ -154,9 +154,8 @@ _cfg_retrieve "$SERVER" || {
         echo
         PASSWD=$(printf "%q\n" "$REPLY")
     }
-
-    _cfg_store
 }
+_cfg_store
 
 #
 # Start the export...

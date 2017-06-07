@@ -172,10 +172,9 @@ _cfg_retrieve viconfig "$SSERVER" || {
         read -p "What is your password on $SSERVER? " -r
         echo
         SPASSWD=$(printf "%q\n" "$REPLY")
-    }
-
-    _cfg_store viconfig
+    }    
 }
+_cfg_store viconfig
 
 #
 # Establish the target vCloud Director Server...
@@ -211,9 +210,8 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
         echo
         TTICKET="$REPLY"
     }
-
-    _cfg_store vcdconfig
 }
+ _cfg_store vcdconfig
 
 #
 # Start the import...
