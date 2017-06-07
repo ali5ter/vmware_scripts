@@ -214,7 +214,7 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
  _cfg_store vcdconfig
 
 #
-# Start the import...
+# Start the migration...
 #
 
 [ -z "$TTICKET" ] || SESSION="--I:targetSessionTicket=$TTICKET"
