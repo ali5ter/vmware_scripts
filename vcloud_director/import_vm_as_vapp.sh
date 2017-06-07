@@ -17,6 +17,7 @@ _help() {
     echo "  -U, --vcdusername ... the vCD account username"
     echo "  -o, --org ........... the vCD organization name if different from -u"
     echo "  -t, --ticket ........ the SAML session ticket"
+    echo "  --overwrite  ........ overwrite the existing vApp"
     echo "Examples:"
     echo "  import_vm_as_vapp demo_vm_01 vm-1229 esx-01.acme.com vcd-01.acme.com"
     echo "    will look for a virtual machine using the id, 'vm-1229', for"
@@ -68,6 +69,7 @@ while [[ $# -gt 0 ]]; do
         -U|--vcdusername)   TUSER=$2; shift;;
         -o|--org)       TORG=$2; shift;;
         -t|--ticket)    TTICKET=$2; shift;;
+        --overwrite)    OVERWRITE='--overwrite'; shift;;
         -h|--help|help) _help; exit 1;;
         *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
@@ -220,9 +222,7 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
 [ -z "$TTICKET" ] || SESSION="--I:targetSessionTicket=$TTICKET"
 SOURCE="vi://$SUSER:$SPASSWD@$SSERVER/?moref=vim.VirtualMachine:$VMID"
 TARGET="vcloud://$TUSER@$TSERVER:443?org=$TORG&vapp=$VMNAME"
-## TODO: Options to overight existing vApp
-OVERWRITE='--overwrite'
 
 "$OVFTOOL" --noSSLVerify --acceptAllEulas \
     --X:logFile=ovftool-log.txt --X:logLevel=verbose $SESSION \
-    --powerOffSource "$SOURCE" "$TARGET"
+    $OVERWRITE --powerOffSource "$SOURCE" "$TARGET"

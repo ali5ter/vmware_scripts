@@ -13,6 +13,7 @@ _help() {
     echo "  -u, --username ..... the vCD account username"
     echo "  -o, --org .......... the vCD organization name"
     echo "  -t, --ticket ....... the SAML session ticket"
+    echo "  --overwrite  ....... overwrite the existing vApp"
     echo "Examples:"
     echo "  import_ovf_as_vapp demo_vm_01 vcd-01.acme.com"
     echo "    will look for a previously exported OVF for a VM named"
@@ -61,6 +62,7 @@ while [[ $# -gt 0 ]]; do
         -u|--username)  UNAME=$2; shift;;
         -o|--org)       ORG=$2; shift;;
         -t|--ticket)    TICKET=$2; shift;;
+        --overwrite)    OVERWRITE='--overwrite'; shift;;
         -h|--help|help) _help; exit 1;;
         *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
@@ -171,9 +173,7 @@ _cfg_retrieve "$SERVER" || {
 
 [ -z "$TICKET" ] || SESSION="--I:targetSessionTicket=$TICKET"
 TARGET="vcloud://$UNAME@$SERVER:443?org=$ORG&vapp=$VMNAME"
-## TODO: Options to overight existing vApp
-OVERWRITE="--overright"
 
 "$OVFTOOL" --noSSLVerify --acceptAllEulas \
     --X:logFile=ovftool-log.txt --X:logLevel=verbose $SESSION \
-    "$OVF" "$TARGET"
+    $OVERWRITE "$OVF" "$TARGET"
