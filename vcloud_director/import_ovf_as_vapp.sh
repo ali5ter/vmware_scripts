@@ -27,6 +27,8 @@ _help() {
     return 0
 }
 
+err() { echo "$@" 1>&2; }
+
 #
 # Access to ovftool...
 #
@@ -40,9 +42,9 @@ case "$OSTYPE" in
         if [ -d "$(dirname "$OVFTOOL_FUSION")" ]; then OVFTOOL="$OVFTOOL_FUSION"; 
         elif [ -d "$(dirname "$OVFTOOL_OSX")" ]; then OVFTOOL="$OVFTOOL_OSX";
         else
-            echo "[ERROR] ovftool is not installed. You can download it from "
-            echo "https://my.vmware.com/group/vmware/details?downloadGroup=OVFTOOL420&productId=491"
-            echo
+            err "[ERROR] ovftool is not installed. You can download it from "
+            err "https://my.vmware.com/group/vmware/details?downloadGroup=OVFTOOL420&productId=491"
+            err
             exit 1
         fi
         ;;
@@ -116,10 +118,10 @@ OVFSTORE="$STORE/images"
 
 OVF="$OVFSTORE/$VMNAME.ovf"
 [ -f $OVF ] || {
-    echo "[ERROR] I am unable to find an OVF file that uses this VM name:"
-    echo "$OVF"
-    echo "These are the OVFs I found:"
-    ls -1 "$OVFSTORE"/*.ovf
+    err "[ERROR] I am unable to find an OVF file that uses this VM name:"
+    err "$OVF"
+    err "These are the OVFs I found:"
+    err $(ls -1 "$OVFSTORE"/*.ovf)
     exit 1
     ## TODO: Run export from vsphere?
 }
