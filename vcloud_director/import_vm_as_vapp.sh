@@ -49,7 +49,7 @@ case "$OSTYPE" in
         elif [ -d "$(dirname "$OVFTOOL_OSX")" ]; then OVFTOOL="$OVFTOOL_OSX";
         else
             err "[ERROR] ovftool is not installed. You can download it from "
-            err "https://my.vmware.com/group/vmware/details?downloadGroup=OVFTOOL420&productId=491"
+            err "https://my.vmware.com/web/vmware/details?downloadGroup=OVFTOOL420&productId=614"
             err
             exit 1
         fi
@@ -65,7 +65,7 @@ while [[ $# -gt 0 ]]; do
     arg="$1"
     case $arg in
         -u|--username)  SUSER=$2; shift;;
-        -p|--passwd)    SPASSWD=$(printf "%q\n" "$2"); shift;;
+        -p|--passwd)    SPASSWD=$2; shift;;
         -U|--vcdusername)   TUSER=$2; shift;;
         -o|--org)       TORG=$2; shift;;
         -t|--ticket)    TTICKET=$2; shift;;
@@ -171,7 +171,7 @@ _cfg_retrieve viconfig "$SSERVER" || {
     [ -z "$SPASSWD" ] && {
         read -p "What is your password on $SSERVER? " -r
         echo
-        SPASSWD=$(printf "%q\n" "$REPLY")
+        SPASSWD="$REPLY"
     }    
 }
 _cfg_store viconfig
@@ -205,7 +205,7 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
         echo "not work if SAML authentication is being used. If this is the case,"
         echo "I will need your session ticket. Find this by logging into your"
         echo "vCD web client, open the tool you use to inspect cookies and"
-        echo "supply the browser cookie value called 'VMware Session Ticket'."
+        echo "supply the browser cookie value called 'Vmware_session_id'."
         read -p "If you're using SAML authentication, what is your session ticket? " -r
         echo
         TTICKET="$REPLY"

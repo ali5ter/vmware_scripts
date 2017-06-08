@@ -11,6 +11,7 @@ _help() {
     echo "  -h, --help, help ... displays this help information"
     echo "  -u, --username ..... the vSphere/ESXi account username"
     echo "  -p, --passwd ....... the password for this account"
+    echo "  --overwrite ........ overwrite the existing OVF"
     echo "Examples:"
     echo "  export_vm_to_ovf demo_vm_01 vm-1229 esx-01.acme.com"
     echo "    will look for a virtual machine using the id, 'vm-1229', for"
@@ -38,7 +39,7 @@ case "$OSTYPE" in
         elif [ -d "$(dirname "$OVFTOOL_OSX")" ]; then OVFTOOL="$OVFTOOL_OSX";
         else
             err "[ERROR] ovftool is not installed. You can download it from "
-            err "https://my.vmware.com/group/vmware/details?downloadGroup=OVFTOOL420&productId=491"
+            err "https://my.vmware.com/web/vmware/details?downloadGroup=OVFTOOL420&productId=614"
             err
             exit 1
         fi
@@ -54,7 +55,8 @@ while [[ $# -gt 0 ]]; do
     arg="$1"
     case $arg in
         -u|--username)  UNAME=$2; shift;;
-        -p|--passwd)    PASSWD=$(printf "%q\n" "$2"); shift;;
+        -p|--passwd)    PASSWD=$2; shift;;
+        --overwrite)    OVERWRITE='--overwrite';;
         -h|--help|help) _help; exit 1;;
         *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
@@ -152,7 +154,7 @@ _cfg_retrieve "$SERVER" || {
     [ -z "$PASSWD" ] && {
         read -p "What is your password on $SERVER? " -r
         echo
-        PASSWD=$(printf "%q\n" "$REPLY")
+        PASSWD="$REPLY"
     }
 }
 _cfg_store
