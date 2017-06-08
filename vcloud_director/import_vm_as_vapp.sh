@@ -69,7 +69,7 @@ while [[ $# -gt 0 ]]; do
         -U|--vcdusername)   TUSER=$2; shift;;
         -o|--org)       TORG=$2; shift;;
         -t|--ticket)    TTICKET=$2; shift;;
-        --overwrite)    OVERWRITE='--overwrite'; shift;;
+        --overwrite)    OVERWRITE='--overwrite';;
         -h|--help|help) _help; exit 1;;
         *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
@@ -101,7 +101,7 @@ _cfg_store() {
     esac
     local key=${data%%\ *}
     if cat "$store" | grep -q "$key"; then
-        sed -i \'/^$key/c\\\$data\' "$store"
+        sed -i"" -e "s/^$key.*/$data/" "$store"
     else
         echo "$data" >> "$store"
     fi
@@ -214,7 +214,7 @@ _cfg_retrieve vcdconfig "$TSERVER" || {
  _cfg_store vcdconfig
 
 #
-# Start the migration...
+# Start the export/import...
 #
 
 [ -z "$TTICKET" ] || SESSION="--I:targetSessionTicket=$TTICKET"
@@ -223,4 +223,5 @@ TARGET="vcloud://$TUSER@$TSERVER:443?org=$TORG&vapp=$VMNAME"
 
 "$OVFTOOL" --noSSLVerify --acceptAllEulas \
     --X:logFile=ovftool-log.txt --X:logLevel=verbose $SESSION \
+    --maxVirtualHardwareVersion=10 \
     $OVERWRITE --powerOffSource "$SOURCE" "$TARGET"

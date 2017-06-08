@@ -78,7 +78,7 @@ _cfg_store() {
     local key=${data%%\ *}
     [ -f "$store" ] || touch "$store"
     if cat "$store" | grep -q "$key"; then
-        sed -i \'/^$key/c\\\$data\' "$store"
+        sed -i"" -e "s/^$key.*/$data/" "$store"
     else
         echo "$data" >> "$store"
     fi

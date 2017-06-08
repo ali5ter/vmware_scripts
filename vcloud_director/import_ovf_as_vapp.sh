@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
         -u|--username)  UNAME=$2; shift;;
         -o|--org)       ORG=$2; shift;;
         -t|--ticket)    TICKET=$2; shift;;
-        --overwrite)    OVERWRITE='--overwrite'; shift;;
+        --overwrite)    OVERWRITE='--overwrite';;
         -h|--help|help) _help; exit 1;;
         *)  # positional args
             if [ -z "$VMNAME" ]; then VMNAME=$1;
@@ -85,7 +85,7 @@ _cfg_store() {
     local key=${data%%\ *}
     [ -f "$store" ] || touch "$store"
     if cat "$store" | grep -q "$key"; then
-        sed -i \'/^$key/c\\\$data\' "$store"
+        sed -i"" -e "s/^$key.*/$data/" "$store"
     else
         echo "$data" >> "$store"
     fi
@@ -175,4 +175,5 @@ TARGET="vcloud://$UNAME@$SERVER:443?org=$ORG&vapp=$VMNAME"
 
 "$OVFTOOL" --noSSLVerify --acceptAllEulas \
     --X:logFile=ovftool-log.txt --X:logLevel=verbose $SESSION \
+    --maxVirtualHardwareVersion=10 \
     $OVERWRITE "$OVF" "$TARGET"
