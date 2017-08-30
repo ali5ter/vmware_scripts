@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # @file vic_setup.sh
 # @author Alister Lewis-Bowen
+# Testing with VIC v1.2
+# @see https://vmware.github.io/vic-product/assets/files/html/1.2/
 
 set -e
 
@@ -8,6 +10,7 @@ STORE=~/.vic_scripts_config
 source "$STORE" ## to use as defaults
 
 # Download and position vic-machine build
+# @see https://vmware.github.io/vic-product/assets/files/html/1.2/vic_vsphere_admin/download_vic.html
 
 BUILD=vic_13400
 FILE="$BUILD".tar.gz
@@ -59,6 +62,7 @@ VIC_THUMB=$($PWD/../vsphere/show_thumbprint.sh $VIC_HOST| cut -d"=" -f 2)
 VIC_AUTH='--target '"$VIC_HOST"' --user '"$VIC_USER"' --password '"$VIC_PASS"' --thumbprint '"$VIC_THUMB"
 
 # Configure firewall for VCH end-point access
+# @see https://vmware.github.io/vic-product/assets/files/html/1.2/vic_vsphere_admin/open_ports_on_hosts.html
 
 echo 
 read -rp "Enter the Cluster name you will use for VCHs [$VIC_CLUSTER]: "
