@@ -34,6 +34,7 @@ VIC_CLI="$DIR/vic-machine-"
 case "$OSTYPE" in
     darwin*) VIC_CLI="${VIC_CLI}darwin" ;;
     linux*)  VIC_CLI="${VIC_CLI}linux" ;;
+    msys*)  VIC_CLI="${VIC_CLI}windows" ;;
     *)
         echo "$OSTYPE is not a supported operating system"
         exit 1
