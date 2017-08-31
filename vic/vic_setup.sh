@@ -7,7 +7,7 @@
 set -e
 
 STORE=~/.vic_scripts_config
-source "$STORE" ## to use as defaults
+[ -f $STORE ] && source "$STORE" ## to use as defaults
 
 # Download and position vic-machine build
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/vic_vsphere_admin/download_vic.html
