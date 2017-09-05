@@ -76,7 +76,7 @@ vic-machine update firewall $VIC_AUTH --compute-resource "$VIC_CLUSTER" --allow
 # Store configuration
 
 [ -f $STORE ] && rm -f "$STORE"
-touch "$STORE"
+touch "$STORE" && chmod 755 "$STORE"
 echo "export VIC_CLI='$VIC_CLI'" >> "$STORE"
 echo "export VIC_HOST='$VIC_HOST'" >> "$STORE"
 echo "export VIC_USER='$VIC_USER'" >> "$STORE"
