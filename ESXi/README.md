@@ -14,7 +14,7 @@ on the ESXi host.**
 and portgroup information for a given ESXi host.**
 
 This script issues simple [esxcli](https://pubs.vmware.com/vsphere-50/index.jsp?topic=%2Fcom.vmware.vcli.ref.doc_50%2Fesxcli_command.html)
-commands via ssh to echo information.
+commands via ssh to echo information. The certificate thumbprint is also echo'ed [using openssl](http://www.virtuallyghetto.com/2012/04/extracting-ssl-thumbprint-from-esxi.html).
 
 Download the script to your workstation
 

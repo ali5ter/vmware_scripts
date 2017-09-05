@@ -13,6 +13,8 @@ The [vsphere directory](vsphere) containes scripts to work with  [vSphere 5.5, 6
 
 The [vcloud_director directory](vcloud_director) contains scripts to work with [vCloud Director v8](http://www.vmware.com/uk/products/vcloud-director.html)
 
+The [vic directory](vic) contains scripts to work with [vSphere Integrated Containers 1.2](https://www.vmware.com/products/vsphere/integrated-containers.html)
+
 ## Contribution
 If you've stumbled upon this project and wish to contribute, please
 [let me know](mailto:alister@different.com)
