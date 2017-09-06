@@ -4,7 +4,7 @@
 # Testing with VIC v1.2
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/
 
-set -e
+set -e -x
 
 STORE=~/.vic_scripts_config
 [ -f $STORE ] && source "$STORE" ## to use as defaults
@@ -12,19 +12,19 @@ STORE=~/.vic_scripts_config
 # Download and position vic-machine build
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/vic_vsphere_admin/download_vic.html
 
-BUILD=vic_13400
-FILE="$BUILD".tar.gz
+DOWNLOAD='https://storage.googleapis.com/vic-engine-builds/vic_13605.tar.gz'
+FILE="${DOWNLOAD##*/}"
 DIR="/usr/local/vic"
 
 read -p "Do you want to download the latest binaries? [y/N]" -n 1 -r
 [[ $REPLY =~ ^[Yy]$ ]] && {
     echo
     echo "Downloading vic-engine binaries"
-    curl -k "https://storage.googleapis.com/vic-engine-builds/$FILE" -o "$FILE" && \
+    curl -k "$DOWNLOAD" -o "$FILE" && \
         tar -zxf "$FILE" && rm -f "$FILE"
     echo "Moving vic-engine binaries to $DIR"
     sudo rm -fR "$DIR"
-    sudo mv vic "$DIR"
+    sudo mv vic*/ "$DIR"
 }
 echo
 
@@ -46,21 +46,20 @@ alias vic-machine="$VIC_CLI"
 # Prompt for VC and credentials
 
 echo
-read -rp "Enter the address of your vCenter Server or ESXi host [$VIC_HOST]: "
-[ ! -z "$REPLY" ] && $VIC_HOST="$REPLY"
+read -rp "Enter the address of your vCenter Server or ESXi host [$VIC_MACHINE_TARGET]: "
+[ ! -z "$REPLY" ] && VIC_MACHINE_TARGET="$REPLY"
 
 echo
-read -rp "Enter the username you use to admnistrate this [$VIC_USER]: "
-[ ! -z "$REPLY" ] && $VIC_USER="$REPLY"
+read -rp "Enter the username you use to admnistrate this [$VIC_MACHINE_USER]: "
+[ ! -z "$REPLY" ] && VIC_MACHINE_USER="$REPLY"
 
 echo 
-read -rp "Enter the password for this username [$VIC_PASS]: "
-[ ! -z "$REPLY" ] && $VIC_PASS="$REPLY"
+read -rp "Enter the password for this username [$VIC_MACHINE_PASSWORD]: "
+[ ! -z "$REPLY" ] && VIC_MACHINE_PASSWORD="$REPLY"
 
 # Get cert thumbprint and create auth string
 
-VIC_THUMB=$($PWD/../vsphere/show_thumbprint.sh $VIC_HOST| cut -d"=" -f 2)
-VIC_AUTH='--target '"$VIC_HOST"' --user '"$VIC_USER"' --password '"$VIC_PASS"' --thumbprint '"$VIC_THUMB"
+VIC_MACHINE_THUMBPRINT=$($PWD/../vsphere/show_thumbprint.sh $VIC_MACHINE_TARGET| cut -d"=" -f 2)
 
 # Configure firewall for VCH end-point access
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/vic_vsphere_admin/open_ports_on_hosts.html
@@ -78,13 +77,16 @@ vic-machine update firewall $VIC_AUTH --compute-resource "$VIC_CLUSTER" --allow
 [ -f $STORE ] && rm -f "$STORE"
 touch "$STORE" && chmod 755 "$STORE"
 echo "export VIC_CLI='$VIC_CLI'" >> "$STORE"
-echo "export VIC_HOST='$VIC_HOST'" >> "$STORE"
-echo "export VIC_USER='$VIC_USER'" >> "$STORE"
-echo "export VIC_PASS='$VIC_PASS'" >> "$STORE"
-echo "export VIC_THUMB='$VIC_THUMB'" >> "$STORE"
-echo "export VIC_AUTH='$VIC_AUTH'" >> "$STORE"
+echo "export VIC_MACHINE_TARGET='$VIC_MACHINE_TARGET'" >> "$STORE"
+echo "export VIC_MACHINE_USER='$VIC_MACHINE_USER'" >> "$STORE"
+echo "export VIC_MACHINE_PASSWORD='$VIC_MACHINE_PASSWORD'" >> "$STORE"
+echo "export VIC_MACHINE_THUMBPRINT='$VIC_MACHINE_THUMBPRINT'" >> "$STORE"
 echo "export VIC_CLUSTER='$VIC_CLUSTER'" >> "$STORE"
 source "$STORE"
+
+# TODO: apply aliad to parent shell
+# TODO: fix source of store 
+# TODO: aource bash completion from cli_taxo repo to parent shell
 
 echo
 echo "Set up complete."
@@ -92,7 +94,8 @@ echo
 echo "Use the following alias to access the vic-machine CLI:"
 echo "alias vic-machine='$VIC_CLI'"
 echo
-echo "Use the VIC_AUTH env var to include your vCenter credentials, e.g. vic-machine ls \$VIC_AUTH"
-echo
 echo "The $STORE file contains exports for the following env vars:"
 env | grep VIC_
+echo
+echo "With the credentials set up using env vars, the invocation from the CLI"
+echo "is much simpler, e.g. vic-machine ls"
