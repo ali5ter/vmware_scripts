@@ -4,7 +4,9 @@
 # Testing with VIC v1.2
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/
 
-set -e -x
+set -e
+
+RUNCOM=~/.bash_profile
 
 STORE=~/.vic_scripts_config
 [ -f $STORE ] && source "$STORE" ## to use as defaults
@@ -40,8 +42,16 @@ case "$OSTYPE" in
         exit 1
         ;;
 esac
-shopt -s expand_aliases
-alias vic-machine="$VIC_CLI"
+
+echo
+echo "Use the following alias to access the vic-machine CLI:"
+echo "alias vic-machine='$VIC_CLI'"
+echo
+read -rp "Do you want to add this to $RUNCOM ? [y/N] " -n 1 -r
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    echo -e "\n# VIC CLI\nalias vic-machine=$VIC_CLI" >> "$RUNCOM"
+    echo
+}
 
 # Prompt for VC and credentials
 
@@ -68,9 +78,11 @@ echo
 read -rp "Enter the Cluster name you will use for VCHs [$VIC_CLUSTER]: "
 [ ! -z "$REPLY" ] && $VIC_CLUSTER="$REPLY"
 
+AUTH='--target '"$VIC_MACHINE_TARGET"' --user '"$VIC_MACHINE_USER"' --password '"$VIC_MACHINE_PASSWORD"' --thumbprint '"$VIC_MACHINE_THUMBPRINT"
+
 echo
 echo "Configuring vCenter host firewall rules for VIC..."
-vic-machine update firewall $VIC_AUTH --compute-resource "$VIC_CLUSTER" --allow
+"$VIC_CLI" update firewall $VIC_AUTH --compute-resource "$VIC_CLUSTER" --allow
 
 # Store configuration
 
@@ -82,20 +94,20 @@ echo "export VIC_MACHINE_USER='$VIC_MACHINE_USER'" >> "$STORE"
 echo "export VIC_MACHINE_PASSWORD='$VIC_MACHINE_PASSWORD'" >> "$STORE"
 echo "export VIC_MACHINE_THUMBPRINT='$VIC_MACHINE_THUMBPRINT'" >> "$STORE"
 echo "export VIC_CLUSTER='$VIC_CLUSTER'" >> "$STORE"
-source "$STORE"
 
-# TODO: apply aliad to parent shell
-# TODO: fix source of store 
-# TODO: aource bash completion from cli_taxo repo to parent shell
+# TODO: source bash completion from cli_taxo repo to parent shell
 
 echo
 echo "Set up complete."
-echo
-echo "Use the following alias to access the vic-machine CLI:"
-echo "alias vic-machine='$VIC_CLI'"
 echo
 echo "The $STORE file contains exports for the following env vars:"
 env | grep VIC_
 echo
 echo "With the credentials set up using env vars, the invocation from the CLI"
 echo "is much simpler, e.g. vic-machine ls"
+echo
+read -rp "Do you want to source this from $RUNCOM ? [y/N] " -n 1 -r
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    echo -e "\n# VIC vars\nsource $STORE" >> "$RUNCOM"
+    echo
+}
