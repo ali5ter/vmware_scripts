@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file vic_setup.sh
-# @author Alister Lewis-Bowen
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 # Testing with VIC v1.2
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/
 
@@ -77,13 +77,23 @@ VIC_MACHINE_THUMBPRINT=$($PWD/../vsphere/show_thumbprint.sh $VIC_MACHINE_TARGET|
 
 echo 
 read -rp "Enter the Cluster name you will use for VCHs [$VIC_CLUSTER]: "
-[ ! -z "$REPLY" ] && $VIC_CLUSTER="$REPLY"
+[ ! -z "$REPLY" ] && VIC_CLUSTER="$REPLY"
 
 AUTH='--target '"$VIC_MACHINE_TARGET"' --user '"$VIC_MACHINE_USER"' --password '"$VIC_MACHINE_PASSWORD"' --thumbprint '"$VIC_MACHINE_THUMBPRINT"
 
 echo
 echo "Configuring vCenter host firewall rules for VIC..."
 "$VIC_CLI" update firewall $VIC_AUTH --compute-resource "$VIC_CLUSTER" --allow
+
+# Save any other useful information
+
+echo 
+read -rp "Enter the name of the distributed port group used for the VIC Bridge network [$VIC_BRIDGE_NETWORK]: "
+[ ! -z "$REPLY" ] && VIC_BRIDGE_NETWORK="$REPLY"
+
+echo 
+read -rp "Enter the name of the datastore to use as the image store [$VIC_IMAGE_DATASTORE]: "
+[ ! -z "$REPLY" ] && VIC_IMAGE_DATASTORE="$REPLY"
 
 # Store configuration
 
@@ -95,11 +105,14 @@ echo "export VIC_MACHINE_USER='$VIC_MACHINE_USER'" >> "$STORE"
 echo "export VIC_MACHINE_PASSWORD='$VIC_MACHINE_PASSWORD'" >> "$STORE"
 echo "export VIC_MACHINE_THUMBPRINT='$VIC_MACHINE_THUMBPRINT'" >> "$STORE"
 echo "export VIC_CLUSTER='$VIC_CLUSTER'" >> "$STORE"
+echo "export VIC_BRIDGE_NETWORK='$VIC_BRIDGE_NETWORK'" >> "$STORE"
+echo "export VIC_IMAGE_DATASTORE='$VIC_IMAGE_DATASTORE'" >> "$STORE"
 
 echo
 echo "Set up complete."
 echo
 echo "The $STORE file contains exports for the following env vars:"
+source "$STORE"
 env | grep VIC_
 echo
 echo "With the credentials set up using env vars, the invocation from the CLI"
