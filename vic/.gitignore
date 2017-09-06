@@ -1,3 +1,4 @@
 vic-machine.log
 vpxd.log
 *.tar.gz
+vic-machine_completion.sh

@@ -6,24 +6,25 @@
 
 set -e
 
-RUNCOM=~/.bash_profile
-
 STORE=~/.vic_scripts_config
 [ -f $STORE ] && source "$STORE" ## to use as defaults
 
 # Download and position vic-machine build
 # @see https://vmware.github.io/vic-product/assets/files/html/1.2/vic_vsphere_admin/download_vic.html
 
-DOWNLOAD='https://storage.googleapis.com/vic-engine-builds/vic_13605.tar.gz'
-FILE="${DOWNLOAD##*/}"
+VIC_MACHINE_DOWNLOAD='https://storage.googleapis.com/vic-engine-builds/vic_13605.tar.gz'
+VIC_MACHINE_COMPLETION_DOWNLOAD='https://raw.githubusercontent.com/ali5ter/cli_taxo/master/exp4/results/vic-machine_completion.sh'
+BINARY_FILE="${VIC_MACHINE_DOWNLOAD##*/}"
+BASH_COMPLETION="${VIC_MACHINE_COMPLETION_DOWNLOAD##*/}"
 DIR="/usr/local/vic"
+RUNCOM=~/.bash_profile
 
 read -p "Do you want to download the latest binaries? [y/N]" -n 1 -r
 [[ $REPLY =~ ^[Yy]$ ]] && {
     echo
     echo "Downloading vic-engine binaries"
-    curl -k "$DOWNLOAD" -o "$FILE" && \
-        tar -zxf "$FILE" && rm -f "$FILE"
+    curl -k "$VIC_MACHINE_COMPLETION_DOWNLOAD" -o "$BINARY_FILE" && \
+        tar -zxf "$BINARY_FILE" && rm -f "$BINARY_FILE"
     echo "Moving vic-engine binaries to $DIR"
     sudo rm -fR "$DIR"
     sudo mv vic*/ "$DIR"
@@ -50,8 +51,8 @@ echo
 read -rp "Do you want to add this to $RUNCOM ? [y/N] " -n 1 -r
 [[ $REPLY =~ ^[Yy]$ ]] && {
     echo -e "\n# VIC CLI\nalias vic-machine=$VIC_CLI" >> "$RUNCOM"
-    echo
 }
+echo
 
 # Prompt for VC and credentials
 
@@ -95,8 +96,6 @@ echo "export VIC_MACHINE_PASSWORD='$VIC_MACHINE_PASSWORD'" >> "$STORE"
 echo "export VIC_MACHINE_THUMBPRINT='$VIC_MACHINE_THUMBPRINT'" >> "$STORE"
 echo "export VIC_CLUSTER='$VIC_CLUSTER'" >> "$STORE"
 
-# TODO: source bash completion from cli_taxo repo to parent shell
-
 echo
 echo "Set up complete."
 echo
@@ -109,5 +108,19 @@ echo
 read -rp "Do you want to source this from $RUNCOM ? [y/N] " -n 1 -r
 [[ $REPLY =~ ^[Yy]$ ]] && {
     echo -e "\n# VIC vars\nsource $STORE" >> "$RUNCOM"
+}
+echo
+echo
+read -rp "Do you want to use bash completion for vic-machine ? [y/N] " -n 1 -r
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    curl -k "$VIC_MACHINE_COMPLETION_DOWNLOAD" -o "$BASH_COMPLETION"
+    echo
+    echo "To use enable completion immediately, run the following"
+    echo "source <(cat $BASH_COMPLETION)"
+    echo
+    read -rp "Do you want to source this from $RUNCOM ? [y/N] " -n 1 -r
+    [[ $REPLY =~ ^[Yy]$ ]] && {
+        echo -e "\n# vic-machine completion\nsource $PWD/$BASH_COMPLETION" >> "$RUNCOM"
+    }
     echo
 }
