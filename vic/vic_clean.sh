@@ -6,7 +6,7 @@
 set -e
 
 source ~/.vic_scripts_config &> /dev/null || {
-    "$PWD/vic_clean.sh"
+    "$PWD/vic_setup.sh"
 }
 
 read -p "Shall I delete all VCHs? [y/N] " -n 1 -r
