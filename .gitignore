@@ -1,2 +1,3 @@
 photon_controller/assets/*.ova
 **/ovftool-log.txt
+**/vic-machine.log
