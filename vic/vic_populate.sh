@@ -18,12 +18,14 @@ VCH_NAMES=$(seq $NUM_VCHS | xargs -Iz "$PWD/../photon_controller/generate_word_s
 TIMEOUT="6m"
 CERT_DIR="./certs"
 
+rm -fR "$CERT_DIR/*"
+
 set -x
 
 for vch in $VCH_NAMES; do
     "$VIC_CLI" create --name "$vch" --bridge-network "$VIC_BRIDGE_NETWORK" \
         --image-store "$VIC_IMAGE_DATASTORE" --timeout "$TIMEOUT" \
-        --tls-cert-path "$CERT_DR" --no-tlsverify --force
+        --tls-cert-path "$CERT_DIR" --no-tlsverify --force
 done
 
 # should be easier to get the ID of a VCH...
