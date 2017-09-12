@@ -1,0 +1,59 @@
+#!/bin/bash
+# Migrate a repo from git.eng.vmware.com to gitlab.eng.vmware.com
+# @see https://wiki.eng.vmware.com/Git#Migrating_an_existing_Repository
+# Usage: gitlab_migrate_from_gitweb repo_name
+
+set -e
+
+REPO=$1
+SRC_HOST=git.eng.vmware.com
+SRC_USER=bowena
+TGT_HOST=gitlab.eng.vmware.com
+TGT_USER=${2:-$SRC_USER}
+TGT_TOKEN="${3:-$VMWARE_GITLAB_TOKEN}"
+TGT_REMOTE=vmware_gitlab
+
+type jq &> /dev/null || {
+    echo "Please install jq from https://stedolan.github.io/jq/"
+    exit 1
+}
+
+[ -z "$REPO" ] && {
+    echo
+    read -rp "What is the name of the git repository you want to migrate? "
+    [ ! -z "$REPLY" ] && REPO="$REPLY"
+}
+
+[ -z "$TGT_TOKEN" ] && {
+    echo
+    read -rp "What is your gitlab access token?  "
+    [ ! -z "$REPLY" ] && TGT_TOKEN="$REPLY"
+}
+
+echo
+echo "Migrating $REPO from $SRC_HOST to $TGT_HOST"
+
+# Make sure we have an up-to-date copy of the repo locally
+
+[ ! -d "$REPO" ] && git clone ssh://git@$SRC_HOST/private/$SRC_USER/$REPO.git
+cd $REPO
+git pull
+
+# Create repo on target host
+
+if curl -s -H "Content-Type:application/json" https://$TGT_HOST/api/v3/projects?private_token=$TGT_TOKEN | jq '.[] | .name' | grep $REPO; then
+    echo
+    read -rp "A repo of the same name exists. Do you want to continue? [Y/n] " -n 1 -r
+    [[ $REPLY =~ ^[Nn]$ ]] && exit 0
+else
+    curl -H "Content-Type:application/json" \
+        https://$TGT_HOST/api/v3/projects?private_token=$TGT_TOKEN \
+        -d "{ \"name\": \"$REPO\" }"
+fi
+
+# Add new remote and push to target repo
+
+git remote add $TGT_REMOTE git@$TGT_HOST:$TGT_USER/$REPO.git
+git push $TGT_REMOTE refs/*:refs/*
+
+cd ..
