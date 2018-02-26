@@ -47,21 +47,25 @@ _name="${CLUSTER_PREFIX}-"$(curl -s https://raw.githubusercontent.com/ali5ter/vm
 _region=$(cascade --output json region list | jq '.[] | .name' | grep -i "$REGION_REGEX" | tr -d '"')
 _version=$(cascade --output json version list -r "$_region" | jq '.items[] | select(.isDefault == true) | .version' | tr -d '"')
 _size=$(( ( RANDOM % 4 ) + 1)) # a size between 1 and 4
-_namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
 
 cascade cluster create -t development -n "$_name" -r "$_region" -v "$_version" -s "$_size"
 
 get_cluster_state() { echo $(cascade --output json cluster show "$_name" | jq '.details.state' | tr -d '"'); }
 
+## Sometime find I can't add namespaces until the smart cluster is 'ready', so 
+## poll the state...
+
 echo "Waiting for Smart Cluster to be ready..."
 _cluster_state=''
 until [ "$_cluster_state" == "READY" ]; do
-    sleep 5
+    sleep 10
     _cluster_state=$(get_cluster_state)
     echo -e "\t$_cluster_state"
 done
 
 # create namespaces -----------------------------------------------------------
+
+_namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
 
 heading "Create some namespaces in $_name and retrieve namespaces using cascade CLI"
 for i in $(seq "$_namespaces"); do
@@ -74,5 +78,6 @@ cascade namespace list "$_name"
 heading "Generate kube config for smart cluster, $_name, and retrieve namespaces using kubectl"
 cascade cluster get-kubectl-auth "$_name" -u "$USER" -f kube-config
 export KUBECONFIG=./kube-config
+
 kubectl cluster-info
 kubectl get namespace
