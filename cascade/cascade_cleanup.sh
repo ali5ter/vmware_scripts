@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# @file cascade_cleanup.sh
+# Delete previously created Smart Clsuters from a Cascade Project.
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 

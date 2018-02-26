@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# @file cascade_cluster_auth.sh
+# Create a kube configuration file for a selected Smart Cluster.
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 

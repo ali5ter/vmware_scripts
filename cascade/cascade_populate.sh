@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# @file cascade_populate.sh
+# Populate a Cascade Project with a Smart Cluster and some Namespaces
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
