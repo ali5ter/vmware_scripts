@@ -12,3 +12,7 @@ source "$PWD/cascade_config.sh"
 
 cascade target set "$API_URL"
 cascade target login --i csp -t "$CSP_ORG_ID" -r "$TOKEN"
+
+cascade tenant get
+
+## Unable to get the user identity I'm signed in as
