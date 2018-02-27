@@ -27,16 +27,7 @@ type cascade &> /dev/null || {
     exit 1
 }
 
-VERSION_FILE=~/.cascade_version
-if [ -f "$VERSION_FILE" ]; then
-    [ "$(cascade -v)" != "$(cat $VERSION_FILE)" ] && {
-        echo "You have a different version of the cascade CLI"
-        get_cli
-        exit 1
-    }
-else
-    touch "$VERSION_FILE" && cascade -v > "$VERSION_FILE"
-fi
+source "$PWD/cascade_completion.sh"
 
 heading() {
     printf '=%.0s' {1..79}
