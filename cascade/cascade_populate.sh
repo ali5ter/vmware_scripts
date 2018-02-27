@@ -79,5 +79,16 @@ heading "Generate kube config for smart cluster, $_name, and retrieve namespaces
 cascade cluster get-kubectl-auth "$_name" -u "$USER" -f kube-config
 export KUBECONFIG=./kube-config
 
+# dump some info about the cluster -------------------------------------------
+
 kubectl cluster-info
 kubectl get namespace
+
+## There are some deprecated objects in the iam JSON response that need to be
+## cleared out
+
+_admin=$(cascade --output json cluster iam show "$_name" | jq '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+[[ -z "$_admin" ]] && {
+    _admin=$(cascade --output json cluster iam show "$_name" | jq '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+}
+echo -e "Administrator(s) identities for $_name are:\n$_admin"

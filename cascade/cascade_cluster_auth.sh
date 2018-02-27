@@ -44,6 +44,21 @@ until [[ "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_clusters[@]} + 1 ))" ]]; do
 done
 _name=${_clusters[$REPLY]}
 
+# dump some info about the cluster -------------------------------------------
+
+heading "Information about smart cluster, $_name"
+
+kubectl cluster-info
+
+## There are some deprecated objects in the iam JSON response that need to be
+## cleared out
+
+_admin=$(cascade --output json cluster iam show "$_name" | jq '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+[[ -z "$_admin" ]] && {
+    _admin=$(cascade --output json cluster iam show "$_name" | jq '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+}
+echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"
+
 # generate kube config -------------------------------------------------------
 
 heading "Generate kube config for smart cluster, $_name"
