@@ -59,7 +59,12 @@ check_version_trigger() {
     return 0
 }
 
-# validate cascade commans ---------------------------------------------------
+# validate cascade commands ---------------------------------------------------
+
+type jq &> /dev/null || {
+    echo 'Please install jq which is available from https://stedolan.github.io/jq/download/'
+    exit 1
+}
 
 type cascade &> /dev/null || {
     echo "Please install cascade CLI by downloading it from"

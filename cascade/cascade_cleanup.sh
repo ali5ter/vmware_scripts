@@ -7,11 +7,7 @@ set -e
 
 source "$PWD/cascade_config.sh"
 
-type jq &> /dev/null || {
-    echo 'Please install jq which is available from https://stedolan.github.io/jq/download/'
-    exit 1
-}
-
+heading 'Authenticate with Cascade service'
 "$PWD/cascade_authenticate.sh"
 
 ## There doesn't seem to be a way to get the display name from a json output 
