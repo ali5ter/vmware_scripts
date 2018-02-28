@@ -52,8 +52,9 @@ check_version_trigger() {
     local _check=~/.cascade_version_check
     if [[ -f "$_check" ]]; then
         [[ "$(date '+%j')" != "$(cat $_check)" ]] && check_version
+        date '+%j' > "$_check"
     else
-        touch "$_check" && { date '+%j' > "$_check"; }
+        touch "$_check" && date '+%j' > "$_check"
         check_version
     fi
     return 0
