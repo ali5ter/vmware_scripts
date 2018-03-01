@@ -10,16 +10,16 @@ source "$PWD/cascade_config.sh"
 # helper functions -----------------------------------------------------------
 
 get_cli_url() {
-    local _os=''
     case "$OSTYPE" in
-        darwin*)  _os='mac' ;; 
-        linux*)   _os='linux64' ;;
-        msys*)    _os='windows64' ;;
+        darwin*)  echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/mac/cascade' ;; 
+        linux*)   echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/cascade' ;;
+        msys*)    echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/cascade.exe' ;;
         *)        return 1;;
     esac
-    curl -s "$UI_URL"/v1/cli | jq -r --arg os "$_os" '.latest | .[$os]'
     return 0
 }
+
+_heading_index=1
 
 heading() {
     echo
@@ -86,13 +86,12 @@ type jq &> /dev/null || {
 }
 
 type cascade &> /dev/null || {
-
-    ## If there was a CLI download URL that didn't need authentication then
-    ## it could be downloaded for the user before logging into Cascade
-
-    echo "Download the Cascade CLI from the following URL:"
+    echo "Downloading the Cascade CLI from the following URL:"
     get_cli_url
-    echo "Add execute permissions and move it into your path."
+    download_cli
+    echo "Move $_latest_cli to your path, e.g."
+    echo -e " \tmv $_latest_cli /usr/local/bin/cascade\n"
+    echo "Once completed, you can restart this script."
     exit 1
 }
 
