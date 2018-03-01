@@ -99,3 +99,9 @@ type cascade &> /dev/null || {
 check_version_trigger
 
 source "$PWD/cascade_completion.sh"
+
+type kubectl &> /dev/null || {
+    echo 'Please install kubectl. Installation instructions are available from'
+    echo 'https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl'
+    exit 1
+}

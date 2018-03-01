@@ -6,7 +6,7 @@
 set -e
 
 type helm &> /dev/null || {
-    echo 'Please install helm which is available from '
+    echo 'Please install helm. Installation instructions are available from'
     echo 'https://docs.helm.sh/using_helm/#installing-helm'
     echo 'If you use homebrew on macOS, install using:'
     echo 'brew install kubernetes-helm'
