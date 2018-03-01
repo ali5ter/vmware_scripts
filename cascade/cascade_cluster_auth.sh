@@ -19,7 +19,7 @@ for cluster in $(cascade --output json cluster list | jq -r '.[] | .name' | grep
     printf "    %3d ... %s\n" "$_cluster_index" "$cluster"
     ((_cluster_index++))
 done
-until [[ "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_clusters[@]} + 1 ))" ]]; do
+until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_clusters[@]} + 1 ))" ]]; do
     read -p "Select one of these smart clusters [1-${#_clusters[@]}]: " -n 1
     echo
 done
