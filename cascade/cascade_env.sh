@@ -9,7 +9,7 @@ source "$PWD/cascade_config.sh"
 
 # helper functions -----------------------------------------------------------
 
-get_CLI_url() {
+get_cli_url() {
     local _os=''
     case "$OSTYPE" in
         darwin*)  _os='mac' ;; 
@@ -30,14 +30,20 @@ heading() {
     return 0
 }
 
+_latest_cli='/tmp/cascade'
+
+download_cli() {
+    curl -s $(get_cli_url) > $_latest_cli && chmod 755 $_latest_cli
+    return 0
+}
+
 check_version() {
-    local _tmp='/tmp/cascade'
-    local _latest_version=$(curl -s $(get_CLI_url) > $_tmp && chmod 755 $_tmp && $_tmp -v | awk '{print $3}')
+    local _latest_version=$($_latest_cli -v | awk '{print $3}')
     local _current_version=$(cascade -v | awk '{print $3}')
     [[ "$_current_version" != "$_latest_version" ]] && {
         echo -e "\nThere is a new version ($_latest_version) of the Cascade CLI available"
-        echo "Move $_tmp to your path if you want the latest, e.g."
-        echo -e " \tmv $_tmp /usr/local/bin/cascade\n"
+        echo "Move $_latest_cli to your path if you want the latest, e.g."
+        echo -e " \tmv $_latest_cli /usr/local/bin/cascade\n"
     }
     return 0
 }
@@ -80,12 +86,17 @@ type jq &> /dev/null || {
 }
 
 type cascade &> /dev/null || {
-    echo "Please install cascade CLI by downloading it from"
-    get_CLI_url
-    echo "Add execute permissions and move into your path"
+
+    ## If there was a CLI download URL that didn't need authentication then
+    ## it could be downloaded for the user before logging into Cascade
+
+    echo "Download the Cascade CLI from the following URL:"
+    get_cli_url
+    echo "Add execute permissions and move it into your path."
     exit 1
 }
 
+[[ ! -f "$_latest_cli" ]] && download_cli
 check_version_trigger
 
 source "$PWD/cascade_completion.sh"

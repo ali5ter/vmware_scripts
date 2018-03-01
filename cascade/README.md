@@ -1,7 +1,7 @@
 # Cascade scripts
 Scripts used with Cascade M3
 
-Edit the [cascade+config.sh](cascade_config.sh) script to reflect your credentials.
+Edit the [cascade_config.sh](cascade_config.sh) script to reflect your credentials.
 
 The [cascade_populate.sh](cascade_populate.sh) script cleans a Cascade Project, then re-populates it with a Smart Cluster with some Namespaces.
 
