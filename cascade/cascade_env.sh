@@ -56,12 +56,20 @@ check_version_trigger() {
 ## check the prerequisites are in place --------------------------------------
 
 [[ "$OSTYPE" == "darwin"* ]] && {
+    _saved_ssid=~/.cascade_network_ssid
+    touch "$_saved_ssid"
     SSID='vmware'
     _ifid=$(networksetup -listnetworkserviceorder | grep 'Hardware Port' | grep Wi-Fi | awk -F  "(, )|(: )|[)]" '{print $4}')
     _ssid=$(networksetup -getairportnetwork $_ifid | awk -F "(: )" '{print $2}')
-    [[ "$_ssid" == "$SSID" ]] || {
-        echo "You need to connect to the wireless network at SSID, $SSID"
-        exit 1
+    [[ "$_ssid" == "$SSID" || "$_ssid" == "$(cat $_saved_ssid)" ]] || {
+        echo "You appear to be connected to $_ssid but need to connect to the wireless network at SSID, $SSID"
+        read -p "Or are you connected through VPN? [y/N] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "$_ssid" > "$_saved_ssid"
+        else
+            exit 1
+        fi
     }
 }
 
