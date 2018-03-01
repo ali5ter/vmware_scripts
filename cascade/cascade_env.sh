@@ -22,9 +22,10 @@ get_CLI_url() {
 }
 
 heading() {
+    echo
     printf '=%.0s' {1..79}
     echo -e "\n$1" | fold -s -w 79
-    printf '=%.0s' {1..79}
+    printf -- '-%.0s' {1..79}
     echo
     return 0
 }
