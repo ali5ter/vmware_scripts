@@ -10,20 +10,28 @@ source "$PWD/cascade_env.sh"
 heading 'Authenticate with Cascade service'
 "$PWD/cascade_authenticate.sh"
 
-# list clusters -------------------------------------------------------------
+# select a cluster -----------------------------------------------------------
 
-heading "Select from smart clusters starting with $CLUSTER_PREFIX"
-_cluster_index=1
-for cluster in $(cascade --output json cluster list | jq -r '.[] | .name' | grep "$CLUSTER_PREFIX"); do
-    _clusters[$_cluster_index]="$cluster"
-    printf "    %3d ... %s\n" "$_cluster_index" "$cluster"
-    ((_cluster_index++))
-done
-until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_clusters[@]} + 1 ))" ]]; do
-    read -p "Select one of these smart clusters [1-${#_clusters[@]}]: " -n 1
-    echo
-done
-_name=${_clusters[$REPLY]}
+_clusters="$(cascade --output json cluster list | jq -r '.[] | .name' | grep "$CLUSTER_PREFIX")"
+if [[ "${#_clusters[@]}" == 0 ]]; then
+    echo "Unable to find any clusters"
+    exit 0
+elif [[ "${#_clusters[@]}" == 1 ]]; then
+    _name="$_clusters"
+else
+    heading "Select from smart clusters starting with $CLUSTER_PREFIX"
+    _cluster_index=1
+    for cluster in $clusters; do
+        _clusters[$_cluster_index]="$cluster"
+        printf "    %3d ... %s\n" "$_cluster_index" "$cluster"
+        ((_cluster_index++))
+    done
+    until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_clusters[@]} + 1 ))" ]]; do
+        read -p "Select one of these smart clusters [1-${#_clusters[@]}]: " -n 1
+        echo
+    done
+    _name=${_clusters[$REPLY]}
+fi
 
 # generate kube config -------------------------------------------------------
 
@@ -45,3 +53,5 @@ _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindin
     _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
 }
 echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"
+set -x
+export_to_parent_shell KUBECONFIG './kube-config'
