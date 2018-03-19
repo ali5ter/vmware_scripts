@@ -105,3 +105,5 @@ type kubectl &> /dev/null || {
     echo 'https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl'
     exit 1
 }
+
+SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
