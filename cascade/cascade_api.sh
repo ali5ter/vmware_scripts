@@ -43,12 +43,10 @@ SWAGGER_URL="http://localhost:$SWAGGER_UI_PORT/"
 
 docker ps -a | grep "$SWAGGER_UI_IMAGE" | awk '{print $1}' | xargs docker rm -fv > /dev/null 2>&1
 
-docker run -d --name swagguer-ui -p 8888:8080 \
+docker run -d --name swagguer-ui -p "$SWAGGER_UI_PORT":8080 \
     -e SWAGGER_JSON="/specs/$SWAGGER_YAML" \
     -v "$SCRIPTPATH":/specs \
     "$SWAGGER_UI_IMAGE" > /dev/null 2>&1
-
-
 
 # Open brower using swagger ui view on the swagger definition ----------------
 
