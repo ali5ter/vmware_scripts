@@ -22,9 +22,11 @@ SWAGGER_SWAGGER_URL="https://confluence.eng.vmware.com/download/attachments/2768
 [[ -f "$SWAGGER_YAML" ]] || {
     echo "Download the swagger definition file from"
     echo "$SWAGGER_SWAGGER_URL"
-    echo "Onve downloaded, rename it to $SWAGGER_YAML"
+    echo "Once downloaded, rename it to $SWAGGER_YAML"
     exit 1
 }
+
+sed -i '' 's/proxy-api\.cascade\.vmware\.com/api\.cascade-cloud\.com/g' "$SWAGGER_YAML"
 
 # start swagger-ui contianer -------------------------------------------------
 
