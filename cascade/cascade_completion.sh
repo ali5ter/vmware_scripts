@@ -15,11 +15,12 @@ _cascade_complete () {
     
     case "$prev" in
                 set)    cmds="--no-cert-check";;
-        cluster)    cmds="create show list resize rename delete upgrade get-kubectl-auth iam --help";;
+        show)    cmds="--perf";;
+        cluster)    cmds="create show list resize rename delete upgrade get-kubectl-auth merge-kubectl-auth iam --help";;
         iam)    cmds="show add remove --help role --help show add remove --help show add remove --help show add remove --help show add remove --help";;
         upgrade)    cmds="--version";;
         group)    cmds="create delete show list user --help";;
-        create)    cmds="--root-user --password --password --description --name --service-level --display-name --size --container-network --region --version --template";;
+        create)    cmds="--root-user --password --password --description --display-name --display-name --name --service-level --display-name --size --container-network --region --version --template";;
         namespace)    cmds="create delete show list iam --help";;
         add)    cmds="--subject --role --user-name --subject --role --subject --role --subject --role --subject --role";;
         version)    cmds="list --help";;
@@ -28,7 +29,7 @@ _cascade_complete () {
         folder)    cmds="create delete show get set list iam --help";;
         user)    cmds="create delete show list --help add remove list --help";;
         tenant)    cmds="create delete show list set get iam --help";;
-        get-kubectl-auth)    cmds="--username --configfile";;
+        get-kubectl-auth)    cmds="--configfile";;
         target)    cmds="set show login --help";;
         region)    cmds="list enable disable --help";;
         list)    cmds="--region";;
@@ -36,7 +37,7 @@ _cascade_complete () {
         project)    cmds="create delete show get set list iam --help";;
         cascade)    cmds="region target tenant user group iam folder project cluster namespace version template help --non-interactive --log-file --output --detail --help --version";;
         login)    cmds="--tenant --refresh-token";;
-        *)    cmds="set cluster iam upgrade group create namespace add version role template folder user tenant get-kubectl-auth target region list remove project cascade login";;
+        *)    cmds="set show cluster iam upgrade group create namespace add version role template folder user tenant get-kubectl-auth target region list remove project cascade login";;
     esac
 
     COMPREPLY=( $(compgen -W "$cmds" -- "$cur") )
