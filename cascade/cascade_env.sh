@@ -38,8 +38,8 @@ download_cli() {
 }
 
 check_version() {
-    local _latest_version=$($_latest_cli -v | awk '{print $3}')
-    local _current_version=$(cascade -v | awk '{print $3}')
+    local _latest_version=$($_latest_cli -v | sed 's/cascade version \(.*\)/\1/')
+    local _current_version=$(cascade -v | sed 's/cascade version \(.*\)/\1/')
     [[ "$_current_version" != "$_latest_version" ]] && {
         echo -e "\nThere is a new version ($_latest_version) of the Cascade CLI available"
         echo "Move $_latest_cli to your path if you want the latest, e.g."
@@ -98,6 +98,7 @@ type cascade &> /dev/null || {
 [[ ! -f "$_latest_cli" ]] && download_cli
 check_version_trigger
 
+## TODO: Write this to a runcom like .bashrc
 source "$PWD/cascade_completion.sh"
 
 type kubectl &> /dev/null || {
