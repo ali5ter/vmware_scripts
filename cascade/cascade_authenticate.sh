@@ -22,9 +22,6 @@ cascade tenant get
 ## Now that output is tabulated with lots more visual chars, it's easier to
 ## output in json and use jq to extract attributes needed
 
-## Notice that some json responses use an anonymous array and some use an array
-## called 'items'
-
 heading 'Navigate to correct project scope'
 cascade folder set $(cascade --output json folder list | jq -r '.items[] | .name' | grep -i "$FOLDER_REGEX")
-cascade project set $(cascade --output json project list | jq -r '.[] | .name' | grep -i "$PROJECT_REGEX")
+cascade project set $(cascade --output json project list | jq -r '.items[] | .name' | grep -i "$PROJECT_REGEX")

@@ -1,2 +1,3 @@
 kube-config
 *.txt
+*.yml
