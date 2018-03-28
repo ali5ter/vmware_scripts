@@ -29,6 +29,9 @@ _region=$(cascade --output json region list | jq -r '.items[] | .name' | grep -i
 _version=$(cascade --output json version list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
 _size=$(( ( RANDOM % 4 ) + 1)) # a size between 1 and 4
 
+## Name can only be up to 26 characters long :(
+_name=$(echo "$_name" | cut -c 1-26)
+
 cascade cluster create -t development -n "$_name" -r "$_region" -v "$_version" -s "$_size"
 
 get_cluster_state() { echo $(cascade --output json cluster show "$_name" | jq -r '.details.state'); }
