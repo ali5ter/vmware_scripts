@@ -12,7 +12,7 @@ heading 'Authenticate with Cascade service'
 
 # select a cluster -----------------------------------------------------------
 
-_clusters="$(cascade --output json cluster list | jq -r '.[] | .name' | grep "$CLUSTER_PREFIX")"
+_clusters="$(cascade --output json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
 _clusters_num=$(echo "$_clusters" | wc -l)
 if [[ -z "$_clusters" ]]; then
     echo "Unable to find any clusters"
