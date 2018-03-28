@@ -25,7 +25,7 @@ echo
 heading 'Create smart cluster and wait for it to be ready'
 
 _name="${CLUSTER_PREFIX}-"$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
-_region=$(cascade --output json region list | jq -r '.[] | .name' | grep -i "$REGION_REGEX")
+_region=$(cascade --output json region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
 _version=$(cascade --output json version list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
 _size=$(( ( RANDOM % 4 ) + 1)) # a size between 1 and 4
 
