@@ -34,16 +34,19 @@ else
     _name=${_aclusters[$REPLY]}
 fi
 
-# generate kube config -------------------------------------------------------
+## TODO: Check current kubectl against one needed for cluster
 
-heading "Generate kube config for smart cluster, $_name"
-cascade cluster get-kubectl-auth "$_name" -u "$USER" -f kube-config
-echo -e '\texport KUBECONFIG=./kube-config'
+# generate kube context ------------------------------------------------------
+
+heading "Create new context for smart cluster, $_name"
+cascade cluster merge-kubectl-auth "$_name"
+echo -e '\tTo authenticate to this cluster, use the command:'
+echo -e "\tkubectl config use-context "$_name"-context"
+kubectl config use-context "$_name"-context
 
 # dump some info about the cluster -------------------------------------------
 
 heading "Information about smart cluster, $_name"
-export KUBECONFIG=./kube-config
 kubectl cluster-info
 
 ## There are some deprecated objects in the iam JSON response that need to be
@@ -54,5 +57,3 @@ _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindin
     _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
 }
 echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"
-set -x
-export_to_parent_shell KUBECONFIG './kube-config'

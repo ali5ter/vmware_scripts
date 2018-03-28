@@ -59,9 +59,11 @@ cascade namespace list "$_name"
 
 # connect to K8s cluster backing the smart cluster ---------------------------
 
-heading "Generate kube config for smart cluster, $_name, and retrieve namespaces using kubectl"
-cascade cluster get-kubectl-auth "$_name" -u "$USER" -f kube-config
-export KUBECONFIG=./kube-config
+heading "Create new context for smart cluster, $_name, and retrieve namespaces using kubectl"
+cascade cluster merge-kubectl-auth "$_name"
+echo -e '\tTo authenticate to this cluster, use the command:'
+echo -e "\tkubectl config use-context "$_name"-context"
+kubectl config use-context "$_name"-context
 
 # dump some info about the K8s cluster backing the smart cluster -------------
 
