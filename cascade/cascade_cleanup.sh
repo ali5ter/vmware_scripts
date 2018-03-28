@@ -15,7 +15,7 @@ heading 'Authenticate with Cascade service'
 
 set +e
 
-for cluster in $(cascade --output json cluster list | jq -r '.[] | .name' | grep "$CLUSTER_PREFIX"); do
+for cluster in $(cascade --output json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX"); do
     read -p "Delete $cluster? [y/N] " -n 1 -r
     echo
     [[ $REPLY =~ ^[Yy]$ ]] && cascade cluster delete "$cluster"
