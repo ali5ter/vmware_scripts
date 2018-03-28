@@ -49,7 +49,7 @@ _fqdn=$(kubectl describe service "${_prefix}-wordpress" | grep "LoadBalancer Ing
 _url="http://${_fqdn}/admin"
 echo -e "Opening the following URL:\n$_url"
 [[ "$OSTYPE" == "darwin"* ]] && open "$_url"
-echo "The webpage at this URL will auto-refresh until the weberver responds."
+echo "Refresh the webpage at this URL until the weberver responds."
 _password=$(kubectl get secret --namespace default "${_prefix}-wordpress" -o jsonpath="{.data.wordpress-password}" | base64 --decode)
 echo "Log in using credentials (user/$_password)"
 

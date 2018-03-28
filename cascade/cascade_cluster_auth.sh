@@ -12,7 +12,7 @@ heading 'Authenticate with Cascade service'
 
 # select a cluster -----------------------------------------------------------
 
-_clusters="$(cascade --output json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
+_clusters="$(cascade -o json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
 _clusters_num=$(echo "$_clusters" | wc -l)
 if [[ -z "$_clusters" ]]; then
     echo "Unable to find any clusters"
@@ -34,15 +34,27 @@ else
     _name=${_aclusters[$REPLY]}
 fi
 
-## TODO: Check current kubectl against one needed for cluster
-
 # generate kube context ------------------------------------------------------
 
 heading "Create new context for smart cluster, $_name"
 cascade cluster merge-kubectl-auth "$_name"
 echo -e '\tTo authenticate to this cluster, use the command:'
-echo -e "\tkubectl config use-context "$_name"-context"
+echo -e "\tkubectl config use-context "$_name"-context\n"
 kubectl config use-context "$_name"-context
+
+# check kubectl version compatibility ----------------------------------------
+
+_kubeVersion=$(kubectl -o json version)
+_platform=$(echo "$_kubeVersion" | jq -r '.clientVersion.platform' | sed 's#/#_#' )
+_clientVersion=$(echo "$_kubeVersion" | jq -r '.clientVersion.major').$(echo "$_kubeVersion" | jq -r '.clientVersion.minor')
+_serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_kubeVersion" | jq -r '.serverVersion.minor')
+
+[[ "$_clientVersion" != "$_serverVersion" ]] && {
+    echo -e "\nThe kubectl client ($_clientVersion) and server ($_serverVersion) versions are different."
+    echo -e "\tIf you encounter any compatibility problems because of this, download kubectl from:"
+    echo -e -n "\t"
+    cascade -o json cluster show "$_name" | jq -r ".details.kubectlUrls.$_platform"
+}
 
 # dump some info about the cluster -------------------------------------------
 
@@ -52,8 +64,8 @@ kubectl cluster-info
 ## There are some deprecated objects in the iam JSON response that need to be
 ## cleared out
 
-_admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+_admin=$(cascade -o json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
 [[ -z "$_admin" ]] && {
-    _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+    _admin=$(cascade -o json cluster iam show "$_name" | jq -r '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
 }
 echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"
