@@ -37,7 +37,7 @@ fi
 # generate kube context ------------------------------------------------------
 
 heading "Create new context for smart cluster, $_name"
-cascade cluster merge-kubectl-auth "$_name"
+erun cascade cluster merge-kubectl-auth "$_name"
 echo -e '\tTo authenticate to this cluster, use the command:'
 echo -e "\tkubectl config use-context "$_name"-context\n"
 kubectl config use-context "$_name"-context
@@ -59,7 +59,7 @@ _serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_
 # dump some info about the cluster -------------------------------------------
 
 heading "Information about smart cluster, $_name"
-kubectl cluster-info
+erun kubectl cluster-info
 
 ## There are some deprecated objects in the iam JSON response that need to be
 ## cleared out

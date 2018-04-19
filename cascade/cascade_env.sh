@@ -60,6 +60,12 @@ check_version_trigger() {
     return 0
 }
 
+
+erun() {
+    echo -e "\e[0;1m> ${@}\e[0m"
+    "$@"
+}
+
 ## check the prerequisites are in place --------------------------------------
 
 [[ "$OSTYPE" == "darwin"* ]] && {

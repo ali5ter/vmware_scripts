@@ -10,10 +10,10 @@ source "$PWD/cascade_env.sh"
 ## Authentication state held in ~/cascade-cli/cascade-config but can't find
 ## a way to determine if I have an exired session, so just login in each time
 
-cascade target set "$API_URL"
-cascade target login --i csp -t "$CSP_ORG_ID" -r "$TOKEN"
+erun cascade target set "$API_URL"
+erun cascade target login --i csp -t "$CSP_ORG_ID" -r "$TOKEN"
 
-cascade tenant get
+erun cascade tenant get
 
 ## Unable to get the user identity I'm signed in as
 
@@ -23,5 +23,5 @@ cascade tenant get
 ## output in json and use jq to extract attributes needed
 
 heading 'Navigate to correct project scope'
-cascade folder set $(cascade --output json folder list | jq -r '.items[] | .name' | grep -i "$FOLDER_REGEX")
-cascade project set $(cascade --output json project list | jq -r '.items[] | .name' | grep -i "$PROJECT_REGEX")
+erun cascade folder set $(cascade --output json folder list | jq -r '.items[] | .name' | grep -i "$FOLDER_REGEX")
+erun cascade project set $(cascade --output json project list | jq -r '.items[] | .name' | grep -i "$PROJECT_REGEX")

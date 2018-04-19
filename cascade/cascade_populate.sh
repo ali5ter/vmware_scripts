@@ -32,7 +32,7 @@ _size=$(( ( RANDOM % 4 ) + 1)) # a size between 1 and 4
 ## Name can only be up to 26 characters long :(
 _name=$(echo "$_name" | cut -c 1-26)
 
-cascade cluster create -t development -n "$_name" -r "$_region" -v "$_version" -s "$_size"
+erun cascade cluster create -t development -n "$_name" -r "$_region" -v "$_version" -s "$_size"
 
 get_cluster_state() { echo $(cascade --output json cluster show "$_name" | jq -r '.details.state'); }
 
@@ -42,7 +42,7 @@ get_cluster_state() { echo $(cascade --output json cluster show "$_name" | jq -r
 echo "Waiting for Smart Cluster to be ready..."
 _cluster_state=''
 until [ "$_cluster_state" == "READY" ]; do
-    sleep 10
+    sleep 20
     _cluster_state=$(get_cluster_state)
     echo -e "\t$_cluster_state"
 done
@@ -53,22 +53,22 @@ _namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
 
 heading "Create some namespaces in $_name and retrieve namespaces using cascade CLI"
 for i in $(seq "$_namespaces"); do
-    cascade namespace create "$_name" "${_name}-namespace-$i"
+    erun cascade namespace create "$_name" "${_name}-namespace-$i"
 done
-cascade namespace list "$_name"
+erun cascade namespace list "$_name"
 
 # connect to K8s cluster backing the smart cluster ---------------------------
 
 heading "Create new context for smart cluster, $_name, and retrieve namespaces using kubectl"
-cascade cluster merge-kubectl-auth "$_name"
+erun cascade cluster merge-kubectl-auth "$_name"
 echo -e '\tTo authenticate to this cluster, use the command:'
 echo -e "\tkubectl config use-context "$_name"-context"
-kubectl config use-context "$_name"-context
+erun kubectl config use-context "$_name"-context
 
 # dump some info about the K8s cluster backing the smart cluster -------------
 
-kubectl cluster-info
-kubectl get namespace
+erun kubectl cluster-info
+erun kubectl get namespace
 
 ## There are some deprecated objects in the iam JSON response that need to be
 ## cleared out
