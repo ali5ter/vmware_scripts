@@ -10,10 +10,14 @@ source "$PWD/cascade_env.sh"
 ## Authentication state held in ~/cascade-cli/cascade-config but can't find
 ## a way to determine if I have an exired session, so just login in each time
 
-erun cascade target set "$API_URL"
+## no set option any more ?!!
+
+#erun cascade target set "$API_URL"
 erun cascade target login --i csp -t "$CSP_ORG_ID" -r "$TOKEN"
 
-erun cascade tenant get
+## no get option any more ?!!
+
+#erun cascade tenant get
 
 ## Unable to get the user identity I'm signed in as
 
