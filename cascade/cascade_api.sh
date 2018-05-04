@@ -12,10 +12,10 @@ heading 'Authenticate with Cascade service'
 
 ## Currently you need to convert CSP token to a Lightwave token to auth with
 ## the API
-TOKEN="$(cat ~/.cascade-cli/cascade-config  | jq -r .Token)"
+TOKEN="$(jq -r .Token ~/.cascade-cli/cascade-config)"
 
 ## Can also use 'cascade tenant get'
-TENANT="$(cat ~/.cascade-cli/cascade-config  | jq -r .Tenant.Name)"
+TENANT="$(jq -r .Tenant.Name ~/.cascade-cli/cascade-config)"
 
 # retrieve swagger yaml and convert json -------------------------------------
 
@@ -60,5 +60,5 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 else
     echo "Start Swagger-UI in your browser using $SWAGGER_URL"
 fi
-echo -e "Authenticate using the OATH token\n$TOKEN"
-echo -e "You Tenant name is\n$TENANT"
+echo -e "Authenticate using the OATH token\\n$TOKEN"
+echo -e "You Tenant name is\\n$TENANT"
