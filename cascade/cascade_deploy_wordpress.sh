@@ -23,6 +23,7 @@ source "$PWD/cascade_env.sh"
 
 heading 'Install/upgrade helm agent (tiller) on the K8s cluster'
 helm init --upgrade
+sleep 5 ## give tiller a chance to upgrade
 
 # deploy a helm chart for wordpress ------------------------------------------
 
@@ -39,19 +40,33 @@ echo 'done'
 
 # test the deployment by using wordpress -------------------------------------
 
-heading 'Show browsable URL to the wordpress site'
+heading 'Show browsable URL to the wordpress site and kube dashboard'
 
 ## Unable to get the external IP using the following technique documented by 
 ## this wordpress chart
 ##_ip=$(kubectl get svc --namespace default "${_prefix}-wordpress" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-_fqdn=$(kubectl describe service "${_prefix}-wordpress" | grep "LoadBalancer Ingress" | awk '{print $3}')
+get_fqdn() { kubectl get svc --namespace default "${_prefix}-wordpress" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'; }
+echo -n "Waiting for ingress hostname..."
+_fqdn=''
+while [ "$_fqdn" == "" ]; do
+    sleep 10; _fqdn=$(get_fqdn); echo -n '.'
+done
+echo 'done'
+
 _url="http://${_fqdn}/admin"
-echo -e "Opening the following URL:\n$_url"
+echo -e "\nOpen the Wordpress admin UI using\n$_url"
 [[ "$OSTYPE" == "darwin"* ]] && open "$_url"
 echo "Refresh the webpage at this URL until the weberver responds."
 _password=$(kubectl get secret --namespace default "${_prefix}-wordpress" -o jsonpath="{.data.wordpress-password}" | base64 --decode)
 echo "Log in using credentials (user/$_password)"
+
+# open kube dashboard --------------------------------------------------------
+
+_fqdn=$(kubectl cluster-info | grep master | sed 's/.*is running at \(.*\):6443.*/\1/' | tr -d '[:cntrl:]' | sed 's/\[0;33m//')
+_url="$_fqdn:30443/"
+echo -e "\nOpen the Kube Dashboard using\n$_url"
+[[ "$OSTYPE" == "darwin"* ]] && open "$_url"
 
 # clean up -------------------------------------------------------------------
 
