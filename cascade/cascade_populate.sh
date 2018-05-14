@@ -25,7 +25,7 @@ echo
 heading 'Create smart cluster and wait for it to be ready'
 
 _name="${CLUSTER_PREFIX}-"$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
-_region=$(cascade --output json region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
+_region=$(cascade --output json info region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
 _version=$(cascade --output json version list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
 _size=$(( ( RANDOM % 4 ) + 1)) # a size between 1 and 4
 
@@ -73,8 +73,24 @@ erun kubectl get namespace
 ## There are some deprecated objects in the iam JSON response that need to be
 ## cleared out
 
-_admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
-[[ -z "$_admin" ]] && {
-    _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+_get_admin() {
+    local policy=$(cascade --output json cluster iam show alb-acetylize-benzal | jq -r '.inherited[].bindings[]')
+    local admin=$(echo $policy | jq 'select(.role == "smartcluster.admin") | .subjects[]')
+    if [[ -z "$_admin" ]] then
+        admin=$(echo $policy | jq 'select(.role == "project.admin") | .subjects[]')
+    elif [[ -z "$_admin" ]] 
+        admin=$(echo $policy | jq 'select(.role == "folder.admin") | .subjects[]')
+    else [[ -z "$_admin" ]] then
+        admin=$(echo $policy | jq 'select(.role == "tenant.admin") | .subjects[]')
+    fi
+    if [[ -z "$_admin" ]] then
+        return 0
+    else 
+        echo "$admin"
+        return 1
+    fi
 }
+
+_admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
+[[ -z "$_admin" ]] && _admin=$(_get_admin)
 echo -e "Administrator(s) identities for $_name are:\n$_admin"
