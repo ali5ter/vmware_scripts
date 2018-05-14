@@ -74,23 +74,18 @@ erun kubectl get namespace
 ## cleared out
 
 _get_admin() {
-    local policy=$(cascade --output json cluster iam show alb-acetylize-benzal | jq -r '.inherited[].bindings[]')
+    local policy=$(cascade --output json cluster iam show $1 | jq -r '.inherited[].bindings[]')
     local admin=$(echo $policy | jq 'select(.role == "smartcluster.admin") | .subjects[]')
-    if [[ -z "$_admin" ]] then
+    if [[ -z "$_admin" ]]; then
         admin=$(echo $policy | jq 'select(.role == "project.admin") | .subjects[]')
-    elif [[ -z "$_admin" ]] 
+    elif [[ -z "$_admin" ]]; then 
         admin=$(echo $policy | jq 'select(.role == "folder.admin") | .subjects[]')
-    else [[ -z "$_admin" ]] then
+    elif [[ -z "$_admin" ]]; then
         admin=$(echo $policy | jq 'select(.role == "tenant.admin") | .subjects[]')
     fi
-    if [[ -z "$_admin" ]] then
-        return 0
-    else 
-        echo "$admin"
-        return 1
-    fi
+    echo "$admin"
 }
 
 _admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
-[[ -z "$_admin" ]] && _admin=$(_get_admin)
+[[ -z "$_admin" ]] && _admin=$(_get_admin $_name)
 echo -e "Administrator(s) identities for $_name are:\n$_admin"
