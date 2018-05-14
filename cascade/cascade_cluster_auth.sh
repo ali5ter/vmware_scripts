@@ -61,11 +61,5 @@ _serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_
 heading "Information about smart cluster, $_name"
 erun kubectl cluster-info
 
-## There are some deprecated objects in the iam JSON response that need to be
-## cleared out
-
-_admin=$(cascade -o json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
-[[ -z "$_admin" ]] && {
-    _admin=$(cascade -o json cluster iam show "$_name" | jq -r '.inherited[].bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
-}
+_admin=$(get_admin $_name)
 echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"

@@ -70,22 +70,5 @@ erun kubectl config use-context "$_name"-context
 erun kubectl cluster-info
 erun kubectl get namespace
 
-## There are some deprecated objects in the iam JSON response that need to be
-## cleared out
-
-_get_admin() {
-    local policy=$(cascade --output json cluster iam show $1 | jq -r '.inherited[].bindings[]')
-    local admin=$(echo $policy | jq 'select(.role == "smartcluster.admin") | .subjects[]')
-    if [[ -z "$_admin" ]]; then
-        admin=$(echo $policy | jq 'select(.role == "project.admin") | .subjects[]')
-    elif [[ -z "$_admin" ]]; then 
-        admin=$(echo $policy | jq 'select(.role == "folder.admin") | .subjects[]')
-    elif [[ -z "$_admin" ]]; then
-        admin=$(echo $policy | jq 'select(.role == "tenant.admin") | .subjects[]')
-    fi
-    echo "$admin"
-}
-
-_admin=$(cascade --output json cluster iam show "$_name" | jq -r '.direct.bindings[] | select(.role == "smartcluster.admin") | .subjects[]')
-[[ -z "$_admin" ]] && _admin=$(_get_admin $_name)
-echo -e "Administrator(s) identities for $_name are:\n$_admin"
+_admin=$(get_admin $_name)
+echo -e "/nAdministrator(s) identities for $_name are:\n$_admin"

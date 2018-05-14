@@ -66,6 +66,28 @@ erun() {
     "$@"
 }
 
+get_admin() {
+    local obj="$1"
+    local policy=$(cascade -o json cluster iam show $1)
+    local direct=$(echo $policy | jq -r '.direct.bindings[]')
+    local inherited=$(echo $policy | jq -r '.inherited[].bindings[]')
+
+    local admin=$(echo $direct | jq -r 'select(.role == "smartcluster.admin") | .subjects[]')
+    if [[ -z "$admin" ]]; then
+        admin=$(echo $inherited | jq -r 'select(.role == "smartcluster.admin") | .subjects[]')
+        if [[ -z "$admin" ]]; then
+            admin=$(echo $inherited | jq -r 'select(.role == "project.admin") | .subjects[]')
+            if [[ -z "$admin" ]]; then 
+                admin=$(echo $inherited | jq -r 'select(.role == "folder.admin") | .subjects[]')
+                if [[ -z "$admin" ]]; then
+                    admin=$(echo $inherited | jq -r 'select(.role == "tenant.admin") | .subjects[]')
+                fi
+            fi
+        fi
+    fi
+    echo "$admin"
+}
+
 ## check the prerequisites are in place --------------------------------------
 
 [[ "$OSTYPE" == "darwin"* ]] && {
