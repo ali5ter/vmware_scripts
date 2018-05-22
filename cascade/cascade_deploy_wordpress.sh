@@ -22,8 +22,7 @@ source "$PWD/cascade_env.sh"
 # install/upgrade the K8s agent that helm talks to -----------------------------------
 
 heading 'Install/upgrade helm agent (tiller) on the K8s cluster'
-helm init --upgrade
-sleep 5 ## give tiller a chance to upgrade
+helm init --upgrade --wait
 
 # deploy a helm chart for wordpress ------------------------------------------
 
@@ -57,14 +56,14 @@ echo 'done'
 _url="http://${_fqdn}/admin"
 echo -e "\nOpen the Wordpress admin UI using\n$_url"
 [[ "$OSTYPE" == "darwin"* ]] && open "$_url"
-echo "Refresh the webpage at this URL until the weberver responds."
+echo -e "\nRefresh the webpage at this URL until the weberver responds."
 _password=$(kubectl get secret --namespace default "${_prefix}-wordpress" -o jsonpath="{.data.wordpress-password}" | base64 --decode)
 echo "Log in using credentials (user/$_password)"
 
 # open kube dashboard --------------------------------------------------------
 
-_fqdn=$(kubectl cluster-info | grep master | sed 's/.*is running at \(.*\):6443.*/\1/' | tr -d '[:cntrl:]' | sed 's/\[0;33m//')
-_url="$_fqdn:30443/"
+_fqdn=$(kubectl cluster-info | grep master | tr -d '[:cntrl:]' | sed 's/^.*https:\/\/api.\(.*\):443.*$/\1/')
+_url="https://ui.$_fqdn/"
 echo -e "\nOpen the Kube Dashboard using\n$_url"
 [[ "$OSTYPE" == "darwin"* ]] && open "$_url"
 
