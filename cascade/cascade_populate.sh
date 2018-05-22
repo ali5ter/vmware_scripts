@@ -53,9 +53,10 @@ _namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
 
 heading "Create some namespaces in $_name and retrieve namespaces using cascade CLI"
 for i in $(seq "$_namespaces"); do
-    erun cascade namespace create "$_name" "${_name}-namespace-$i"
+    erun cascade cluster namespace create "$_name" "${_name}-namespace-$i"
+
 done
-erun cascade namespace list "$_name"
+erun cascade cluster namespace list "$_name"
 
 # connect to K8s cluster backing the smart cluster ---------------------------
 
