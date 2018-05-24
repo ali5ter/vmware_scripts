@@ -14,22 +14,18 @@ heading 'Authenticate with Cascade service'
 ## the API
 TOKEN="$(jq -r .Token ~/.cascade-cli/cascade-config)"
 
-## Can also use 'cascade tenant get'
-TENANT="$(jq -r .Tenant.Name ~/.cascade-cli/cascade-config)"
+TENANT="$(cascade account show | grep Tenant | cut -d':' -f2)"
 
-# retrieve swagger yaml and convert json -------------------------------------
+# retrieve swagger definition  -----------------------------------------------
+
+heading 'Fetching swagger definition file'
 
 SWAGGER_YAML='cascade_api_swagger.yml'
-SWAGGER_SWAGGER_URL="https://confluence.eng.vmware.com/download/attachments/276837032/idl_api-swagger.yml.txt?version=1&modificationDate=1517411082000&api=v2"
+SWAGGER_SWAGGER_URL='https://review.ec.eng.vmware.com/gitweb?p=cascade-api-proxy.git;a=blob_plain;f=idl/api-swagger.yml;hb=refs/heads/develop'
 
-[[ -f "$SWAGGER_YAML" ]] || {
-    echo "Download the swagger definition file from"
-    echo "$SWAGGER_SWAGGER_URL"
-    echo "Once downloaded, rename it to $SWAGGER_YAML"
-    exit 1
-}
-
-sed -i '' 's/proxy-api\.cascade\.vmware\.com/api\.cascade-cloud\.com/g' "$SWAGGER_YAML"
+rm -f "$SWAGGER_YAML"
+curl "$SWAGGER_SWAGGER_URL" -o "$SWAGGER_YAML" 
+sed -i '' 's/proxy-api\.cloud\.vmware\.com/api\.cascade-cloud\.com/g' "$SWAGGER_YAML"
 
 # start swagger-ui contianer -------------------------------------------------
 
@@ -55,10 +51,7 @@ docker run -d --name swagguer-ui -p "$SWAGGER_UI_PORT":8080 \
 
 # Open brower using swagger ui view on the swagger definition ----------------
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    open "$SWAGGER_URL"
-else
-    echo "Start Swagger-UI in your browser using $SWAGGER_URL"
-fi
-echo -e "Authenticate using the OATH token\\n$TOKEN"
-echo -e "You Tenant name is\\n$TENANT"
+[[ "$OSTYPE" == "darwin"* ]] && open "$SWAGGER_URL"
+echo -e "Start Swagger-UI in your browser using $SWAGGER_URL\n"
+echo -e "Authenticate using the OATH token\\nBearer $TOKEN\n"
+echo -e "You Organization name is\\n$TENANT"
