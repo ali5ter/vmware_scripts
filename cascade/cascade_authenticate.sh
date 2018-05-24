@@ -10,7 +10,7 @@ source "$PWD/cascade_env.sh"
 ## Authentication state held in ~/cascade-cli/cascade-config but can't find
 ## a way to determine if I have an exired session, so just login in each time
 
-erun cascade target login --i csp -t "$CSP_ORG_ID" -r "$TOKEN"
+erun cascade account login -t "$CSP_ORG_ID" -r "$TOKEN"
 
 CUSER=$(cascade -o json account show | jq -r '.sub')
 CUSER_ID=$(cascade -o json user show $CUSER | jq -r '.id')
