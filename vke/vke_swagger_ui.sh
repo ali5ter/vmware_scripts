@@ -21,10 +21,13 @@ TENANT="$(vke account show | grep Tenant | cut -d':' -f2)"
 heading 'Fetching swagger definition file'
 
 SWAGGER_YAML='vke_api_swagger.yml'
-SWAGGER_SWAGGER_URL='https://review.ec.eng.vmware.com/gitweb?p=vke-api-proxy.git;a=blob_plain;f=idl/api-swagger.yml;hb=refs/heads/develop'
+SWAGGER_SWAGGER_URL='https://review.ec.eng.vmware.com/gitweb?p=cascade-api-proxy.git;a=blob_plain;f=idl/api-swagger.yml;hb=refs/heads/develop'
 
 rm -f "$SWAGGER_YAML"
-curl "$SWAGGER_SWAGGER_URL" -o "$SWAGGER_YAML" 
+curl "$SWAGGER_SWAGGER_URL" -o "$SWAGGER_YAML" || {
+    echo "Failed to fetch the swagger definition file from $SWAGGER_SWAGGER_URL"
+    exit 1
+}
 sed -i '' 's/proxy-api\.cloud\.vmware\.com/api\.vke-cloud\.com/g' "$SWAGGER_YAML"
 
 # start swagger-ui contianer -------------------------------------------------
