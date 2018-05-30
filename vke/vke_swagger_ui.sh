@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
-# @file cascade_api.sh
-# Crank up an instance of Swagger UI to show the Cascade API docs
+# @file vke_api.sh
+# Crank up an instance of Swagger UI to show the VMware Container Service API docs
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
-source "$PWD/cascade_env.sh"
+source "$PWD/vke_env.sh"
 
-heading 'Authenticate with Cascade service'
-"$PWD/cascade_authenticate.sh"
+heading 'Authenticate with VMware Container Service service'
+"$PWD/vke_auth.sh"
 
 ## Currently you need to convert CSP token to a Lightwave token to auth with
 ## the API
-TOKEN="$(jq -r .Token ~/.cascade-cli/cascade-config)"
+TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
 
-TENANT="$(cascade account show | grep Tenant | cut -d':' -f2)"
+TENANT="$(vke account show | grep Tenant | cut -d':' -f2)"
 
 # retrieve swagger definition  -----------------------------------------------
 
 heading 'Fetching swagger definition file'
 
-SWAGGER_YAML='cascade_api_swagger.yml'
-SWAGGER_SWAGGER_URL='https://review.ec.eng.vmware.com/gitweb?p=cascade-api-proxy.git;a=blob_plain;f=idl/api-swagger.yml;hb=refs/heads/develop'
+SWAGGER_YAML='vke_api_swagger.yml'
+SWAGGER_SWAGGER_URL='https://review.ec.eng.vmware.com/gitweb?p=vke-api-proxy.git;a=blob_plain;f=idl/api-swagger.yml;hb=refs/heads/develop'
 
 rm -f "$SWAGGER_YAML"
 curl "$SWAGGER_SWAGGER_URL" -o "$SWAGGER_YAML" 
-sed -i '' 's/proxy-api\.cloud\.vmware\.com/api\.cascade-cloud\.com/g' "$SWAGGER_YAML"
+sed -i '' 's/proxy-api\.cloud\.vmware\.com/api\.vke-cloud\.com/g' "$SWAGGER_YAML"
 
 # start swagger-ui contianer -------------------------------------------------
 

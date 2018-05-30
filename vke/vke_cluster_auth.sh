@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# @file cascade_cluster_auth.sh
+# @file vke_cluster_auth.sh
 # Create a kube configuration file for a selected Smart Cluster.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
-source "$PWD/cascade_env.sh"
+source "$PWD/vke_env.sh"
 
-heading 'Authenticate with Cascade service'
-"$PWD/cascade_authenticate.sh"
+heading 'Authenticate with VMware Container Engine service'
+"$PWD/vke_auth.sh"
 
 # select a cluster -----------------------------------------------------------
 
-_clusters="$(cascade -o json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
+_clusters="$(vke -o json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
 _clusters_num=$(echo "$_clusters" | wc -l)
 if [[ -z "$_clusters" ]]; then
     echo "Unable to find any clusters"
@@ -37,7 +37,7 @@ fi
 # generate kube context ------------------------------------------------------
 
 heading "Create new context for smart cluster, $_name"
-erun cascade cluster merge-kubectl-auth "$_name"
+erun vke cluster merge-kubectl-auth "$_name"
 echo -e '\tTo authenticate to this cluster, use the command:'
 echo -e "\tkubectl config use-context "$_name"-context\n"
 kubectl config use-context "$_name"-context
@@ -53,7 +53,7 @@ _serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_
     echo -e "\nThe kubectl client ($_clientVersion) and server ($_serverVersion) versions are different."
     echo -e "\tIf you encounter any compatibility problems because of this, download kubectl from:"
     echo -e -n "\t"
-    cascade -o json cluster show "$_name" | jq -r ".details.kubectlUrls.$_platform"
+    vke -o json cluster show "$_name" | jq -r ".details.kubectlUrls.$_platform"
 }
 
 # dump some info about the cluster -------------------------------------------

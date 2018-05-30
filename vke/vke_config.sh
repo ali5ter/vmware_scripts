@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# @file cascade_config.sh
-# Cascade account settings
+# @file vkr_config.sh
+# VKE account settings
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 TOKEN='8698fa83-f29f-4354-aeb9-ac6c4a44bd1d'

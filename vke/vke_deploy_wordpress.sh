@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# @file cascade_deploy_wordpress.sh
-# Deploy a helm based app to K8s cluster backing a Cascade Smart Cluster
+# @file vke_deploy_wordpress.sh
+# Deploy a helm based app to K8s cluster backing a VKE Smart Cluster
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
@@ -13,11 +13,11 @@ type helm &> /dev/null || {
     exit 1
 }
 
-source "$PWD/cascade_env.sh"
+source "$PWD/vke_env.sh"
 
 # select a smart cluster and generate kube-config file -----------------------
 
-"$PWD/cascade_cluster_auth.sh"
+"$PWD/vke_cluster_auth.sh"
 
 # install/upgrade the K8s agent that helm talks to -----------------------------------
 

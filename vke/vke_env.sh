@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# @file cascade_env.sh
+# @file vke_env.sh
 # Create an environment where these scripts will work
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
-source "$PWD/cascade_config.sh"
+source "$PWD/vke_config.sh"
 
 # helper functions -----------------------------------------------------------
 
 get_cli_url() {
     case "$OSTYPE" in
-        darwin*)  echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/mac/cascade' ;; 
-        linux*)   echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/cascade' ;;
-        msys*)    echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/cascade.exe' ;;
+        darwin*)  echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/mac/vke' ;; 
+        linux*)   echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/vke' ;;
+        msys*)    echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/vke.exe' ;;
         *)        return 1;;
     esac
     return 0
@@ -30,7 +30,7 @@ heading() {
     return 0
 }
 
-_latest_cli='/tmp/cascade'
+_latest_cli='/tmp/vke'
 
 download_cli() {
     curl -s $(get_cli_url) > $_latest_cli && chmod 755 $_latest_cli
@@ -38,18 +38,18 @@ download_cli() {
 }
 
 check_version() {
-    local _latest_version=$($_latest_cli -v | sed 's/cascade version \(.*\)/\1/')
-    local _current_version=$(cascade -v | sed 's/cascade version \(.*\)/\1/')
+    local _latest_version=$($_latest_cli -v | sed 's/vke version \(.*\)/\1/')
+    local _current_version=$(cascade -v | sed 's/vke version \(.*\)/\1/')
     [[ "$_current_version" != "$_latest_version" ]] && {
-        echo -e "\nThere is a new version ($_latest_version) of the Cascade CLI available"
+        echo -e "\nThere is a new version ($_latest_version) of the VMware Container Engine CLI available"
         echo "Move $_latest_cli to your path if you want the latest, e.g."
-        echo -e " \tmv $_latest_cli /usr/local/bin/cascade\n"
+        echo -e " \tmv $_latest_cli /usr/local/bin/vke\n"
     }
     return 0
 }
 
 check_version_trigger() {
-    local _check=~/.cascade_version_check
+    local _check=~/.vke_version_check
     if [[ -f "$_check" ]]; then
         [[ "$(date '+%j')" != "$(cat $_check)" ]] && check_version
         date '+%j' > "$_check"
@@ -68,7 +68,7 @@ erun() {
 
 get_admin() {
     local obj="$1"
-    local policy=$(cascade -o json cluster iam show $1)
+    local policy=$(vke -o json cluster iam show $1)
     local direct=$(echo $policy | jq -r '.direct.bindings[]')
     local inherited=$(echo $policy | jq -r '.inherited[].bindings[]')
 
@@ -91,7 +91,7 @@ get_admin() {
 ## check the prerequisites are in place --------------------------------------
 
 [[ "$OSTYPE" == "darwin"* ]] && {
-    _saved_ssid=~/.cascade_network_ssid
+    _saved_ssid=~/.vke_network_ssid
     touch "$_saved_ssid"
     SSID='vmware'
     _ifid=$(networksetup -listnetworkserviceorder | grep 'Hardware Port' | grep Wi-Fi | awk -F  "(, )|(: )|[)]" '{print $4}')
@@ -113,12 +113,12 @@ type jq &> /dev/null || {
     exit 1
 }
 
-type cascade &> /dev/null || {
+type vke &> /dev/null || {
     echo "Downloading the Cascade CLI from the following URL:"
     get_cli_url
     download_cli
     echo "Move $_latest_cli to your path, e.g."
-    echo -e " \tmv $_latest_cli /usr/local/bin/cascade\n"
+    echo -e " \tmv $_latest_cli /usr/local/bin/vke\n"
     echo "Once completed, you can restart this script."
     exit 1
 }
@@ -127,7 +127,7 @@ type cascade &> /dev/null || {
 check_version_trigger
 
 ## TODO: Write this to a runcom like .bashrc
-source "$PWD/cascade_completion.sh"
+source "$PWD/vke_completion.sh"
 
 type kubectl &> /dev/null || {
     echo 'Please install kubectl. Installation instructions are available from'
