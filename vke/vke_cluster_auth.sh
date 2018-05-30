@@ -59,6 +59,9 @@ _serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_
 # dump some info about the cluster -------------------------------------------
 
 heading "Information about smart cluster, $_name"
+
+erun vke cluster show-health "$_name"
+
 erun kubectl cluster-info
 
 _admin=$(get_admin $_name)
