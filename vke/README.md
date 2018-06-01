@@ -1,18 +1,18 @@
-# VMware Container Engine scripts
-Scripts used with VMware Container Engine.
+# VMware Kubernetes Engine scripts
+Scripts used with VMware Kubernetes Engine.
 
 ## Configuration
 Edit the [vke_config.sh](vke_config.sh) script to reflect your credentials.
 
 ## Pre-requisites
-* All scripts use the VMware Container Engine CLI command, `vke`. This will be 
+* All scripts use the VMware Kubernetes Engine CLI command, `vke`. This will be 
 downloaded automatically if you don't already have it.
 * [jq](https://stedolan.github.io/jq/download/) is used to parse JSON responses from `vke`.
-* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl) is used to communicate to K8s deployed by the VMware Container Engine service.
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl) is used to communicate to K8s deployed by the VMware Kubernetes Engine service.
 * [helm](https://docs.helm.sh/using_helm/#installing-helm) is used in scripts that deploy K8s applications.
 
 ## Usage
-The [vke_populate.sh](vke_populate.sh) script cleans a VMware Container Engine 
+The [vke_populate.sh](vke_populate.sh) script cleans a VMware Kubernetes Engine 
 Project, then re-populates it with a Smart Cluster with some Namespaces.
 
 The other scripts are used by the [vke_populate.sh](vke_populate.sh) 
