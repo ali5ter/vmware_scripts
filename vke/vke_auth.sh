@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file vke_authentication.sh
-# Authenticate with VMware Container Engine service using account credentials
+# Authenticate with VMware Kubernetes Engine service using account credentials
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e

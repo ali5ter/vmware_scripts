@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file vke_env.sh
-# Create an environment where these scripts will work
+# Create an environment where these VKE scripts will work
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # @file vke_populate.sh
-# Populate a Cascade Project with a Smart Cluster and some Namespaces
+# Populate a VMware Kubernetes Engine Project with a Smart Cluster and some Namespaces
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
 source "$PWD/vke_env.sh"
 
-heading 'Authenticate with VMware Container Service service'
+heading 'Authenticate with VMware Kubernetes Service service'
 "$PWD/vke_auth.sh"
 
 # clean up -------------------------------------------------------------------

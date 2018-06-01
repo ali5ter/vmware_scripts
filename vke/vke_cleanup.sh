@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # @file vke_cleanup.sh
-# Delete previously created Smart Clusters from a VMware Container Engine Project.
+# Delete previously created Smart Clusters from a VMware Kubernetes Engine Project.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
 source "$PWD/vke_env.sh"
 
-heading 'Authenticate with VMware Container Engine service'
+heading 'Authenticate with VMware Kubernetes Engine service'
 "$PWD/vke_auth.sh"
 
 ## There doesn't seem to be a way to get the display name from a json output 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file vke_cluster_auth.sh
-# Create a kube configuration file for a selected Smart Cluster.
+# Create a kube configuration file for a selected VKE Smart Cluster.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
@@ -60,8 +60,9 @@ _serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_
 
 heading "Information about smart cluster, $_name"
 
+erun vke cluster show "$_name"
 erun vke cluster show-health "$_name"
-
+erun kubectl get namespace
 erun kubectl cluster-info
 
 _admin=$(get_admin $_name)

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # @file vke_api.sh
-# Crank up an instance of Swagger UI to show the VMware Container Service API docs
+# Crank up an instance of Swagger UI to show the VMware Kubernetes Engine API docs
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 set -e
 
 source "$PWD/vke_env.sh"
 
-heading 'Authenticate with VMware Container Service service'
+heading 'Authenticate with VMware Kubernetes Engine service'
 "$PWD/vke_auth.sh"
 
 ## Currently you need to convert CSP token to a Lightwave token to auth with
