@@ -10,7 +10,7 @@ source "$PWD/vke_env.sh"
 ## Authentication state held in ~/vke-cli/vke-config but can't find
 ## a way to determine if I have an exired session, so just login in each time
 
-erun vke account login -t "$CSP_ORG_ID" -r "$TOKEN" --target "$TARGET"
+erun vke account login -t "$CSP_ORG_ID" -r "$TOKEN"
 
 CUSER=$(vke -o json account show | jq -r '.sub')
 
