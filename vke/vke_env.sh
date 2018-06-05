@@ -39,9 +39,10 @@ download_cli() {
 
 check_version() {
     local _latest_version=$($_latest_cli -v | sed 's/vke version \(.*\)/\1/')
-    local _current_version=$(cascade -v | sed 's/vke version \(.*\)/\1/')
+    local _current_version=$(vke -v | sed 's/vke version \(.*\)/\1/')
     [[ "$_current_version" != "$_latest_version" ]] && {
-        echo -e "\nThere is a new version ($_latest_version) of the VMware Container Engine CLI available"
+        echo -e "\nYou currently have version $_current_version of the VMware Kubernetes Engine CLI"
+        echo "A new version ($_latest_version) is available"
         echo "Move $_latest_cli to your path if you want the latest, e.g."
         echo -e " \tmv $_latest_cli /usr/local/bin/vke\n"
     }
