@@ -68,11 +68,10 @@ erun kubectl config use-context "$_name"-context
 
 # dump some info about the K8s cluster backing the smart cluster -------------
 
-erun kubectl cluster-info
-
+erun vke cluster show "$_name"
 erun vke cluster show-health "$_name"
-
 erun kubectl get namespace
+erun kubectl cluster-info
 
 _admin=$(get_admin $_name)
 echo -e "/nAdministrator(s) identities for $_name are:\n$_admin"
