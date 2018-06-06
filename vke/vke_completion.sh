@@ -17,14 +17,14 @@ _vke_complete () {
                 rename)    cmds="--folder --project";;
         set)    cmds="--folder";;
         show)    cmds="--folder --folder --perf --folder --project --folder --project --folder --project";;
-        cluster)    cmds="templates versions create show show-health list resize rename delete upgrade maintain get-kubectl-auth merge-kubectl-auth iam namespace --help";;
+        cluster)    cmds="templates versions create show show-health list rename delete upgrade maintain get-kubectl-auth merge-kubectl-auth iam namespace --help";;
         export)    cmds="--output --output --output --folder --output --folder --project";;
         show-health)    cmds="--folder --project";;
         merge-kubectl-auth)    cmds="--folder --project";;
         iam)    cmds="show export import add remove --help role user group --help show export import add remove --help show export import add remove --help show export import add remove --help show export import add remove --help";;
         upgrade)    cmds="--version --folder --project";;
         group)    cmds="create delete show list member --help";;
-        create)    cmds="--description --display-name --display-name --folder --name --service-level --display-name --size --container-network --region --version --template --folder --project --folder --project";;
+        create)    cmds="--description --display-name --display-name --folder --name --service-level --display-name --container-network --region --version --template --folder --project --folder --project";;
         namespace)    cmds="create delete show list iam --help";;
         member)    cmds="add remove list --help";;
         add)    cmds="--subject --role --subject --role --subject --role --folder --subject --role --folder --project";;
@@ -34,7 +34,6 @@ _vke_complete () {
         vke)    cmds="account organization info iam folder project cluster documentation help --non-interactive --log-file --output --detail --help --version";;
         templates)    cmds="list --help";;
         user)    cmds="show list --help";;
-        resize)    cmds="--folder --project";;
         info)    cmds="region --help";;
         account)    cmds="show login --help";;
         get-kubectl-auth)    cmds="--configfile --folder --project";;
@@ -47,7 +46,7 @@ _vke_complete () {
         organization)    cmds="show iam --help";;
         login)    cmds="--organization --refresh-token";;
         delete)    cmds="--folder --folder --project --folder --project";;
-        *)    cmds="rename set show cluster export show-health merge-kubectl-auth iam upgrade group create namespace member add role import folder vke templates user resize info account get-kubectl-auth versions region list remove project maintain organization login delete";;
+        *)    cmds="rename set show cluster export show-health merge-kubectl-auth iam upgrade group create namespace member add role import folder vke templates user info account get-kubectl-auth versions region list remove project maintain organization login delete";;
     esac
 
     COMPREPLY=( $(compgen -W "$cmds" -- "$cur") )
