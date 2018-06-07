@@ -24,15 +24,17 @@ echo
 
 heading 'Create smart cluster and wait for it to be ready'
 
-_name="${CLUSTER_PREFIX}-"$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+_name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+_dname="${CLUSTER_DNAME_PREFIX}-${_name}"
+_name="${CLUSTER_PREFIX}-${_name}"
 _region=$(vke --output json info region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
-_version=$(vke --output json version list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
-_size=$(( ( RANDOM % 4 ) + 1)) # a size between 1 and 4
+## Will default to latest anyway but let's test the command to get the list of versions...
+_version=$(vke --output json cluster versions list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
 
 ## Name can only be up to 26 characters long :(
 _name=$(echo "$_name" | cut -c 1-26)
 
-erun vke cluster create -t development -n "$_name" -r "$_region" -v "$_version" -s "$_size"
+erun vke cluster create -t development -n "$_name" -d "$_dname" -r "$_region" -v "$_version"
 
 get_cluster_state() { echo $(vke --output json cluster show "$_name" | jq -r '.details.state'); }
 
