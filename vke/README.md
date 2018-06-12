@@ -23,7 +23,10 @@ generate a kube configuration file for an existing Smart Cluster. This is
 useful when you want to re-access an existing Smart Cluster and manage the 
 K8s cluster using kubectl
 
+The [vke_deploy_guestbook.sh](vke_deploy_wordpress.sh) script automates the 
+deployment of the google sample app, [guestbook](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/), to the current K8s context.
+
 The [vke_deploy_wordpress.sh](vke_deploy_wordpress.sh) script uses 
 helm to deploy a stable version of wordpress to the current K8s context.
 
-The [vke_completion.sh](vke_completion.sh) script is generated using [cli_taxo](https://github.com/ali5ter/cli_taxo) using the wrapper script [create_completion.sh](create_completion.sh).
+The [vke_bash_completion.sh](vke_bash_completion.sh) script is generated using [cli_taxo](https://github.com/ali5ter/cli_taxo) using the wrapper script [create_completion.sh](create_completion.sh).
