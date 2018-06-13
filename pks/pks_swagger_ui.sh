@@ -10,10 +10,11 @@ SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 # retrieve swagger definition  -----------------------------------------------
 
 SWAGGER_YAML='pks_api_swagger.yaml'
-SWAGGER_SWAGGER_URL='https://gitlab.eng.vmware.com/PKS/pks-ui/blob/master/pks-service/specs/swagger.yaml'
+SWAGGER_SWAGGER_URL='https://gitlab.eng.vmware.com/PKS/pks-ui/raw/master/pks-service/specs/swagger.yaml'
+GITLAB_TOKEN="ysi5WwBsmYB3XbtNZusB"
 
 rm -f "$SWAGGER_YAML"
-curl "$SWAGGER_SWAGGER_URL" -o "$SWAGGER_YAML" || {
+curl "${SWAGGER_SWAGGER_URL}?private_token=$GITLAB_TOKEN" -o "$SWAGGER_YAML" || {
     echo "Failed to fetch the swagger definition file from $SWAGGER_SWAGGER_URL"
     exit 1
 }
