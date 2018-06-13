@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file pks_swagger_ui.sh
+# @file pks_vsphere_swagger_ui.sh
 # Crank up an instance of Swagger UI to show the PKS API docs
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
