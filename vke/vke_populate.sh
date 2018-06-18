@@ -27,14 +27,28 @@ heading 'Create smart cluster and wait for it to be ready'
 _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
 _dname="${CLUSTER_DNAME_PREFIX}-${_name}"
 _name="${CLUSTER_PREFIX}-${_name}"
-_region=$(vke --output json info region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
+_region=$(vke -o json info region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
 ## Will default to latest anyway but let's test the command to get the list of versions...
-_version=$(vke --output json cluster versions list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
+_version=$(vke -o json cluster versions list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
+_types=$(vke -o json cluster templates list | jq -r .items[].templateName)
 
 ## Name can only be up to 26 characters long :(
 _name=$(echo "$_name" | cut -c 1-26)
 
-erun vke cluster create -t development -n "$_name" -d "$_dname" -r "$_region" -v "$_version"
+## Select from cluster types
+_type_index=1
+for _type in $_types; do
+    _atypes[$_type_index]="$_type"
+    printf "    %3d ... %s\n" "$_type_index" "$_type"
+    ((_type_index++))
+done
+until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atypes[@]} + 1 ))" ]]; do
+    read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -n 1
+    echo
+done
+_type=${_atypes[$REPLY]}
+
+erun vke cluster create -t "$_type" -n "$_name" -d "$_dname" -r "$_region" -v "$_version"
 
 get_cluster_state() { echo $(vke --output json cluster show "$_name" | jq -r '.details.state'); }
 
