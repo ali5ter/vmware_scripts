@@ -3,7 +3,9 @@
 # Create an environment where these VKE scripts will work
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-set -e
+[[ -n $DEBUG ]] && set -x
+# set -euf -o pipefail ## ref: https://sipb.mit.edu/doc/safe-shell/
+set -eou pipefail
 
 source "$PWD/vke_config.sh"
 
@@ -11,6 +13,7 @@ source "$PWD/vke_config.sh"
 
 get_cli_url() {
     case "$OSTYPE" in
+        ## Pulled from `curl https://api.vke.cloud.vmware.com/v1/cli | jq .latest``
         darwin*)  echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/mac/vke' ;; 
         linux*)   echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/vke' ;;
         msys*)    echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/vke.exe' ;;
