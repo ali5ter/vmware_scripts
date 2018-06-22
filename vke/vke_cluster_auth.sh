@@ -3,8 +3,6 @@
 # Create a kube configuration file for a selected VKE Smart Cluster.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-set -e
-
 source "$PWD/vke_env.sh"
 
 heading 'Authenticate with VMware Container Engine service'
@@ -12,6 +10,7 @@ heading 'Authenticate with VMware Container Engine service'
 
 # select a cluster -----------------------------------------------------------
 
+## TODO - Show what the current context is (perhaps default selection)
 _clusters="$(vke -o json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
 _clusters_num=$(echo "$_clusters" | wc -l)
 if [[ -z "$_clusters" ]]; then
@@ -22,11 +21,20 @@ elif [[ "$_clusters_num" -eq 1 ]]; then
 else
     heading "Select from smart clusters starting with $CLUSTER_PREFIX"
     _cluster_index=1
+    _current=''
+    kubectl config current-context >/dev/null && {
+        _current="$(kubectl config current-context 2>/dev/null | sed 's/-context//')"
+    }
     for cluster in $_clusters; do
         _aclusters[$_cluster_index]="$cluster"
-        printf "    %3d ... %s\n" "$_cluster_index" "$cluster"
+        if [[ "$_current" == "$cluster" ]]; then
+            printf "${VKE_BOLD}    %3d ... %s (current)${VKE_RESET}\n" "$_cluster_index" "$cluster"
+        else
+            printf "    %3d ... %s\n" "$_cluster_index" "$cluster"
+        fi
         ((_cluster_index++))
     done
+    REPLY=''
     until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_aclusters[@]} + 1 ))" ]]; do
         read -p "Select one of these smart clusters [1-${#_aclusters[@]}]: " -n 1
         echo
@@ -38,9 +46,9 @@ fi
 
 heading "Create new context for smart cluster, $_name"
 erun vke cluster merge-kubectl-auth "$_name"
-echo -e '\tTo authenticate to this cluster, use the command:'
+echo -e '\tTo authenticate to this cluster in future, use the command:'
 echo -e "\tkubectl config use-context "$_name"-context\n"
-kubectl config use-context "$_name"-context
+erun kubectl config current-context
 
 # check kubectl version compatibility ----------------------------------------
 
