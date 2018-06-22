@@ -1,8 +1,9 @@
 # VMware Kubernetes Engine scripts
-Scripts used with VMware Kubernetes Engine.
+Scripts used with VMware Kubernetes Engine (VKE).
 
 ## Configuration
-Edit the [vke_config.sh](vke_config.sh) script to reflect your credentials.
+Edit the [vke_config.sh](vke_config.sh) script to reflect your credentials and
+VKE preferences.
 
 ## Pre-requisites
 * All scripts use the VMware Kubernetes Engine CLI command, `vke`. This will be 
@@ -11,27 +12,35 @@ downloaded automatically if you don't already have it.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl) is used to communicate to K8s deployed by the VMware Kubernetes Engine service.
 * [helm](https://docs.helm.sh/using_helm/#installing-helm) is used in scripts that deploy K8s applications.
 
-## Usage
-The [vke_populate.sh](vke_populate.sh) script cleans a VMware Kubernetes Engine 
-Project, then re-populates it with a Smart Cluster with some Namespaces.
+## Bash shell
+[vke_bash_completion.sh](vke_bash_completion.sh) provides tab completion for
+VKE cli. It is generated using [create_completion](create_completion).
+Source this from your `.bash_profile` or, to use in your current shell, run 
+`source vke_bash_completion.sh`
 
-The other scripts are used by the [vke_populate.sh](vke_populate.sh) 
-script but can be used independently.
-
-The [vke_cluster_auth.sh](vke_cluster_auth.sh) script is a utility to 
-generate a kube configuration file for an existing Smart Cluster. This is 
-useful when you want to re-access an existing Smart Cluster and manage the 
-K8s cluster using kubectl
-
-The [vke_deploy_guestbook.sh](vke_deploy_guestbook.sh) script automates the 
-deployment of the google sample app, [guestbook](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/), to the current K8s context.
-
-The [vke_deploy_wordpress.sh](vke_deploy_wordpress.sh) script uses 
-helm to deploy a stable version of wordpress to the current K8s context.
-
-The [vke_bash_completion.sh](vke_bash_completion.sh) script is generated using [cli_taxo](https://github.com/ali5ter/cli_taxo) using the wrapper script [create_completion.sh](create_completion.sh).
-
-Use [vke_bash_prompt.sh](vke_bash_prompt.sh) to add a VPE prompt to your
-`PS1`. Source this script from your `.bash_profile` and, in a new shell, enter
+[vke_bash_prompt.sh](vke_bash_prompt.sh) adds a VKE prompt to your `PS1`.
+Source this script from your `.bash_profile` and, in a new shell, enter
 `vke_prompt on` to display the VKE prompt. Remove the VKE prompt by entering
 `vke_prompt off`.
+
+## Scripts
+[vke_populate](vke_populate) populates a VKE project with a smart cluster with
+some namespaces. The cluster name will contain a prefix configured in
+[vke_config.sh](vke_config.sh)
+
+[vke_cluster_auth](vke_cluster_auth) lists your smart clusters and allows you
+to select which one to create a context for. This is useful when switching
+between smart clusters.
+
+[vke_cleanup](vke_cleanup) will look for smart clusters using the configured
+prefix and remove them.
+
+[vke_auth](vke_auth) simply authenticates using your VKE account and navigates
+to the VKE folder and project configured in [vke_config.sh](vke_config.sh)
+
+[vke_deploy_guestbook](vke_deploy_guestbook) automates the 
+deployment of the google sample app, [guestbook](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/), to the current K8s context.
+
+[vke_deploy_wordpress.](vke_deploy_wordpress) uses helm to deploy a stable 
+version of wordpress to the current K8s context.
+
