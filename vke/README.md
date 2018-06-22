@@ -30,3 +30,8 @@ The [vke_deploy_wordpress.sh](vke_deploy_wordpress.sh) script uses
 helm to deploy a stable version of wordpress to the current K8s context.
 
 The [vke_bash_completion.sh](vke_bash_completion.sh) script is generated using [cli_taxo](https://github.com/ali5ter/cli_taxo) using the wrapper script [create_completion.sh](create_completion.sh).
+
+Use [vke_bash_prompt.sh](vke_bash_prompt.sh) to add a VPE prompt to your
+`PS1`. Source this script from your `.bash_profile` and, in a new shell, enter
+`vke_prompt on` to display the VKE prompt. Remove the VKE prompt by entering
+`vke_prompt off`.
