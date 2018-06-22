@@ -28,12 +28,14 @@ _vke_prompt_tenant() {
 _vke_location() {
     local folder=$(vke -o json folder get | jq -r .Name 2>/dev/null || echo '')
     local project=$(vke -o json project get | jq -r .Name 2>/dev/null || echo '')
-    local cluster=$(kubectl config current-context 2>/dev/null | sed 's/-context//' || echo '')
     local _location=''
     [[ -z ${folder} ]] || _location+="📁 ${folder}"
     [[ -z ${project} ]] || {
         _location+=" 〉🗄   ${project}"
-        [[ -z ${cluster} ]] || _location+=" 〉📦 ${cluster}"
+        [[ "$VKE_PROMPT_CONTEXT_ENABLED" == 'on' ]] && {
+            local cluster=$(kubectl config current-context 2>/dev/null | sed 's/-context//' || echo '')
+            [[ -z ${cluster} ]] || _location+=" 〉📦 ${cluster}"
+        }
     }
     echo "${_location}"
 }
@@ -50,6 +52,7 @@ _vke_bash_prompt() {
 
 vke_prompt() {
     export VKE_PROMPT_ENABLED="$1"
+    export VKE_PROMPT_CONTEXT_ENABLED='on'
     [ "$VKE_PROMPT_ENABLED" == 'on' ] && {
         _vke_set_evars
         PROMPT_COMMAND="_vke_bash_prompt; ${PROMPT_COMMAND:-}"

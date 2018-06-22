@@ -12,18 +12,23 @@ downloaded automatically if you don't already have it.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl) is used to communicate to K8s deployed by the VMware Kubernetes Engine service.
 * [helm](https://docs.helm.sh/using_helm/#installing-helm) is used in scripts that deploy K8s applications.
 
-## Bash shell
+## VKE tab completion
 [vke_bash_completion.sh](vke_bash_completion.sh) provides tab completion for
 VKE cli. It is generated using [create_completion](create_completion).
 Source this from your `.bash_profile` or, to use in your current shell, run 
 `source vke_bash_completion.sh`
 
+## VKE Prompt
 [vke_bash_prompt.sh](vke_bash_prompt.sh) adds a VKE prompt to your `PS1`.
 Source this script from your `.bash_profile` and, in a new shell, enter
 `vke_prompt on` to display the VKE prompt. Remove the VKE prompt by entering
 `vke_prompt off`.
 
-## Scripts
+You can hide the K8s current context in this prompt using
+`export VKE_PROMPT_CONTEXT_ENABLED='off'`. Useful if you're already using
+something like [kube-ps1](https://github.com/jonmosco/kube-ps1).
+
+## Automation scripts
 [vke_populate](vke_populate) populates a VKE project with a smart cluster with
 some namespaces. The cluster name will contain a prefix configured in
 [vke_config.sh](vke_config.sh)
