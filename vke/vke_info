@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# @file vke_info
+# Current account and location information
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+source "$PWD/vke_env.sh"
+
+"$PWD/vke_auth"
+
+VKE_USER=$(vke -o json account show | jq -r '.sub')
+VKE_ORG_ID=$(vke -o json account show | jq -r '.tenant')
+VKE_GROUPS=$(vke -o json account show | jq -r '.groups[]' | cut -d'\' -f2)
+
+echo
+printf "%-18s %s\n" 'Logged in user:' "$VKE_USER"
+printf "%-18s %s\n" 'Organization ID:' "$VKE_ORG_ID"
+label='Member of groups:'
+for group in $VKE_GROUPS; do
+    printf "%-18s %s\n" "$label" "$group"
+    label=''
+done
+printf "%-18s %s\n" 'Current folder:' $(vke -o json folder get | jq -r .Name 2>/dev/null || echo '-')
+printf "%-18s %s\n" 'Current project:' $(vke -o json project get | jq -r .Name 2>/dev/null || echo '-')
+printf "%-18s %s\n" 'Current context:' $(kubectl config current-context 2>/dev/null | sed 's/-context//' || echo '-')
