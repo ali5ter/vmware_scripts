@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
-# @file vke_api.sh
+# @file vke_swagger_ui
 # Crank up an instance of Swagger UI to show the VMware Kubernetes Engine API docs
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 source "$PWD/vke_env.sh"
 
-heading 'Authenticate with VMware Kubernetes Engine service'
-"$PWD/vke_auth.sh"
+"$PWD/vke_auth"
 
-## Currently you need to convert CSP token to a Lightwave token to auth with
-## the API
-TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
-
-TENANT="$(vke account show | grep Tenant | cut -d':' -f2)"
+VKE_ORG_ID=$(vke -o json account show | jq -r '.tenant')
 
 # retrieve swagger definition  -----------------------------------------------
 
@@ -26,7 +21,6 @@ curl "$SWAGGER_SWAGGER_URL" -o "$SWAGGER_YAML" || {
     echo "Failed to fetch the swagger definition file from $SWAGGER_SWAGGER_URL"
     exit 1
 }
-sed -i '' 's/proxy-api\.cloud\.vmware\.com/api\.vke-cloud\.com/g' "$SWAGGER_YAML"
 
 # start swagger-ui contianer -------------------------------------------------
 
@@ -43,16 +37,18 @@ SWAGGER_UI_IMAGE='swaggerapi/swagger-ui'
 SWAGGER_UI_PORT=8888
 SWAGGER_URL="http://localhost:$SWAGGER_UI_PORT/"
 
-docker ps -a | grep "$SWAGGER_UI_IMAGE" | awk '{print $1}' | xargs docker rm -fv > /dev/null 2>&1
+docker ps -a | grep "$SWAGGER_UI_IMAGE" && {
+    docker ps -a | grep "$SWAGGER_UI_IMAGE" | awk '{print $1}' | xargs docker rm -fv > /dev/null 2>&1
+}
 
 docker run -d --name swagguer-ui -p "$SWAGGER_UI_PORT":8080 \
     -e SWAGGER_JSON="/specs/$SWAGGER_YAML" \
-    -v "$SCRIPTPATH":/specs \
+    -v "$VKE_SCRIPT_PATH":/specs \
     "$SWAGGER_UI_IMAGE" > /dev/null 2>&1
 
 # Open brower using swagger ui view on the swagger definition ----------------
 
 [[ "$OSTYPE" == "darwin"* ]] && open "$SWAGGER_URL"
 echo -e "Start Swagger-UI in your browser using $SWAGGER_URL\n"
-echo -e "Authenticate using the OATH token\\nBearer $TOKEN\n"
-echo -e "You Organization name is\\n$TENANT"
+echo -e "Authenticate using the OATH token\\nBearer $VKE_API_TOKEN\n"
+echo -e "You Organization name is\\n$VKE_ORG_ID"

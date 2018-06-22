@@ -19,9 +19,9 @@ chmod 755 cli_taxo.py
 
 ## generate bash completion script and move into place
 ./cli_taxo.py vke \
-    --commands-token '^COMMANDS:$' \
+    --commands-VKE_TOKEN '^COMMANDS:$' \
     --commands-filter '^\s\s\s\s\s(?!-)(\S[^,\s]+)' \
-    --options-token 'OPTIONS:$' \
+    --options-VKE_TOKEN 'OPTIONS:$' \
     --options-filter '^\s\s\s(-\S[^,\s]+)|\s(-\S[^,\s]+)\s\s' \
     -o bash -O > "$DIR/vke_bash_completion.sh"
 

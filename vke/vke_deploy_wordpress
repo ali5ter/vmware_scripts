@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# @file vke_deploy_wordpress.sh
+# @file vke_deploy_wordpress
 # Deploy a helm based app to K8s cluster backing a VKE Smart Cluster
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-
-set -e
 
 type helm &> /dev/null || {
     echo 'Please install helm. Installation instructions are available from'
@@ -17,7 +15,7 @@ source "$PWD/vke_env.sh"
 
 # select a smart cluster and generate kube-config file -----------------------
 
-"$PWD/vke_cluster_auth.sh"
+"$PWD/vke_cluster_auth"
 
 # install/upgrade the K8s agent that helm talks to -----------------------------------
 
@@ -27,7 +25,7 @@ helm init --upgrade --wait
 # deploy a helm chart for wordpress ------------------------------------------
 
 heading 'Deploy chart for wordpress and wait for service to be externally available'
-_prefix=$(echo "${DEPLOYMENT_PREFIX}-wp-$(date '+%s')" | tr '[:upper:]' '[:lower:]')
+_prefix=$(echo "${VKE_DEPLOYMENT_PREFIX}-wp-$(date '+%s')" | tr '[:upper:]' '[:lower:]')
 _doc="$PWD/$_prefix.txt"
 echo -e "Chart documentation will be written to \n$_doc"
 echo -n 'Deploying chart... '
@@ -69,11 +67,11 @@ echo -e "\nOpen the Kube Dashboard using\n$_url"
 
 # clean up -------------------------------------------------------------------
 
-heading "Remove existing K8s deployments starting with $DEPLOYMENT_PREFIX"
+heading "Remove existing K8s deployments starting with $VKE_DEPLOYMENT_PREFIX"
 read -p "Shall I clear out all existing deployments now? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && {
-    for deployment in $(helm ls | grep "$DEPLOYMENT_PREFIX" | awk '{print $1}'); do
+    for deployment in $(helm ls | grep "$VKE_DEPLOYMENT_PREFIX" | awk '{print $1}'); do
         read -p "Delete $deployment? [y/N] " -n 1 -r
         echo
         [[ $REPLY =~ ^[Yy]$ ]] && {

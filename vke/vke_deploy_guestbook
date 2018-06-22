@@ -1,12 +1,44 @@
 #!/usr/bin/env bash
-# @file vke_deploy_guestbook.sh
+# @file vke_deploy_guestbook
 # Deploy a example app onto kubernetes backing a VKE Smart Cluster
 # @see https://kubernetes.io/docs/tutorials/stateless-application/guestbook/
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-set -e
+source "$PWD/vke_env.sh"
 
-cleanup() {
+# helper functions -----------------------------------------------------------
+set -x
+_pod_status_of_name() {
+    kubectl get pod "$1" -o json | jq -r '.status.phase'
+}
+
+_pod_names_starting_with() {
+    obj="$1"
+    kubectl get pods -o json | jq -r --arg obj "$obj" '.items[] | select(.metadata.name | startswith($obj)) | .metadata.name'
+}
+
+_number_pods_running_filterd_by() {
+    # TODO: Check for requested containers = actual containers
+    kubectl get pods $@ | grep -Ec '1/1.*Running'
+}
+
+_number_frontend_pods_running() {
+    _number_pods_running_filterd_by -l app=guestbook -l tier=frontend
+}
+
+_frontend_hostname() { 
+    kubectl get service frontend -o json | jq -r 'select(.status.loadBalancer.ingress != null) | .status.loadBalancer.ingress[].hostname'
+}
+
+CLUSTER_NAME=$(kubectl config current-context | sed 's/\(.*\)-context/\1/')
+
+_max_allocated_compute() {
+    _metrics=($(vke -o json cluster show $CLUSTER_NAME | jq -r '.details.actualSize.MemoryMB, .maxSize.MemoryMB, .details.actualSize.vCPU, .maxSize.vCPU' | tr "\n" " "))
+    [[ "${_metrics[0]}" == "${_metrics[1]}" ]] && echo "!!! Memory is maxed out: Requested ${_metrics[0]} out of ${_metrics[1]} MB allocated"
+    [[ "${_metrics[2]}" == "${_metrics[3]}" ]] && echo "!!! vCPU is maxed out: Requested ${_metrics[2]} out of ${_metrics[3]} vCPUs allocated"
+}
+
+_clean_up() {
     heading 'Remove guestbook app'
 
     read -p "Shall I remove the guestbook application from the cluster? [y/N] " -n 1 -r
@@ -17,9 +49,7 @@ cleanup() {
         erun kubectl delete service -l app=guestbook
     }
 }
-trap cleanup EXIT
-
-source "$PWD/vke_env.sh"
+trap _clean_up EXIT
 
 # select a smart cluster and generate kube-config file -----------------------
 
@@ -31,21 +61,11 @@ heading 'Download YAML config files'
 
 cd ~/tmp
 mkdir -p guestbook && cd guestbook
-curl -O https://kubernetes.io/docs/tutorials/stateless-application/guestbook/redis-master-deployment.yaml
-curl -O https://kubernetes.io/docs/tutorials/stateless-application/guestbook/redis-master-service.yaml
-curl -O https://kubernetes.io/docs/tutorials/stateless-application/guestbook/redis-slave-deployment.yaml
-curl -O https://kubernetes.io/docs/tutorials/stateless-application/guestbook/redis-slave-service.yaml
-curl -O https://kubernetes.io/docs/tutorials/stateless-application/guestbook/frontend-deployment.yaml
-curl -O https://kubernetes.io/docs/tutorials/stateless-application/guestbook/frontend-service.yaml
-
-pod_status_of_name() {
-    kubectl get pod "$1" -o json | jq -r '.status.phase'
-}
-
-pod_names_starting_with() {
-    obj="$1"
-    kubectl get pods -o json | jq -r --arg obj "$obj" '.items[] | select(.metadata.name | startswith($obj)) | .metadata.name'
-}
+YAML_URL='https://kubernetes.io/docs/tutorials/stateless-application/guestbook/'
+YAML_FILES='redis-master-deployment redis-master-service redis-slave-deployment redis-slave-service frontend-deployment frontend-service'
+for _file in $YAML_FILES; do
+    curl -O "${YAML_URL}${_file}.yaml"
+done
 
 # Start up redis master ------------------------------------------------------
 
@@ -53,15 +73,14 @@ heading 'Start up Redis master'
 
 erun kubectl apply -f redis-master-deployment.yaml
 
-REDIS_MASTER_NAME="$(pod_names_starting_with redis-master)"
+REDIS_MASTER_NAME="$(_pod_names_starting_with redis-master)"
 
-echo "Waiting for $REDIS_MASTER_NAME to start..."
-_pod_state="$(pod_status_of_name $REDIS_MASTER_NAME)"
-until [ "$_pod_state" == "Running" ]; do
-    sleep 10
-    _pod_state="$(pod_status_of_name $REDIS_MASTER_NAME)"
-    echo -e "\t$_pod_state"
+echo -n "Waiting for $REDIS_MASTER_NAME to start..."
+until [[ "$(_pod_status_of_name $REDIS_MASTER_NAME)" == "Running" ]]; do
+    echo -n '.'
+    sleep 5
 done
+echo 'done'
 
 erun kubectl get pod
 erun kubectl logs --tail=100 "$REDIS_MASTER_NAME"
@@ -80,15 +99,15 @@ heading 'Start up Redis slaves'
 
 erun kubectl apply -f redis-slave-deployment.yaml
 
-REDIS_SLAVE_NAMES="$(pod_names_starting_with redis-master)"
+REDIS_SLAVE_NAMES="$(_pod_names_starting_with redis-master)"
 
 for _slave in $REDIS_SLAVE_NAMES; do
-    echo "Waiting for $_slave to start..."
-    _pod_state="$(pod_status_of_name $_slave)"
-    until [ "$_pod_state" == "Running" ]; do
-        sleep 10
-        _pod_state="$(pod_status_of_name $_slave)"
+    echo -n "Waiting for $_slave to start..."
+    until [[ "$(_pod_status_of_name $_slave)" == "Running" ]]; do
+        echo -n '.'
+        sleep 5
     done
+    echo 'done'
 done
 
 erun kubectl get pod
@@ -107,14 +126,12 @@ heading 'Start up frontend'
 
 erun kubectl apply -f frontend-deployment.yaml
 
-frontend_pods_running() { 
-    kubectl get pods -l app=guestbook -l tier=frontend | grep -Ec '1/1.*Running'
-}
-
-echo "Waiting for frontend to start..."
-until [[ "$(frontend_pods_running)" == "3" ]]; do
-    sleep 10
+echo -n "Waiting for frontend to start..."
+until [[ "$(_number_frontend_pods_running)" == "3" ]]; do
+    echo -n '.'
+    sleep 5
 done
+echo 'done'
 
 erun kubectl get pods
 
@@ -129,42 +146,38 @@ erun kubectl apply -f frontend-service.yaml
 
 erun kubectl get service 
 
-frontend_hostname() { 
-    kubectl get service frontend -o json | jq -r 'select(.status.loadBalancer.ingress != null) | .status.loadBalancer.ingress[].hostname'
-}
-
 echo -n "Waiting for hostname to be assigned..."
-_hostname="$(frontend_hostname)"
+_hostname="$(_frontend_hostname)"
 until [[ "$_hostname" != '' ]]; do
-    sleep 10
-    _hostname="$(frontend_hostname)"
     echo -n '.'
+    sleep 10
+    _hostname="$(_frontend_hostname)"
 done
 echo -e "\n\t$_hostname"
 
-# scale up and down ----------------------------------------------------------
+# scale number of frontend pods ----------------------------------------------
 
-heading 'Scale out the frontend'
-until [[ $REPLY =~ ^[0-9]+$ ]]; do
-    read -p "How many frontend replicas do you want? "
-done
-
-erun kubectl scale deployment frontend --replicas="$REPLY"
-
-max_allocated_compute() {
-    _name=$(cat ~/.kube/config | grep current-context | sed 's/current-context: \(.*\)-context/\1/')
-    _metrics=($(vke -o json cluster show $_name | jq -r '.details.actualSize.MemoryMB, .maxSize.MemoryMB, .details.actualSize.vCPU, .maxSize.vCPU' | tr "\n" " "))
-    if [[ "${_metrics[0]}" == "${_metrics[1]}" ]]; then
-        echo "!!! Memory is maxed out: Requested ${_metrics[0]} out of ${_metrics[1]} MB allocated"
-        return 1
-    elif [[ "${_metrics[2]}" == "${_metrics[3]}" ]]; then
-        echo "!!!! vCPU is maxed out: Requested ${_metrics[2]} out of ${_metrics[3]} vCPUs allocated"
-        return 1
-    fi
-    return 0
+show_pods() {
+    _output=$(clear; heading 'Scale the frontend')
+    _output=${_output}$(erun kubectl get pods)
+    _output=${_output}$(_max_allocated_compute)
+    echo "$_output"
 }
 
-until [[ "$(frontend_pods_running)" == "$REPLY" ]]; do
-    erun kubectl get pods
-    max_allocated_compute || break
+while true; do
+
+    show_pods
+
+    unset REPLY
+    echo
+    until [[ $REPLY =~ ^[0-9]+$ ]]; do
+        read -p "How many frontend pod replicas do you want? [Cntl-C to quit] "
+    done
+
+    erun kubectl scale deployment frontend --replicas="$REPLY"
+
+    until [[ "$(_number_frontend_pods_running)" == "$REPLY" ]]; do
+        show_pods
+    done
+    
 done

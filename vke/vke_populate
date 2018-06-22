@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# @file vke_populate.sh
+# @file vke_populate
 # Populate a VMware Kubernetes Engine Project with a Smart Cluster and some Namespaces
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 source "$PWD/vke_env.sh"
 
-heading 'Authenticate with VMware Kubernetes Service service'
-"$PWD/vke_auth.sh"
+"$PWD/vke_auth"
 
 # clean up -------------------------------------------------------------------
 
-heading "Remove existing smart clusters starting with $CLUSTER_PREFIX"
+heading "Remove existing smart clusters starting with $VKE_CLUSTER_PREFIX"
 read -p "Shall I clear out all existing smart clusters? [y/N] " -n 1 -r
 echo
 [[ $REPLY =~ ^[Yy]$ ]] && "$PWD/vke_cleanup.sh"
@@ -23,11 +22,10 @@ echo
 heading 'Create smart cluster and wait for it to be ready'
 
 _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
-_dname="${CLUSTER_DNAME_PREFIX}-${_name}"
-_name="${CLUSTER_PREFIX}-${_name}"
-_region=$(vke -o json info region list | jq -r '.items[] | .name' | grep -i "$REGION_REGEX")
+_dname="${VKE_CLUSTER_DNAME_PREFIX}-${_name}"
+_name="${VKE_CLUSTER_PREFIX}-${_name}"
 ## Will default to latest anyway but let's test the command to get the list of versions...
-_version=$(vke -o json cluster versions list -r "$_region" | jq -r '.items[] | select(.isDefault == true) | .version')
+_version=$(vke -o json cluster versions list -r "$VKE_DEFAULT_REGION" | jq -r '.items[] | select(.isDefault == true) | .version')
 _types=$(vke -o json cluster templates list | jq -r '.items[].templateName')
 
 ## Name can only be up to 26 characters long :(
@@ -44,19 +42,20 @@ until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atype
     read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -n 1
     echo
 done
+echo
 _type=${_atypes[$REPLY]}
 
-erun vke -n cluster create -t "$_type" -n "$_name" -d "$_dname" -r "$_region" -v "$_version"
+erun vke -n cluster create -t "$_type" -n "$_name" -d "$_dname" -r "$VKE_DEFAULT_REGION" -v "$_version"
 
 get_cluster_state() { echo $(vke --output json cluster show "$_name" | jq -r '.details.state'); }
 
-echo "Waiting for Smart Cluster to be ready..."
+echo -en "\nWaiting for Smart Cluster to be ready..."
 _cluster_state=''
-until [ "$_cluster_state" == "READY" ]; do
-    sleep 20
-    _cluster_state=$(get_cluster_state)
-    echo -e "\t$_cluster_state"
+until [ "$(get_cluster_state)" == "READY" ]; do
+    sleep 10
+    echo '.'
 done
+echo ' done'
 
 # create namespaces -----------------------------------------------------------
 

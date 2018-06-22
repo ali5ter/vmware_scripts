@@ -29,33 +29,42 @@ set_text_control_evars() {
         export VKE_B${colors[${i}]}="$(tput setab ${i})"
     done
     export VKE_BOLD="$(tput bold)"
+    export VKE_DIM="$(tput dim)"
+    export VKE_REV="$(tput rev)"
     export VKE_RESET="$(tput sgr0)"
+}
+
+place_in_path() {
+    for file in $(find $PWD -name "vke_*" | grep -Ev '.yml|.sh'); do
+        ln -sf $file /usr/local/bin/
+    done
 }
 
 heading() {
     echo
-    printf '=%.0s' {1..79}
-    echo -e "\n$1" | fold -s -w 79
-    printf -- '-%.0s' {1..79}
+    printf "${VKE_DIM}=%.0s" {1..79}
+    echo -e "\n${1}" | fold -s -w 79
+    printf -- "-%.0s${VKE_RESET}" {1..79}
     echo
     return 0
 }
 
-_latest_cli='/tmp/vke'
+VKE_LATEST_CLI='/tmp/vke'
 
 download_cli() {
-    curl -s $(get_cli_url) > $_latest_cli && chmod 755 $_latest_cli
+    curl -s $(get_cli_url) > $VKE_LATEST_CLI && chmod 755 $VKE_LATEST_CLI
     return 0
 }
 
 check_version() {
-    local _latest_version=$($_latest_cli -v | sed 's/vke version \(.*\)/\1/')
+    local _latest_version=$($VKE_LATEST_CLI -v | sed 's/vke version \(.*\)/\1/')
     local _current_version=$(vke -v | sed 's/vke version \(.*\)/\1/')
     [[ "$_current_version" != "$_latest_version" ]] && {
-        echo -e "\nYou currently have version $_current_version of the VMware Kubernetes Engine CLI"
-        echo "A new version ($_latest_version) is available"
-        echo "Move $_latest_cli to your path if you want the latest, e.g."
-        echo -e " \tmv $_latest_cli /usr/local/bin/vke\n"
+        heading 'New version of the VKE cli is available'
+        echo "${VKE_BOLD}You currently have version $_current_version"
+        echo "A new version ($_latest_version) is available${VKE_RESET}"
+        echo "Move $VKE_LATEST_CLI to your path if you want the latest, e.g."
+        echo -e " \tmv $VKE_LATEST_CLI /usr/local/bin/vke\n"
     }
     return 0
 }
@@ -74,7 +83,7 @@ check_version_trigger() {
 
 
 erun() {
-    echo -e "\e[0;1m> ${@}\e[0m"
+    echo -e "${VKE_BOLD}〉${@} ${VKE_RESET}"
     "$@"
 }
 
@@ -109,7 +118,9 @@ get_admin() {
     _ifid=$(networksetup -listnetworkserviceorder | grep 'Hardware Port' | grep Wi-Fi | awk -F  "(, )|(: )|[)]" '{print $4}')
     _ssid=$(networksetup -getairportnetwork $_ifid | awk -F "(: )" '{print $2}')
     [[ "$_ssid" == "$SSID" || "$_ssid" == "$(cat $_saved_ssid)" ]] || {
-        echo "You appear to be connected to $_ssid but need to connect to the wireless network at SSID, $SSID"
+        heading 'Network access confirmation'
+        echo "You appear to be connected to ${VKE_BOLD}${_ssid}${VKE_RESET}."
+        echo "However, you need to connect to the wireless network at SSID, ${VKE_BOLD}${SSID}${VKE_RESET}"
         read -p "Or are you connected through VPN? [y/N] " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -121,32 +132,39 @@ get_admin() {
 }
 
 type jq &> /dev/null || {
+    heading 'jq required'
     echo 'Please install jq which is available from https://stedolan.github.io/jq/download/'
     exit 1
 }
 
 type vke &> /dev/null || {
-    echo "Downloading the Cascade CLI from the following URL:"
+    heading 'Install VKE cli'
+    echo "Downloading the VKE cli from the following URL:"
     get_cli_url
     download_cli
-    echo "Move $_latest_cli to your path, e.g."
-    echo -e " \tmv $_latest_cli /usr/local/bin/vke\n"
+    echo "Move $VKE_LATEST_CLI to your path, e.g."
+    echo -e " \tmv $VKE_LATEST_CLI /usr/local/bin/vke\n"
     echo "Once completed, you can restart this script."
     exit 1
 }
 
 set_text_control_evars
+place_in_path
 
-[[ ! -f "$_latest_cli" ]] && download_cli
+[[ ! -f "$VKE_LATEST_CLI" ]] && download_cli
 check_version_trigger
 
 ## TODO: Write this to a runcom like .bashrc
 source "$PWD/vke_bash_completion.sh"
 
 type kubectl &> /dev/null || {
+    heading 'kubectl required'
     echo 'Please install kubectl. Installation instructions are available from'
     echo 'https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl'
     exit 1
 }
 
-SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+## The API token can only be retrieved from the vke cli config...
+VKE_API_TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
+
+VKE_SCRIPT_PATH="$( cd "$(dirname "$0")" ; pwd -P )"

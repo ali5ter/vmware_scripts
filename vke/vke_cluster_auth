@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# @file vke_cluster_auth.sh
+# @file vke_cluster_auth
 # Create a kube configuration file for a selected VKE Smart Cluster.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 source "$PWD/vke_env.sh"
 
-heading 'Authenticate with VMware Container Engine service'
-"$PWD/vke_auth.sh"
+"$PWD/vke_auth"
+
+erun vke folder set "$VKE_DEFAULT_FOLDER"
+erun vke project set "$VKE_DEFAULT_PROJECT"
 
 # select a cluster -----------------------------------------------------------
 
-## TODO - Show what the current context is (perhaps default selection)
-_clusters="$(vke -o json cluster list | jq -r '.items[] | .name' | grep "$CLUSTER_PREFIX")"
+_clusters="$(vke -o json cluster list | jq -r '.items[] | .name' | grep "$VKE_CLUSTER_PREFIX")"
 _clusters_num=$(echo "$_clusters" | wc -l)
 if [[ -z "$_clusters" ]]; then
     echo "Unable to find any clusters"
@@ -19,7 +20,7 @@ if [[ -z "$_clusters" ]]; then
 elif [[ "$_clusters_num" -eq 1 ]]; then
     _name="$_clusters"
 else
-    heading "Select from smart clusters starting with $CLUSTER_PREFIX"
+    heading "Select from smart clusters starting with $VKE_CLUSTER_PREFIX"
     _cluster_index=1
     _current=''
     kubectl config current-context >/dev/null && {
