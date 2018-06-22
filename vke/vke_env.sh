@@ -22,7 +22,15 @@ get_cli_url() {
     return 0
 }
 
-_heading_index=1
+set_text_control_evars() {
+    local colors=( BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE )
+    for (( i=0; i<${#colors[@]}; i++ )); do
+        export VKE_${colors[${i}]}="$(tput setaf ${i})"
+        export VKE_B${colors[${i}]}="$(tput setab ${i})"
+    done
+    export VKE_BOLD="$(tput bold)"
+    export VKE_RESET="$(tput sgr0)"
+}
 
 heading() {
     echo
@@ -126,6 +134,8 @@ type vke &> /dev/null || {
     echo "Once completed, you can restart this script."
     exit 1
 }
+
+set_text_control_evars
 
 [[ ! -f "$_latest_cli" ]] && download_cli
 check_version_trigger

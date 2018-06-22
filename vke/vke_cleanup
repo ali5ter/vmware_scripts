@@ -3,8 +3,6 @@
 # Delete previously created Smart Clusters from a VMware Kubernetes Engine Project.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-set -e
-
 source "$PWD/vke_env.sh"
 
 heading 'Authenticate with VMware Kubernetes Engine service'
