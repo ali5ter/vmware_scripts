@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file vke_config.sh
-# VMware Kubernetes Engine account settings
+# VMware Kubernetes Engine account settings and preferences
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 VKE_TARGET='https://api.vke.cloud.vmware.com'

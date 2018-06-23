@@ -109,6 +109,8 @@ get_admin() {
     echo "$admin"
 }
 
+set_text_control_evars
+
 ## check the prerequisites are in place --------------------------------------
 
 [[ "$OSTYPE" == "darwin"* ]] && {
@@ -148,9 +150,6 @@ type vke &> /dev/null || {
     exit 1
 }
 
-set_text_control_evars
-place_in_path
-
 [[ ! -f "$VKE_LATEST_CLI" ]] && download_cli
 check_version_trigger
 
@@ -163,6 +162,10 @@ type kubectl &> /dev/null || {
     echo 'https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl'
     exit 1
 }
+
+## Set up script references and global vars ----------------------------------
+
+place_in_path
 
 ## The API token can only be retrieved from the vke cli config...
 VKE_API_TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
