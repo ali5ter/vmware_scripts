@@ -12,7 +12,7 @@ source "$PWD/vke_env.sh"
 heading "Remove existing smart clusters starting with $VKE_CLUSTER_PREFIX"
 read -p "Shall I clear out all existing smart clusters? [y/N] " -n 1 -r
 echo
-[[ $REPLY =~ ^[Yy]$ ]] && "$PWD/vke_cleanup.sh"
+[[ $REPLY =~ ^[Yy]$ ]] && "$PWD/vke_cleanup"
 
 # create cluster -------------------------------------------------------------
 
