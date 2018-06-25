@@ -40,8 +40,9 @@ between smart clusters.
 [vke_cleanup](vke_cleanup) will look for smart clusters using the configured
 prefix and remove them.
 
-[vke_auth](vke_auth) simply authenticates using your VKE account and navigates
-to the VKE folder and project configured in [vke_config.sh](vke_config.sh)
+[vke_auth](vke_auth) simply authenticates using your VKE account.
+
+[vke_info](vke_info) lists useful information about your VKE account and location in the taxonomy.
 
 [vke_deploy_guestbook](vke_deploy_guestbook) automates the 
 deployment of the google sample app, [guestbook](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/), to the current K8s context.
