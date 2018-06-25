@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# @file create_completion.sh
+# @file create_completion
 # Create a bash completion script for vke using cli_taxo
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-set -e
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
 
 DIR="$PWD"
 
@@ -19,9 +20,9 @@ chmod 755 cli_taxo.py
 
 ## generate bash completion script and move into place
 ./cli_taxo.py vke \
-    --commands-VKE_TOKEN '^COMMANDS:$' \
+    --commands-token '^COMMANDS:$' \
     --commands-filter '^\s\s\s\s\s(?!-)(\S[^,\s]+)' \
-    --options-VKE_TOKEN 'OPTIONS:$' \
+    --options-token 'OPTIONS:$' \
     --options-filter '^\s\s\s(-\S[^,\s]+)|\s(-\S[^,\s]+)\s\s' \
     -o bash -O > "$DIR/vke_bash_completion.sh"
 
