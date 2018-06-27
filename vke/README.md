@@ -2,8 +2,7 @@
 Scripts used with VMware Kubernetes Engine (VKE).
 
 ## Configuration
-Edit the [vke_config.sh](vke_config.sh) script to reflect your credentials and
-VKE preferences.
+Copy the [vke_config.sh.sample](vke_config.sh.sample) file to `vke_config.sh` and edit it to reflect your credentials and VKE preferences.
 
 ## Pre-requisites
 * All scripts use the VMware Kubernetes Engine CLI command, `vke`. This will be 

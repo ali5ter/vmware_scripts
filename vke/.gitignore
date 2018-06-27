@@ -1,3 +1,4 @@
 kube-config
+vke_config.sh
 *.txt
 *.yml
