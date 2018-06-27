@@ -50,11 +50,9 @@ _vke_bash_prompt() {
     }
 }
 
-vke_prompt() {
-    export VKE_PROMPT_ENABLED="$1"
-    export VKE_PROMPT_CONTEXT_ENABLED='on'
-    [ "$VKE_PROMPT_ENABLED" == 'on' ] && {
-        _vke_set_evars
-        PROMPT_COMMAND="_vke_bash_prompt; ${PROMPT_COMMAND:-}"
-    }
-}
+export VKE_PROMPT_CONTEXT_ENABLED='on'
+export VKE_PROMPT_ENABLED="off"
+_vke_set_evars
+PROMPT_COMMAND="_vke_bash_prompt; ${PROMPT_COMMAND:-}"
+
+vke_prompt() { export VKE_PROMPT_ENABLED="$1"; }
