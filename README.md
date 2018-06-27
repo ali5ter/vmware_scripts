@@ -15,6 +15,8 @@ The [vcloud_director directory](vcloud_director) contains scripts to work with [
 
 The [vic directory](vic) contains scripts to work with [vSphere Integrated Containers 1.2](https://www.vmware.com/products/vsphere/integrated-containers.html)
 
+The [vke directory](vke) contains scripts to work with [vSphere Kubernetes Engine](https://cloud.vmware.com/vmware-kubernetes-engine)
+
 ## Contribution
 If you've stumbled upon this project and wish to contribute, please
 [let me know](mailto:alister@different.com)
