@@ -21,15 +21,9 @@ echo
 
 heading 'Create smart cluster and wait for it to be ready'
 
-_name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
-_dname="${VKE_CLUSTER_DNAME_PREFIX}-${_name}"
-_name="${VKE_CLUSTER_PREFIX}-${_name}"
 ## Will default to latest anyway but let's test the command to get the list of versions...
 _version=$(vke -o json cluster versions list -r "$VKE_DEFAULT_REGION" | jq -r '.items[] | select(.isDefault == true) | .version')
 _types=$(vke -o json cluster templates list | jq -r '.items[].templateName')
-
-## Name can only be up to 26 characters long :(
-_name=$(echo "$_name" | cut -c 1-26)
 
 ## Select from cluster types
 _type_index=1
@@ -44,6 +38,13 @@ until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atype
 done
 echo
 _type=${_atypes[$REPLY]}
+
+_name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+_name=$(echo "$_type" | cut -c 1-4)"-${_name}"
+_dname="${VKE_CLUSTER_DNAME_PREFIX}-${_name}"
+_name="${VKE_CLUSTER_PREFIX}-${_name}"
+## Name can only be up to 26 characters long :(
+_name=$(echo "$_name" | cut -c 1-26)
 
 erun vke -n cluster create -t "$_type" -n "$_name" -d "$_dname" -r "$VKE_DEFAULT_REGION" -v "$_version"
 
