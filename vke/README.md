@@ -17,7 +17,7 @@ VKE cli. It is generated using [create_completion](create_completion).
 Source this from your `.bash_profile` or, to use in your current shell, run 
 `source vke_bash_completion.sh`
 
-## VKE Prompt
+## VKE prompt
 [vke_bash_prompt.sh](vke_bash_prompt.sh) adds a VKE prompt to your `PS1`.
 Source this script from your `.bash_profile` and, in a new shell, enter
 `vke_prompt on` to display the VKE prompt. Remove the VKE prompt by entering
@@ -26,6 +26,12 @@ Source this script from your `.bash_profile` and, in a new shell, enter
 You can hide the K8s current context in this prompt using
 `export VKE_PROMPT_CONTEXT_ENABLED='off'`. Useful if you're already using
 something like [kube-ps1](https://github.com/jonmosco/kube-ps1).
+
+## VKE environment
+[vke_env.sh](vke_env.sh) checks for the pre-requisites stated above but also provides some helper functions:
+* [vke_cli_url](vke_cli_url) returns the URL for the VKE cli based on the OS you're running on.
+* [vke_cli_check_version](vke_cli_check_version) checks if there's a newer version of the VKE cli available.
+* [vke_get_admin_for_object](vke_get_admin_for_object) parses the direct and inherited access policies for a VKE folder, project, smart cluster or namespace to extract the admnistrator identites for that object.
 
 ## Automation scripts
 [vke_populate](vke_populate) populates a VKE project with a smart cluster with

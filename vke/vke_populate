@@ -84,5 +84,5 @@ erun vke cluster show-health "$_name"
 erun kubectl get namespace
 erun kubectl cluster-info
 
-_admin=$(get_admin $_name)
+_admin=$(vke_get_admin_for_object $_name)
 echo -e "/nAdministrator(s) identities for $_name are:\n$_admin"
