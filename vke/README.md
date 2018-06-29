@@ -29,9 +29,9 @@ something like [kube-ps1](https://github.com/jonmosco/kube-ps1).
 
 ## VKE environment
 [vke_env.sh](vke_env.sh) checks for the pre-requisites stated above but also provides some helper functions:
-* [vke_cli_url](vke_cli_url) returns the URL for the VKE cli based on the OS you're running on.
-* [vke_cli_check_version](vke_cli_check_version) checks if there's a newer version of the VKE cli available.
-* [vke_get_admin_for_object](vke_get_admin_for_object) parses the direct and inherited access policies for a VKE folder, project, smart cluster or namespace to extract the admnistrator identites for that object.
+* [vke_cli_url](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L16) returns the URL for the VKE cli based on the OS you're running on.
+* [vke_cli_check_version](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L32) checks if there's a newer version of the VKE cli available.
+* [vke_get_admin_for_object](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L89) parses the direct and inherited access policies for a VKE folder, project, smart cluster or namespace to extract the admnistrator identites for that object.
 
 ## Automation scripts
 [vke_populate](vke_populate) populates a VKE project with a smart cluster with
