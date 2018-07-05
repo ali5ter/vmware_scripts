@@ -10,9 +10,11 @@ source "$PWD/vke_env.sh"
 erun vke folder set "$VKE_DEFAULT_FOLDER"
 erun vke project set "$VKE_DEFAULT_PROJECT"
 
+rm -f "${VKE_LOG}"
+
 echo
 for cluster in $(vke -o json cluster list | jq -r '.items[].name' | grep "$VKE_CLUSTER_PREFIX"); do
     read -p "Delete $cluster? [y/N] " -n 1 -r
     echo
-    [[ $REPLY =~ ^[Yy]$ ]] && erun vke cluster delete "$cluster"
+    [[ $REPLY =~ ^[Yy]$ ]] && vke cluster delete "$cluster" 2>&1 >>"${VKE_LOG}" &
 done

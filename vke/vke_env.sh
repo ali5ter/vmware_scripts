@@ -150,3 +150,5 @@ place_in_path
 export VKE_API_TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
 
 export VKE_SCRIPT_PATH="$( cd "$(dirname "$0")" ; pwd -P )"
+
+export VKE_LOG="$PWD/vke_log.txt"
