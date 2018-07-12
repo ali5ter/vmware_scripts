@@ -12,10 +12,16 @@ downloaded automatically if you don't already have it.
 * [helm](https://docs.helm.sh/using_helm/#installing-helm) is used in scripts that deploy K8s applications.
 
 ## VKE tab completion
-[vke_bash_completion.sh](vke_bash_completion.sh) provides tab completion for
-VKE cli. It is generated using [create_completion](create_completion).
+[vke_bash_completion.sh](vke_bash_completion.sh) provides bash tab completion
+for the VKE cli. It is generated using [create_completion](create_completion).
 Source this from your `.bash_profile` or, to use in your current shell, run 
 `source vke_bash_completion.sh`
+
+If you're using zsh, the following should allow this autocompletion to work:
+
+    $ autoload bashcompinit
+    $ bashcompinit
+    $ source vke_bash_completion.sh
 
 ## VKE prompt
 [vke_bash_prompt.sh](vke_bash_prompt.sh) adds a VKE prompt to your `PS1`.
