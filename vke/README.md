@@ -39,6 +39,24 @@ something like [kube-ps1](https://github.com/jonmosco/kube-ps1).
 * [vke_cli_check_version](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L32) checks if there's a newer version of the VKE cli available.
 * [vke_get_admin_for_object](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L89) parses the direct and inherited access policies for a VKE folder, project, smart cluster or namespace to extract the admnistrator identites for that object.
 
+## VKE wrapper for enhaunced DX
+[vke_wrapper](vke_wrapper) is very experimental so use at your own risk. It 
+is used to add features in an attempt to enhaunce the developer experience of
+the VKE cli. This wrapper provides the following enhauncements:
+* Remove need for the `vke folder set` and `vke project set` commands by inferring
+  the folder and project name based on resource name.
+* If the folder or project name can not be inferred, present the user with a list
+  to select from.
+* Allow the use of the 'display name' to identify a resource.
+* If a resource name can not be found, present the user with a list to select from.
+* Default to latest K8s version when using `vke cluster upgrade`
+
+Use the wrapper by employing an alias, e.g.
+
+    $ alias vke='./vke_wrapper'
+    
+To ignore the alias use a backslach before the command, i.e. `\vke ...`
+
 ## Automation scripts
 [vke_populate](vke_populate) populates a VKE project with a smart cluster with
 some namespaces. The cluster name will contain a prefix configured in
