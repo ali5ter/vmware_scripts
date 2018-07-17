@@ -25,7 +25,7 @@ vke_cli_url() {
 }
 
 vke_download_cli() {
-    curl -s $(vke_cli_url) > $VKE_LATEST_CLI && chmod 755 $VKE_LATEST_CLI
+    curl -s $vke_cli_url > $VKE_LATEST_CLI && chmod 755 $VKE_LATEST_CLI
     return 0
 }
 
