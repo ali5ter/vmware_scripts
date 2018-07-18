@@ -17,7 +17,11 @@
 #
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-[[ -n $DEBUG ]] && set -x
+if [[ -n $DEBUG ]]; then
+    set -x
+    vke folder unset
+    vke project unset
+fi
 set -eou pipefail
 
 VKE_FOLDERS=''
@@ -28,7 +32,7 @@ VKE_CLUSTER=''
 VKE_OBJ_NAME=''
 VKE_VERSION=''
 
-CMD="$@"
+CMD="$*"
 
 select_object() {
     # Prompt the user for the object they want to use.
@@ -260,7 +264,7 @@ set_context() {
     else
         # The context is not stated in the command so check if the command has
         # a context option
-        if vke $CMD -h | grep -q "\\-\\-$context"; then
+        if vke "$CMD" -h | grep -q "\\-\\-$context"; then
             # Since there is a context option, check if it has already been set
             if vke folder get | grep -q "No $context"; then
                 # No context is set so ask the user
@@ -283,7 +287,7 @@ set_context() {
     fi
 }
 
-if [[ $# -eq 0 ]]; then
+if [[ $# -gt 0 ]]; then
 
     ## Prefetch folders
 
@@ -295,7 +299,7 @@ if [[ $# -eq 0 ]]; then
 
     ## Rough attempt at guessing the resource name 
 
-    VKE_RESOURCE_NAME="${@: -1}"
+    VKE_RESOURCE_NAME="${*: -1}"
 
     ## Look for context (folder & project) overrides
 
@@ -310,10 +314,6 @@ if [[ $# -eq 0 ]]; then
 
     ## Figure out the context (folder & project) for the command
 
-    [[ -n $DEBUG ]] && {
-        vke folder unset
-        vke project unset
-    }
     # # Prompt user for context
     # set_context folder
     # set_context project
