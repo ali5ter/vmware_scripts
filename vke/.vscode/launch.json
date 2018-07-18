@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "bashdb",
+            "request": "launch",
+            "name": "vke_wrapper cluster list",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/vke_wrapper",
+            "args": ["cluster", "list"]
+        },
+        {
+            "type": "bashdb",
+            "request": "launch",
+            "name": "vke_wrapper cluster show alb-🦄-deve-agonied-jon",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/vke_wrapper",
+            "args": ["cluster", "show", "alb-🦄-deve-agonied-jon"]
+        }
+    ]
+}
