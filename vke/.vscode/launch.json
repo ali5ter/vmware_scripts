@@ -7,6 +7,14 @@
         {
             "type": "bashdb",
             "request": "launch",
+            "name": "vke_wrapper --version",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/vke_wrapper",
+            "args": ["--version"]
+        },
+        {
+            "type": "bashdb",
+            "request": "launch",
             "name": "vke_wrapper cluster list",
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/vke_wrapper",
@@ -19,6 +27,22 @@
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/vke_wrapper",
             "args": ["cluster", "show", "alb-🦄-deve-agonied-jon"]
+        },
+        {
+            "type": "bashdb",
+            "request": "launch",
+            "name": "vke_wrapper project list --folder SharedFolder",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/vke_wrapper",
+            "args": ["project", "list", "--folder", "SharedFolder"]
+        },
+        {
+            "type": "bashdb",
+            "request": "launch",
+            "name": "vke_wrapper cluster upgrade alb-🦄-prod-subget-schematism",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/vke_wrapper",
+            "args": ["project", "cluster", "upgrade", "alb-🦄-prod-subget-schematism"]
         }
     ]
 }

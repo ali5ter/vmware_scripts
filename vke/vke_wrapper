@@ -37,7 +37,7 @@ CMD="$*"
 select_object() {
     # Prompt the user for the object they want to use.
     # @param obj_type = folder|project
-    local obj_type="$1"; shift
+    local obj_type="$1"
     local objs=''
     local obj_num=''
     local aobjs=''
@@ -96,7 +96,6 @@ name_of_object() {
     # Find the folder|project|cluster name if the display name used
     # @param obj_type = folder|project|cluster
     # @param aname = name|display name of object
-    # @param objs = list of folder|project|cluster name::display_name
     local obj_type="$1"; shift
     local aname="$*"
     local objs=''
@@ -154,6 +153,7 @@ name_of_cluster() {
 }
 
 infer_cluster_context() {
+    # Find the folder and project names using the cluster name
     if [[ ("$VKE_FOLDER" == '') && ("$VKE_PROJECT" == '') ]]; then
         # The context is not stated in the command so check if it is
         # already set
@@ -172,6 +172,7 @@ infer_cluster_context() {
 }
 
 infer_project_context() {
+    # Find the folder name using the project name
     if [[ "$VKE_FOLDER" == '' ]]; then
         # The context is not stated in the command so check if it is
         # already set
@@ -303,12 +304,20 @@ if [[ $# -gt 0 ]]; then
 
     ## Look for context (folder & project) overrides
 
-    while true; do
+    VKE_SUBCOMMAND=''
+
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             -f | --folder )     VKE_FOLDER="$2"; shift; shift ;;
             -p | --project )    VKE_PROJECT="$2"; shift; shift ;;
-            -v | --version )    VKE_VERSION="$2"; shift; shift ;;
-            * ) break ;;
+            cluster )           VKE_SUBCOMMAND='cluster'; shift ;;
+            -v | --version )
+                ## Since --version has two meanings in the VKE cli...
+                if [[ "$VKE_SUBCOMMAND" == 'cluster' ]]; then
+                     VKE_VERSION="$2"; shift; shift
+                fi
+                shift ;;
+            * ) shift ;;
         esac
     done
 
