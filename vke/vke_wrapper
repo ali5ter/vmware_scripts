@@ -31,6 +31,7 @@ VKE_PROJECT=''
 VKE_CLUSTER=''
 VKE_OBJ_NAME=''
 VKE_VERSION=''
+VKE_PASSTHROUGH='n'
 
 CMD="$*"
 
@@ -317,16 +318,19 @@ if [[ $# -gt 0 ]]; then
                      VKE_VERSION="$2"; shift; shift
                 fi
                 shift ;;
+            -h | --help )       VKE_PASSTHROUGH='y'; shift;;
             * ) shift ;;
         esac
     done
 
-    ## Figure out the context (folder & project) for the command
+    if [[ "$VKE_PASSTHROUGH" == 'n' ]]; then
+        ## Figure out the context (folder & project) for the command
 
-    # # Prompt user for context
-    # set_context folder
-    # set_context project
-    infer_context
+        # # Prompt user for context
+        # set_context folder
+        # set_context project
+        infer_context
+    fi
 fi
 
 ## Pass it on
