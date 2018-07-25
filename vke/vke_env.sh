@@ -17,15 +17,15 @@ vke_cli_url() {
     case "$OSTYPE" in
         ## Pulled from `curl https://api.vke.cloud.vmware.com/v1/cli | jq .latest``
         darwin*)  echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/mac/vke' ;; 
-        linux*)   echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/vke' ;;
-        msys*)    echo='https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/vke.exe' ;;
+        linux*)   echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/vke' ;;
+        msys*)    echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/vke.exe' ;;
         *)        return 1;;
     esac
     return 0
 }
 
 vke_download_cli() {
-    curl -s $vke_cli_url > $VKE_LATEST_CLI && chmod 755 $VKE_LATEST_CLI
+    curl -s "$(vke_cli_url)" > $VKE_LATEST_CLI && chmod 755 $VKE_LATEST_CLI
     return 0
 }
 
