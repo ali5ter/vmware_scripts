@@ -31,7 +31,7 @@ err() { echo "$@" 1>&2; }
 
 OVFTOOL_FUSION=/Applications/VMware\ Fusion.app/Contents/Library/VMware\ OVF\ Tool/ovftool
 OVFTOOL_OSX=/Applications/VMware\ OVF\ Tool/ovftool
-OVFTOOL=LINUX=ovftool
+OVFTOOL_LINUX=ovftool
 
 case "$OSTYPE" in
     darwin*)
