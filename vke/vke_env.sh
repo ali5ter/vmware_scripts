@@ -132,9 +132,6 @@ type vke &> /dev/null || {
 [[ ! -f "$VKE_LATEST_CLI" ]] && vke_download_cli
 vke_cli_check_version_trigger
 
-## TODO: Write this to a runcom like .bashrc
-source "$PWD/vke_bash_completion.sh"
-
 type kubectl &> /dev/null || {
     heading 'kubectl required'
     echo 'Please install kubectl. Installation instructions are available from'
