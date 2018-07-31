@@ -11,11 +11,11 @@ type helm &> /dev/null || {
     exit 1
 }
 
-source "$PWD/vke_env.sh"
+source vke_env.sh
 
 # select a smart cluster and generate kube-config file -----------------------
 
-"$PWD/vke_cluster_auth"
+vke_cluster_auth
 
 # install/upgrade the K8s agent that helm talks to -----------------------------------
 

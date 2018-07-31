@@ -3,9 +3,9 @@
 # Authenticate with VMware Kubernetes Engine service using account credentials
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-source "$PWD/vke_env.sh"
+source "vke_env.sh"
 
 ## Authentication state held in ~/vke-cli/vke-config but can't find
-## a way to determine if I have an exired session, so just login in each time
+## a way to determine if I have an expired session, so just login in each time
 
-erun vke account login -t "$VKE_CSP_ORG_ID" -r "$VKE_TOKEN" --target "$VKE_TARGET"
+erun vke account login -t "$VKE_CSP_ORG_ID" -r "$VKE_TOKEN"

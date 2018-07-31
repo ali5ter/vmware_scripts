@@ -3,9 +3,9 @@
 # Create a kube configuration file for a selected VKE Smart Cluster.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-source "$PWD/vke_env.sh"
+source vke_env.sh
 
-"$PWD/vke_auth"
+vke_auth
 
 erun vke folder set "$VKE_DEFAULT_FOLDER"
 erun vke project set "$VKE_DEFAULT_PROJECT"

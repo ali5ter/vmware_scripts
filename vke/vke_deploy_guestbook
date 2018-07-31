@@ -4,10 +4,10 @@
 # @see https://kubernetes.io/docs/tutorials/stateless-application/guestbook/
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-source "$PWD/vke_env.sh"
+source vke_env.sh
 
 # helper functions -----------------------------------------------------------
-set -x
+
 _pod_status_of_name() {
     kubectl get pod "$1" -o json | jq -r '.status.phase'
 }
@@ -53,7 +53,7 @@ trap _clean_up EXIT
 
 # select a smart cluster and generate kube-config file -----------------------
 
-"$PWD/vke_cluster_auth.sh"
+vke_cluster_auth.sh
 
 # download config files ------------------------------------------------------
 

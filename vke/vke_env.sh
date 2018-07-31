@@ -7,7 +7,7 @@
 # set -euf -o pipefail ## ref: https://sipb.mit.edu/doc/safe-shell/
 set -eou pipefail
 
-source "$PWD/vke_config.sh"
+source "vke_config.sh"
 
 # helper functions -----------------------------------------------------------
 
@@ -66,10 +66,14 @@ set_text_control_evars() {
     export VKE_RESET="$(tput sgr0)"
 }
 
+export VKE_PREFIX='/usr/local/bin'
+
 place_in_path() {
-    for file in $(find $PWD -name "vke_*" | grep -Ev '.yml|.sh'); do
-        ln -sf $file /usr/local/bin/
-    done
+    [[ -e "$VKE_PREFIX/vke_auth" ]] || {
+        for file in $(find $PWD -name "vke_*" | grep -Ev '.yml|.sample'); do
+            ln -sf $file $VKE_PREFIX
+        done
+    }
 }
 
 heading() {
@@ -139,13 +143,13 @@ type kubectl &> /dev/null || {
     exit 1
 }
 
-## Set up script references and global vars ----------------------------------
-
-place_in_path
-
 ## The API token can only be retrieved from the vke cli config...
 export VKE_API_TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
 
 export VKE_SCRIPT_PATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
 export VKE_LOG="$PWD/vke_log.txt"
+
+## Set up script references and global vars ----------------------------------
+
+place_in_path
