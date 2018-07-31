@@ -11,39 +11,11 @@ downloaded automatically if you don't already have it.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl) is used to communicate to K8s deployed by the VMware Kubernetes Engine service.
 * [helm](https://docs.helm.sh/using_helm/#installing-helm) is used in scripts that deploy K8s applications.
 
-## VKE prompt
-[vke_bash_prompt.sh](vke_bash_prompt.sh) adds a VKE prompt to your `PS1`.
-Source this script from your `.bash_profile` and, in a new shell, enter
-`vke_prompt on` to display the VKE prompt. Remove the VKE prompt by entering
-`vke_prompt off`.
-
-You can hide the K8s current context in this prompt using
-`export VKE_PROMPT_CONTEXT_ENABLED='off'`. Useful if you're already using
-something like [kube-ps1](https://github.com/jonmosco/kube-ps1).
-
 ## VKE environment
 [vke_env.sh](vke_env.sh) checks for the pre-requisites stated above but also provides some helper functions:
 * [vke_cli_url](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L16) returns the URL for the VKE cli based on the OS you're running on.
 * [vke_cli_check_version](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L32) checks if there's a newer version of the VKE cli available.
 * [vke_get_admin_for_object](https://github.com/ali5ter/vmware_scripts/blob/8e662d6f5f5acf195b5633e94dd50113193267fa/vke/vke_env.sh#L89) parses the direct and inherited access policies for a VKE folder, project, smart cluster or namespace to extract the admnistrator identites for that object.
-
-## VKE wrapper for enhaunced DX
-[vke_wrapper](vke_wrapper) is very experimental so use at your own risk. It 
-is used to add features in an attempt to enhaunce the developer experience of
-the VKE cli. This wrapper provides the following enhauncements:
-* Remove need for the `vke folder set` and `vke project set` commands by inferring
-  the folder and project name based on resource name.
-* If the folder or project name can not be inferred, present the user with a list
-  to select from.
-* Allow the use of the 'display name' to identify a resource.
-* If a resource name can not be found, present the user with a list to select from.
-* Default to latest K8s version when using `vke cluster upgrade`
-
-Use the wrapper by employing an alias, e.g.
-
-    $ alias vke='./vke_wrapper'
-    
-To ignore the alias use a backslach before the command, i.e. `\vke ...`
 
 ## Automation scripts
 [vke_populate](vke_populate) populates a VKE project with a smart cluster with
@@ -71,5 +43,5 @@ version of wordpress to the current K8s context.
 You may have use for some other VKE projects:
 * [Install VKE cli using homebrew](https://github.com/ali5ter/homebrew-vke-cli)
 * [VKE cli bash or zsh completion](https://github.com/ali5ter/vke-completion)
-* [A bash VKE prompt]()
-* [Extended VKE cli functionality]()
+* [A bash VKE prompt](https://github.com/ali5ter/vke-prompt)
+* [Extended VKE cli functionality](https://github.com/ali5ter/vke-cli-extended)
