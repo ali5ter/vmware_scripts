@@ -11,18 +11,6 @@ downloaded automatically if you don't already have it.
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-binary-via-curl) is used to communicate to K8s deployed by the VMware Kubernetes Engine service.
 * [helm](https://docs.helm.sh/using_helm/#installing-helm) is used in scripts that deploy K8s applications.
 
-## VKE tab completion
-[vke_bash_completion.sh](vke_bash_completion.sh) provides bash tab completion
-for the VKE cli. It is generated using [create_completion](create_completion).
-Source this from your `.bash_profile` or, to use in your current shell, run 
-`source vke_bash_completion.sh`
-
-If you're using zsh, the following should allow this autocompletion to work:
-
-    $ autoload bashcompinit
-    $ bashcompinit
-    $ source vke_bash_completion.sh
-
 ## VKE prompt
 [vke_bash_prompt.sh](vke_bash_prompt.sh) adds a VKE prompt to your `PS1`.
 Source this script from your `.bash_profile` and, in a new shell, enter
@@ -79,3 +67,9 @@ deployment of the google sample app, [guestbook](https://kubernetes.io/docs/tuto
 [vke_deploy_wordpress.](vke_deploy_wordpress) uses helm to deploy a stable 
 version of wordpress to the current K8s context.
 
+## Other VKE utilities
+You may have use for some other VKE projects:
+* [Install VKE cli using homebrew](https://github.com/ali5ter/homebrew-vke-cli)
+* [VKE cli bash or zsh completion](https://github.com/ali5ter/vke-completion)
+* [A bash VKE prompt]()
+* [Extended VKE cli functionality]()
