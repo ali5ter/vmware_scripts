@@ -1,0 +1,61 @@
+#! /usr/bin/env bash
+# @file update_git_repos
+# Simple script to pull changes from origin for a set of git repos.
+#
+# Place this script in the directory above the set of git repos you wish to
+# keep up-to-date.
+# 
+# Run this script periodically, either manually, with cron or, if using macOS
+# with launchd. This script will set up a launchd plist if run on macOS.
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd )
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+
+## @ref https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html#//apple_ref/doc/uid/TP40001762-104142
+## The following plist tells launchd to run this script at 8:57am each day.
+## When placed in ~/Library/LaunchAgents, the per-user launchd will use it.
+LAUNCHD_DIR=~/Library/LaunchAgents
+LAUNCHD_PLIST_FILE='com.lewis-bowen.org.update_git_repos.plist'
+LAUNCHD_PLIST_CONTENT=$(cat <<EOPLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$LAUNCHD_PLIST_FILE</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$DIR/$SCRIPT_NAME</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Minute</key>
+        <integer>57</integer>
+        <key>Hour</key>
+        <integer>8</integer>
+    </dict>
+</dict>
+</plist>
+EOPLIST
+)
+[[ "$OSTYPE" == "darwin"* ]] && {
+    [[ -f "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE" ]] || {
+        echo "$LAUNCHD_PLIST_CONTENT" > "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+    }
+}
+
+## Find repos and pull changes from their origin
+
+REPOS="$(find . -type d | grep -E ".git$" | sed 's/\/\.git//g' | sed 's/ /##/g')"
+
+for repo in $REPOS; do
+    repo=$(echo "$repo" | sed 's/##/ /g')
+    logger -s "$0 - Updating $repo..."
+    cd "$repo"
+    git pull 2>&1 | logger -s
+    cd "$DIR"
+done
