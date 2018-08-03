@@ -19,7 +19,7 @@ SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
 ## The following plist tells launchd to run this script at 8:57am each day.
 ## When placed in ~/Library/LaunchAgents, the per-user launchd will use it.
 LAUNCHD_DIR=~/Library/LaunchAgents
-LAUNCHD_PLIST_FILE='com.lewis-bowen.org.update_git_repos.plist'
+LAUNCHD_PLIST_FILE='org.lewis-bowen.org.update_git_repos.plist'
 LAUNCHD_PLIST_CONTENT=$(cat <<EOPLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -36,7 +36,7 @@ LAUNCHD_PLIST_CONTENT=$(cat <<EOPLIST
         <key>Minute</key>
         <integer>57</integer>
         <key>Hour</key>
-        <integer>8</integer>
+        <integer>15</integer>
     </dict>
 </dict>
 </plist>
