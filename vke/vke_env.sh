@@ -92,7 +92,7 @@ erun() {
 
 vke_get_admin_for_object() {
     local obj="$1"
-    local policy=$(vke -o json cluster iam show $1)
+    local policy=$(vke -o json cluster iam show "$1")
     local direct=$(echo $policy | jq -r '.direct.bindings[]')
     local inherited=$(echo $policy | jq -r '.inherited[].bindings[]')
 

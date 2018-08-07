@@ -7,14 +7,18 @@ source vke_env.sh
 
 vke_auth
 
-erun vke folder set "$VKE_DEFAULT_FOLDER"
-erun vke project set "$VKE_DEFAULT_PROJECT"
-
 rm -f "${VKE_LOG}"
+VKE_CLUSTERS=$(vke -o json cluster list | jq -r '.items[] | .name +":"+ .folderName +":"+ .projectName' | grep "$VKE_CLUSTER_PREFIX")
 
 echo
-for cluster in $(vke -o json cluster list | jq -r '.items[].name' | grep "$VKE_CLUSTER_PREFIX"); do
-    read -p "Delete $cluster? [y/N] " -n 1 -r
+for cluster in $VKE_CLUSTERS; do
+    info=(${cluster//:/ })
+    name=${info[0]}
+    folder=${info[1]}
+    project=${info[2]}
+    read -p "Delete $name? [y/N] " -n 1 -r
     echo
-    [[ $REPLY =~ ^[Yy]$ ]] && vke cluster delete "$cluster" 2>&1 >>"${VKE_LOG}" &
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        vke cluster delete "$name" --folder "$folder" --project "$project" 2>&1 >>"${VKE_LOG}" &
+    fi
 done
