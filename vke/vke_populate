@@ -5,7 +5,42 @@
 
 source vke_env.sh
 
+VKE_CLUSTER_NUM=1
+VKE_CLUSTER_TYPE=''
+VKE_NAMESPACES='y'
+
+help() {
+    echo "Automate the creation of VKE smart clusters"
+    echo
+    echo "By default one smart cluster is created with a random number of"
+    echo "additional namespaces. You are prompted for the cluster type."
+    echo "The options allow you to override these defaults."
+    echo
+    echo "Usage: vke_populate [options]"
+    echo "Options:"
+    echo "  -h, --help, help .... displays this help information"
+    echo "  -n, --number_clusters ... the number of smart clusters to create"
+    echo "  -d, --development ....... create development type clusters only"
+    echo "  -p, --production ........ create production type clusters only"
+    echo "  -N, --no-namespaces ..... do not create additional namespaces"
+    return 0
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -n | --number_clusters )    VKE_CLUSTER_NUM=$2; shift; shift ;;
+        -d | --development )        VKE_CLUSTER_TYPE='development'; shift ;;
+        -p | --production )         VKE_CLUSTER_TYPE='production'; shift ;;
+        -N | --no-namespaces )      VKE_NAMESPACES='no'; shift;;
+        help | -h | --help )        help; exit 0;;
+        * ) shift ;;
+    esac
+done
+
 vke_auth
+
+erun vke folder set "$VKE_DEFAULT_FOLDER"
+erun vke project set "$VKE_DEFAULT_PROJECT"
 
 # clean up -------------------------------------------------------------------
 
@@ -16,73 +51,70 @@ echo
 
 # create cluster -------------------------------------------------------------
 
-## Create a name that's not too long since there's a bug that stops a cluster
-## LB being deleted on AWS if the name is too long.
+until (( VKE_CLUSTER_NUM == 0 )); do
 
-heading 'Create smart cluster and wait for it to be ready'
+    heading "Create smart cluster ($VKE_CLUSTER_NUM left to create)"
 
-## Will default to latest anyway but let's test the command to get the list of versions...
-_version=$(vke -o json cluster versions list -r "$VKE_DEFAULT_REGION" | jq -r '.items[] | select(.isDefault == true) | .version')
-_types=$(vke -o json cluster templates list | jq -r '.items[].templateName')
+    ## Will default to latest anyway but let's test the command to get the list of versions...
+    _version=$(vke -o json cluster versions list -r "$VKE_DEFAULT_REGION" | jq -r '.items[] | select(.isDefault == true) | .version')
+    
+    ## Prompt for type of cluster unless overridden
+    if [[ "$VKE_CLUSTER_TYPE" == '' ]]; then
+        _types=$(vke -o json cluster templates list | jq -r '.items[].templateName')
+        _type_index=1
+        for _type in $_types; do
+            _atypes[$_type_index]="$_type"
+            printf "    %3d ... %s\n" "$_type_index" "$_type"
+            ((_type_index++))
+        done
+        until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atypes[@]} + 1 ))" ]]; do
+            read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -n 1
+            echo
+        done
+        echo
+        _type=${_atypes[$REPLY]}
+    else
+        _type="$VKE_CLUSTER_TYPE"
+    fi
 
-## Select from cluster types
-_type_index=1
-for _type in $_types; do
-    _atypes[$_type_index]="$_type"
-    printf "    %3d ... %s\n" "$_type_index" "$_type"
-    ((_type_index++))
+    ## Construct the name and display name just to test the two
+    _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+    _name=$(echo "$_type" | cut -c 1-4)"-${_name}"
+    _dname="${VKE_CLUSTER_DNAME_PREFIX}-${_name}"
+    _name="${VKE_CLUSTER_PREFIX}-${_name}"
+    _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+
+    ## Finally create the smart cluster
+    erun vke --non-interactive cluster create --template "$_type" \
+        --name "$_name" --display-name "$_dname" \
+        --region "$VKE_DEFAULT_REGION" --version "$_version"
+
+    ## Monitor the state of the cluster before it becomes 'READY'
+    get_cluster_state() { echo $(vke --output json cluster show "$_name" | jq -r '.details.state'); }
+
+    echo -en "\nWaiting for Smart Cluster to be ready..."
+    _cluster_state=''
+    until [ "$(get_cluster_state)" == "READY" ]; do
+        sleep 10
+        echo '.'
+    done
+    echo ' done'
+
+    # create additional namespaces -------------------------------------------
+
+    if [[ "$VKE_NAMESPACES" == 'y' ]]; then
+        _namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
+
+        heading "Create additional namespaces in $_name"
+        for i in $(seq "$_namespaces"); do
+            erun vke cluster namespace create "$_name" "${_name}-namespace-$i"
+
+        done
+    fi
+
+    # Show who is the real admin for this smart cluster ----------------------
+    _admin=$(vke_get_admin_for_object $_name)
+    echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"
+
+    (( VKE_CLUSTER_NUM-- ))
 done
-until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atypes[@]} + 1 ))" ]]; do
-    read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -n 1
-    echo
-done
-echo
-_type=${_atypes[$REPLY]}
-
-_name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
-_name=$(echo "$_type" | cut -c 1-4)"-${_name}"
-_dname="${VKE_CLUSTER_DNAME_PREFIX}-${_name}"
-_name="${VKE_CLUSTER_PREFIX}-${_name}"
-## Name can only be up to 26 characters long :(
-_name=$(echo "$_name" | cut -c 1-26)
-
-erun vke -n cluster create -t "$_type" -n "$_name" -d "$_dname" -r "$VKE_DEFAULT_REGION" -v "$_version"
-
-get_cluster_state() { echo $(vke --output json cluster show "$_name" | jq -r '.details.state'); }
-
-echo -en "\nWaiting for Smart Cluster to be ready..."
-_cluster_state=''
-until [ "$(get_cluster_state)" == "READY" ]; do
-    sleep 10
-    echo '.'
-done
-echo ' done'
-
-# create namespaces -----------------------------------------------------------
-
-_namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
-
-heading "Create some namespaces in $_name and retrieve namespaces using VKE CLI"
-for i in $(seq "$_namespaces"); do
-    erun vke cluster namespace create "$_name" "${_name}-namespace-$i"
-
-done
-erun vke cluster namespace list "$_name"
-
-# connect to K8s cluster backing the smart cluster ---------------------------
-
-heading "Create new context for smart cluster, $_name, and retrieve namespaces using kubectl"
-erun vke cluster merge-kubectl-auth "$_name"
-echo -e '\tTo authenticate to this cluster, use the command:'
-echo -e "\tkubectl config use-context "$_name"-context"
-erun kubectl config use-context "$_name"-context
-
-# dump some info about the K8s cluster backing the smart cluster -------------
-
-erun vke cluster show "$_name"
-erun vke cluster show-health "$_name"
-erun kubectl get namespace
-erun kubectl cluster-info
-
-_admin=$(vke_get_admin_for_object $_name)
-echo -e "/nAdministrator(s) identities for $_name are:\n$_admin"
