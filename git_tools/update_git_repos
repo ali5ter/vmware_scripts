@@ -64,6 +64,12 @@ EOPLIST
     }
 }
 
+notify() {
+    [[ "$OSTYPE" == "darwin"* ]] && {
+        osascript -e "display notification \"Updating git repositories in $DIR\" with title \"$0\""
+    }
+}
+
 update_git_repos() {
     ## Find repos and pull changes from their origin
     REPOS="$(find . -type d | grep -E ".git$" | sed 's/\/\.git//g' | sed 's/ /##/g')"
@@ -85,4 +91,5 @@ while [[ $# -gt 0 ]]; do
 done
 
 install_plist
+notify
 update_git_repos
