@@ -8,10 +8,13 @@ set -eou pipefail
 
 DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd )
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+UPDATE_NAME='update_git_repos'
+UPDATE_INTERVAL='3600'
 UPDATE_PLIST='n'
 
 help() {
-    echo "Simple script to pull changes from origin for a set of git repos."
+    echo "Simple script to pull changes from origin for a set of git repos found"
+    echo "under a directory."
     echo
     echo "Place this script in the directory above the set of git repos you wish to"
     echo "keep up-to-date."
@@ -21,19 +24,24 @@ help() {
     echo
     echo "Usage: update_git_repos [options]"
     echo "Options:"
-    echo "  -h, --help, help .... displays this help information"
-    echo "  --update-plist  ..... forces the launchd plist to be installed (macOS only)"
+    echo "  -h, --help, help ............ displays this help information"
+    echo "  -d directory ................ the directory from where to look for git repostories."
+    echo "                                Defaults to the current directory"
+    echo "  --update-name name .......... the launchd plist name (macOS only)."
+    echo "                                Default is $UPDATE_NAME"
+    echo "  --update-interval seconds ... the interval when the launchd plist executes (macOS only)."
+    echo "                                Default is $UPDATE_INTERVAL"
+    echo "  --update-plist  ............. forces the launchd plist to be installed (macOS only)"
     return 0
 }
 
-log() { logger -s "$0 - $*"; }
+log() { logger -s "$(basename $0) - $*"; }
 
 install_plist() {
-    ## @ref https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html#//apple_ref/doc/uid/TP40001762-104142
-    ## The following plist tells launchd to run this script at 3:57pm each day.
-    ## When placed in ~/Library/LaunchAgents, the per-user launchd will use it.
+    ## Configure launchd to run this script at a set interval when the user is
+    ## logged in.
     LAUNCHD_DIR=~/Library/LaunchAgents
-    LAUNCHD_PLIST_FILE='org.lewis-bowen.org.update_git_repos.plist'
+    LAUNCHD_PLIST_FILE="org.lewis-bowen.org.$UPDATE_NAME.agent.plist"
     LAUNCHD_PLIST_CONTENT=$(cat <<EOPLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -44,30 +52,41 @@ install_plist() {
     <key>ProgramArguments</key>
     <array>
         <string>$DIR/$SCRIPT_NAME</string>
+        <string>-d</string>
+        <string>$DIR</string>
     </array>
-    <key>StartCalendarInterval</key>
-    <dict>
-        <key>Minute</key>
-        <integer>57</integer>
-        <key>Hour</key>
-        <integer>15</integer>
-    </dict>
+    <key>StartInterval</key>
+    <integer>$UPDATE_INTERVAL</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>/tmp/$LAUNCHD_PLIST_FILE.err</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/$LAUNCHD_PLIST_FILE.out</string>
 </dict>
 </plist>
 EOPLIST
     )
     [[ "$OSTYPE" == "darwin"* ]] && {
-        if [[ -f "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE" && "$UPDATE_PLIST" == 'y' ]]; then
-            log "Adding launchd plist to $LAUNCHD_DIR"
+        if [[ ! -f "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE" || "$UPDATE_PLIST" == 'y' ]]; then
+            if launchctl list | grep "$LAUNCHD_PLIST_FILE" >/dev/null; then
+                launchctl unload "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+            fi
+            log "Loading launchd plist at $LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
             echo "$LAUNCHD_PLIST_CONTENT" > "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+            launchctl load "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
         fi
     }
 }
 
 notify() {
+    ## User Notification Center to display a banner when this script is
+    ## being executed.
+    MSG="Updating git repositories under $DIR"
     [[ "$OSTYPE" == "darwin"* ]] && {
-        osascript -e "display notification \"Updating git repositories in $DIR\" with title \"$0\""
+        osascript -e "display notification \"$MSG\" with title \"$(basename $0)\""
     }
+    log "$MSG"
 }
 
 update_git_repos() {
@@ -84,6 +103,9 @@ update_git_repos() {
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -d )                    DIR="$2"; shift; shift;;
+        --update-interval )     UPDATE_INTERVAL="$2"; shift; shift;;
+        --update-name)          UPDATE_NAME="$2"; shift; shift;;
         --update-plist )        UPDATE_PLIST='y'; shift ;;
         help | -h | --help )    help; exit 0;;
         * ) shift ;;
