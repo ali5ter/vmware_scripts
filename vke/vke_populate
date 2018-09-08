@@ -87,6 +87,7 @@ until (( VKE_CLUSTER_NUM == 0 )); do
     ## Finally create the smart cluster
     erun vke --non-interactive cluster create --template "$_type" \
         --name "$_name" --display-name "$_dname" \
+        --privilegedMode --force \
         --region "$VKE_DEFAULT_REGION" --version "$_version"
 
     ## Monitor the state of the cluster before it becomes 'READY'
