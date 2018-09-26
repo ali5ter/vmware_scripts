@@ -33,7 +33,7 @@ _frontend_hostname() {
 CLUSTER_NAME=$(kubectl config current-context | sed 's/\(.*\)-context/\1/')
 
 _max_allocated_compute() {
-    _metrics=($(vke -o json cluster show $CLUSTER_NAME | jq -r '.details.actualSize.MemoryMB, .maxSize.MemoryMB, .details.actualSize.vCPU, .maxSize.vCPU' | tr "\n" " "))
+    _metrics=($(vke -o json cluster show $CLUSTER_NAME | jq -r '.details.actualSize.MemoryMB, .maxSize.MemoryMB, .details.actualSize.vCPU, .maxSize.vCPU' | tr "\\n" " "))
     [[ "${_metrics[0]}" == "${_metrics[1]}" ]] && echo "!!! Memory is maxed out: Requested ${_metrics[0]} out of ${_metrics[1]} MB allocated"
     [[ "${_metrics[2]}" == "${_metrics[3]}" ]] && echo "!!! vCPU is maxed out: Requested ${_metrics[2]} out of ${_metrics[3]} vCPUs allocated"
 }
@@ -51,17 +51,50 @@ _clean_up() {
 }
 trap _clean_up EXIT
 
-# select a smart cluster and generate kube-config file -----------------------
+# select a smart cluster and generate kube-config file or create from scratch
 
-vke_cluster_auth.sh
+ read -p "Do you want use an existing smart cluster? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+
+        vke_auth
+
+        ## Construct the name and display name just to test the two
+        _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+        _dname="alb-🦊-guestbook-${_name}"
+        _name="alb-guestbook-${_name}"
+        _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+
+        erun vke --non-interactive cluster create \
+            --name "$_name" --display-name "$_dname" \
+            --privilegedMode --force \
+            --region "$VKE_DEFAULT_REGION" \
+            --folder "$VKE_DEFAULT_FOLDER" \
+            --project "$VKE_DEFAULT_PROJECT"
+
+        ## Monitor the state of the cluster before it becomes 'READY'
+        get_cluster_state() { vke --output json cluster show "$_name" | jq -r '.details.state'; }
+
+        echo -en "\\nWaiting for Smart Cluster to be ready..."
+        until [ "$(get_cluster_state)" == "READY" ]; do
+            sleep 10
+            echo '.'
+        done
+        echo ' done'
+
+        vke cluster auth setup "$_name"
+
+    else
+        vke_cluster_auth
+    fi
 
 # download config files ------------------------------------------------------
 
 heading 'Download YAML config files'
 
-cd ~/tmp
-mkdir -p guestbook && cd guestbook
-YAML_URL='https://kubernetes.io/docs/tutorials/stateless-application/guestbook/'
+cd ~/tmp || exit 1
+mkdir -p guestbook && cd guestbook || exit 1
+YAML_URL='https://raw.githubusercontent.com/kubernetes/website/master/content/en/examples/application/guestbook/'
 YAML_FILES='redis-master-deployment redis-master-service redis-slave-deployment redis-slave-service frontend-deployment frontend-service'
 for _file in $YAML_FILES; do
     curl -O "${YAML_URL}${_file}.yaml"
