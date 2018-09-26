@@ -29,7 +29,7 @@ help() {
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -n | --number_clusters )    VKE_CLUSTER_NUM=$2; shift; shift ;;
-        -d | --development )        VKE_CLUSTER_TYPE='development'; shift ;;
+        -d | --development )        VKE_CLUSTER_TYPE='developer'; shift ;;
         -p | --production )         VKE_CLUSTER_TYPE='production'; shift ;;
         -N | --no-namespaces )      VKE_NAMESPACES='no'; shift;;
         help | -h | --help )        help; exit 0;;
@@ -64,11 +64,11 @@ until (( VKE_CLUSTER_NUM == 0 )); do
         _type_index=1
         for _type in $_types; do
             _atypes[$_type_index]="$_type"
-            printf "    %3d ... %s\n" "$_type_index" "$_type"
+            printf "    %3d ... %s\\n" "$_type_index" "$_type"
             ((_type_index++))
         done
         until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atypes[@]} + 1 ))" ]]; do
-            read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -n 1
+            read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -r -n 1
             echo
         done
         echo
@@ -91,10 +91,9 @@ until (( VKE_CLUSTER_NUM == 0 )); do
         --region "$VKE_DEFAULT_REGION" --version "$_version"
 
     ## Monitor the state of the cluster before it becomes 'READY'
-    get_cluster_state() { echo $(vke --output json cluster show "$_name" | jq -r '.details.state'); }
+    get_cluster_state() { vke --output json cluster show "$_name" | jq -r '.details.state'; }
 
-    echo -en "\nWaiting for Smart Cluster to be ready..."
-    _cluster_state=''
+    echo -en "\\nWaiting for Smart Cluster to be ready..."
     until [ "$(get_cluster_state)" == "READY" ]; do
         sleep 10
         echo '.'
@@ -115,7 +114,7 @@ until (( VKE_CLUSTER_NUM == 0 )); do
 
     # Show who is the real admin for this smart cluster ----------------------
     _admin=$(vke_get_admin_for_object $_name)
-    echo -e "\nAdministrator(s) identities for $_name are:\n$_admin"
+    echo -e "\\nAdministrator(s) identities for $_name are:\\n$_admin"
 
     (( VKE_CLUSTER_NUM-- ))
 done
