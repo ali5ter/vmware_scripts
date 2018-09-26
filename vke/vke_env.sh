@@ -4,7 +4,6 @@
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
-# set -euf -o pipefail ## ref: https://sipb.mit.edu/doc/safe-shell/
 set -eou pipefail
 
 source "vke_config.sh"

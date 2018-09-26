@@ -43,13 +43,10 @@ else
     _name=${_aclusters[$REPLY]}
 fi
 
-# generate kube context ------------------------------------------------------
+# set the kube context -------------------------------------------------------
 
-heading "Create new context for smart cluster, $_name"
-erun vke cluster merge-kubectl-auth "$_name"
-echo -e '\tTo authenticate to this cluster in future, use the command:'
-echo -e "\tkubectl config use-context "$_name"-context\n"
-erun kubectl config current-context
+heading "Set kube context for smart cluster, $_name"
+erun vke cluster auth setup "$_name"
 
 # check kubectl version compatibility ----------------------------------------
 
