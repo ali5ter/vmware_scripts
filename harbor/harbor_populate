@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# @file harbor_populate
+# Populate a Docker Registry Harbor with a project, repo and images.
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+source harbor_env.sh
+
+heading "Check we can reach the Harbor instance"
+
+erun harbor info
+
+# clean up -------------------------------------------------------------------
+
+#for project in $(harbor project-list | grep alb- | cut -d'|' -f 3 | xargs); do
+    #erun harbor project-delete "$project"
+    ## FAILS with:
+    ## harborclient.exceptions.ClientException: Unknown Error (HTTP 500)
+#done
+
+## try with ID instead of name
+
+#for project in $(harbor project-list | grep alb- | cut -d'|' -f 2 | xargs); do
+    #erun harbor project-delete "$project"
+    ## FAILS with:
+    ## harborclient.exceptions.ClientException: Unknown Error (HTTP 500)
+#done
+
+for user in $(harbor user-list | grep alb- | cut -d'|' -f 3 | xargs); do
+    erun harbor user-delete "$user"
+done
+
+# create project -------------------------------------------------------------
+
+heading "Create a project in Harbor"
+
+## Constructed name cannot contain double byte chars and fails with '--'
+HBR_PROJECT_NAME=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+HBR_PROJECT_NAME="${HBR_NAME_PREFIX}-$HBR_PROJECT_NAME"
+
+## CLI help doc doesn't say what value to give --is-public option
+erun harbor project-create "$HBR_PROJECT_NAME" --is-public false
+
+## CLI doesn't respond with the ID of the last project created so we have to
+## list all projects to get it.
+## There's no way to control the output so have to work harder to parse out
+## what I need :(
+
+HARBOR_PROJECT=$(harbor project-list | grep "$HBR_PROJECT_NAME" | cut -d'|' -f 2 | xargs)
+
+erun harbor project-show "$HARBOR_PROJECT"
+
+# create user for that project -----------------------------------------------
+
+heading "Create user for project ID $HARBOR_PROJECT"
+
+HBR_USERNAME="$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 1)"
+HBR_USERNAME="${HBR_NAME_PREFIX}-$HBR_USERNAME"
+HBR_PASSWD="ThingF1sh"
+
+## Not clear if we are adding a user and making them a member of the project
+## in context
+erun harbor user-create \
+    --username "$HBR_USERNAME" \
+    --password "$HBR_PASSWD" \
+    --email "$HBR_USERNAME"@scrutinizer.central \
+    --realname "FrankZ $HBR_USERNAME" \
+    --comment "This is a test" \
+##    --os-project "$HARBOR_PROJECT"
+
+## Not clear how to set the role of the member if this is what we can do
+## because we're in the scope of a project
+# erun harbor set-admin "$HBR_USERNAME"
+## FAILS with:
+## harborclient.exceptions.BadRequest: Invalid json request (HTTP 400)
+
+## Using the name does not work, so have to get the user ID 
+# HBR_USER_ID=$(harbor user-list | grep "$HBR_USERNAME" | cut -d'|' -f 2 | xargs)
+# erun harbor set-admin "$HBR_USER_ID"
+## FAILS with:
+## harborclient.exceptions.BadRequest: Invalid json request (HTTP 400)
+
+erun harbor user-show "$HBR_USERNAME"
+
+## Unable to add this user as a member of the project just created :(
+
+# build and push image  ------------------------------------------------------
+
+heading "Create docker image and push it to project ID $HARBOR_PROJECT, using user $HBR_USERNAME"
+
+cd ~/tmp || exit 1
+mkdir -p harbor && cd harbor || exit 1
+[[ -d name-brainstormulator ]] || git clone git@github.com:ali5ter/name-brainstormulator.git
+cd name-brainstormulator || exit 1
+
+HBR_REPO_NAME="name-brainstormulator"
+HBR_REPO_IMAGE_TAG='1.0'
+HBR_DOMAIN_NAME="${HARBOR_URL//https:\/\/}"
+HBR_IMAGE_NAME="${HBR_REPO_NAME}:${HBR_REPO_IMAGE_TAG}"
+
+erun docker build -t "$HBR_IMAGE_NAME" .
+## Have to use admin for now since I can't add member to project using CLI
+#erun docker login -u "$HBR_USERNAME" -p "$HBR_PASSWD" "$HBR_DOMAIN_NAME"
+erun docker login -u "$HARBOR_USERNAME" -p "$HARBOR_PASSWORD" "$HBR_DOMAIN_NAME"
+erun docker tag ${HBR_IMAGE_NAME} "${HBR_DOMAIN_NAME}/${HBR_PROJECT_NAME}/${HBR_IMAGE_NAME}"
+erun docker push "${HBR_DOMAIN_NAME}/${HBR_PROJECT_NAME}/${HBR_IMAGE_NAME}"
+
+erun harbor show "${HBR_PROJECT_NAME}/${HBR_IMAGE_NAME}"
+
+# do things to this image  ---------------------------------------------------
+
+## to be continued...
