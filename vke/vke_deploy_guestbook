@@ -65,7 +65,7 @@ trap _clean_up EXIT
         _name="alb-guestbook-${_name}"
         _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
 
-        erun vke --non-interactive cluster create \
+        erun vke cluster create \
             --name "$_name" --display-name "$_dname" \
             --privilegedMode --force \
             --region "$VKE_DEFAULT_REGION" \
