@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# @file vke_deploy_harbor
+# Deploy a helm based app to K8s cluster backing a VKE Smart Cluster
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+type helm &> /dev/null || {
+    echo 'Please install helm. Installation instructions are available from'
+    echo 'https://docs.helm.sh/using_helm/#installing-helm'
+    echo 'If you use homebrew on macOS, install using:'
+    echo 'brew install kubernetes-helm'
+    exit 1
+}
+
+source vke_env.sh
+
+# select a smart cluster and generate kube-config file or create from scratch
+
+read -p "Do you want use an existing smart cluster? [Y/n] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+
+    vke_auth
+
+    ## Construct the name and display name just to test the two
+    _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+    _dname="alb-🐷-harbor-${_name}"
+    _name="alb-harbor-${_name}"
+    _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+
+    erun vke cluster create \
+        --name "$_name" --display-name "$_dname" \
+        --privilegedMode --force \
+        --region "$VKE_DEFAULT_REGION" \
+        --folder "$VKE_DEFAULT_FOLDER" \
+        --project "$VKE_DEFAULT_PROJECT"
+
+    ## Monitor the state of the cluster before it becomes 'READY'
+    get_cluster_state() { vke --output json cluster show "$_name" | jq -r '.details.state'; }
+
+    echo -en "\\nWaiting for Smart Cluster to be ready..."
+    until [ "$(get_cluster_state)" == "READY" ]; do
+        sleep 10
+        echo '.'
+    done
+    echo ' done'
+
+    vke cluster auth setup "$_name"
+
+else
+    vke_cluster_auth
+fi
+
+_fqdn=$(kubectl cluster-info | grep master | tr -d '[:cntrl:]' | sed 's/^.*https:\/\/api.\(.*\):443.*$/\1/')
+
+# install/upgrade the K8s agent that helm talks to -----------------------------------
+
+heading 'Install/upgrade helm agent (tiller) on the K8s cluster'
+helm init --upgrade --wait
+
+# download harbor chart
+
+heading 'Download the Harbor helm chart and update any dependencies'
+cd ~/tmp || exit 1
+[[ -d harbor-helm ]] && rm -fR harbor-helm
+git clone https://github.com/goharbor/harbor-helm
+cd harbor-helm || exit 1
+helm dependency update
+
+# deploy a helm chart for wordpress ------------------------------------------
+
+heading 'Deploy chart for harbor and wait for service to be externally available'
+_prefix=$(echo "${VKE_DEPLOYMENT_PREFIX}-hrbr-$(date '+%s')" | tr '[:upper:]' '[:lower:]')
+_doc="$PWD/$_prefix.txt"
+echo -e "Chart documentation will be written to \\n$_doc"
+echo 'Deploying chart... '
+_config="externalURL=http://${_fqdn},\
+ingress.hosts.code=${_fqdn},\
+ingress.hosts.notary=notary.${_fqdn},\
+persistence.enabled=false,\
+redis.master.persistence.enabled=false,\
+ingress.tls.enabled=false"
+helm install -n "$_prefix" . --set "$_config" > "$_doc"
+
+## GETTING NGINX ERROR WHEN INGRESS SET UP:
+## Configuration for default/alb-hrbr-1539348938-harbor-ingress was added or updated, but not applied: 
+## Error when adding or updating ingress default/alb-hrbr-1539348938-harbor-ingress: 
+## Invalid nginx configuration detected, not reloading: Command nginx -t stdout: "" stderr: "nginx: [emerg] could not build server_names_hash, you should increase server_names_hash_bucket_size: 128\nnginx: configuration file /etc/nginx/nginx.conf test failed\n"
+
+# echo -n 'Wait for the LB external IP to be assigned...'
+# kubectl get svc --namespace default -w "${_prefix}-wordpress" > /dev/null
+# echo 'done'
+
+# test the deployment by using wordpress -------------------------------------
+
+# heading 'Show browsable URL to the wordpress site and kube dashboard'
+
+## Unable to get the external IP using the following technique documented by 
+## this wordpress chart
+##_ip=$(kubectl get svc --namespace default "${_prefix}-wordpress" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+# get_fqdn() { kubectl get svc --namespace default "${_prefix}-wordpress" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'; }
+# echo -n "Waiting for ingress hostname..."
+# _fqdn=''
+# while [ "$_fqdn" == "" ]; do
+#     sleep 10; _fqdn=$(get_fqdn); echo -n '.'
+# done
+# echo 'done'
+
+# _url="http://${_fqdn}/admin"
+# echo -e "\nOpen the Wordpress admin UI using\n$_url"
+# [[ "$OSTYPE" == "darwin"* ]] && open "$_url"
+# echo -e "\nRefresh the webpage at this URL until the weberver responds."
+# _password=$(kubectl get secret --namespace default "${_prefix}-wordpress" -o jsonpath="{.data.wordpress-password}" | base64 --decode)
+# echo "Log in using credentials (user/$_password)"
+
+# open kube dashboard --------------------------------------------------------
+
+_url="https://ui.$_fqdn/"
+echo -e "\nOpen the Kube Dashboard using\n$_url"
+[[ "$OSTYPE" == "darwin"* ]] && open "$_url"
+
+# clean up -------------------------------------------------------------------
+
+heading "Remove existing K8s deployments starting with $VKE_DEPLOYMENT_PREFIX"
+read -p "Shall I clear out all existing deployments now? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    for deployment in $(helm ls | grep "$VKE_DEPLOYMENT_PREFIX" | awk '{print $1}'); do
+        read -p "Delete $deployment? [y/N] " -n 1 -r
+        echo
+        [[ $REPLY =~ ^[Yy]$ ]] && {
+            helm del --purge "$deployment"
+            [[ -f "$_doc" ]] && rm "$_doc"
+        }
+    done
+}
