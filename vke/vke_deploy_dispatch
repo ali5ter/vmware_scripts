@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# @file vke_deploy_dispatch
+# Deploy a helm based app to K8s cluster backing a VKE Smart Cluster
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+# @ref https://vmware.github.io/dispatch/documentation/guides/quickstart
+
+type helm &> /dev/null || {
+    echo 'Please install helm. Installation instructions are available from'
+    echo 'https://docs.helm.sh/using_helm/#installing-helm'
+    echo 'If you use homebrew on macOS, install using:'
+    echo 'brew install kubernetes-helm'
+    exit 1
+}
+
+source vke_env.sh
+
+# select a smart cluster and generate kube-config file or create from scratch
+
+read -p "Do you want use an existing smart cluster? [Y/n] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+
+    vke_auth
+
+    ## Construct the name and display name just to test the two
+    _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+    _dname="alb-🐸-dispatch-${_name}"
+    _name="alb-dispatch-${_name}"
+    _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+
+    erun vke cluster create \
+        --name "$_name" --display-name "$_dname" \
+        --privilegedMode --force \
+        --region "$VKE_DEFAULT_REGION" \
+        --folder "$VKE_DEFAULT_FOLDER" \
+        --project "$VKE_DEFAULT_PROJECT"
+
+    ## Monitor the state of the cluster before it becomes 'READY'
+    get_cluster_state() { vke --output json cluster show "$_name" | jq -r '.details.state'; }
+
+    echo -en "\\nWaiting for Smart Cluster to be ready..."
+    until [ "$(get_cluster_state)" == "READY" ]; do
+        sleep 10
+        echo '.'
+    done
+    echo ' done'
+
+    vke cluster auth setup "$_name"
+
+else
+    vke_cluster_auth
+fi
+
+_fqdn=$(kubectl cluster-info | grep master | tr -d '[:cntrl:]' | sed 's/^.*https:\/\/api.\(.*\):443.*$/\1/')
+
+# install/upgrade the K8s agent that helm talks to ---------------------------
+
+heading 'Install/upgrade helm agent (tiller) on the K8s cluster'
+helm init --upgrade --wait
+
+# download and install dispatch CLI ------------------------------------------
+
+heading 'Download and install the Dispatch CLI'
+cd ~/tmp || exit 1
+[[ -d dispatch-cli ]] && rm -fR dispatch-cli
+cd harbor-helm || exit 1
+case "$OSTYPE" in
+    darwin*)    DISPATCH_BIN=dispatch-darwin;;
+    linux*)     DISPATCH_BIN=dispatch-linux;;
+    *)        return 1;;
+    esac
+DISPATCH_VERSION=$(curl -s https://api.github.com/repos/vmware/dispatch/releases/latest | jq -r .name)
+curl -OL https://github.com/vmware/dispatch/releases/download/$DISPATCH_VERSION/$DISPATCH_BIN
+chmod +x $DISPATCH_BIN
+mv $DISPATCH_BIN /usr/local/bin/dispatch
+
+# deploy dispatch ------------------------------------------------------------
+
+heading "Deploy dispatch $DISPATCH_VERSION"
+DISPATCH_HOST="$_fqdn"
+cat << EOF > config.yaml
+apiGateway:
+  host: $DISPATCH_HOST
+dispatch:
+  host: $DISPATCH_HOST
+  debug: true
+  skipAuth: true
+EOF
+erun dispatch install --file config.yaml
+
+## TODO: Monitor when external address available
+
+# open kube dashboard --------------------------------------------------------
+
+_url="https://ui.$_fqdn/"
+echo -e "\\nOpen the Kube Dashboard using\\n$_url"
+[[ "$OSTYPE" == "darwin"* ]] && open "$_url"
+
+# seed dispatch with images --------------------------------------------------
+
+heading 'Seed Dispatch with images'
+git clone https://github.com/vmware/dispatch.git
+cd dispatch || exit 1
+erun dispatch create seed-images
+
+## GETTING ERROR:
+## unnexpected error received from server: 
+## Post https://alb-prod-subalternate-odon-d697e2d0-cd8a-11e8-a803-02a49919dab4.fa2c1d78-9f00-4e30-8268-4ab81862080d.vke-user.com:30405/v1/baseimage: 
+## read tcp 10.12.76.138:56991->52.54.8.63:30405: read: connection reset by peer
+
+# clean up -------------------------------------------------------------------
+
+heading "Remove existing dispatch deployments"
+read -p "Shall I clear out all existing deployments now? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && {
+    for ns in dispatch kong openfaas; do
+        kubectl delete --all pods,services,deployments,replicasets,statefulsets,ingresses,secrets,configmaps,persistentvolumeclaims --namespace="$ns"
+        kubectl delete namespaces "$ns"
+    done
+}
