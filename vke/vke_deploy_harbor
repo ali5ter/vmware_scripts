@@ -64,6 +64,7 @@ cd ~/tmp || exit 1
 [[ -d harbor-helm ]] && rm -fR harbor-helm
 git clone https://github.com/goharbor/harbor-helm
 cd harbor-helm || exit 1
+git checkout 0.3.0
 helm dependency update
 
 # deploy a helm chart for wordpress ------------------------------------------
@@ -74,12 +75,12 @@ _doc="$PWD/$_prefix.txt"
 echo -e "Chart documentation will be written to \\n$_doc"
 echo 'Deploying chart... '
 _config="externalURL=http://${_fqdn},\
-ingress.hosts.code=${_fqdn},\
+ingress.hosts.core=${_fqdn},\
 ingress.hosts.notary=notary.${_fqdn},\
 persistence.enabled=false,\
 redis.master.persistence.enabled=false,\
 ingress.tls.enabled=false"
-helm install -n "$_prefix" . --set "$_config" > "$_doc"
+helm install --wait -n "$_prefix" . --set "$_config" > "$_doc"
 
 ## GETTING NGINX ERROR WHEN INGRESS SET UP:
 ## Configuration for default/alb-hrbr-1539348938-harbor-ingress was added or updated, but not applied: 
