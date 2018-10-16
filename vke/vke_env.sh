@@ -29,14 +29,16 @@ vke_download_cli() {
 }
 
 vke_cli_check_version() {
-    local _latest_version=$($VKE_LATEST_CLI -v | sed 's/vke version \(.*\)/\1/')
-    local _current_version=$(vke -v | sed 's/vke version \(.*\)/\1/')
+    local _latest_version
+    local _current_version
+    _latest_version=$($VKE_LATEST_CLI -v | sed 's/vke version \(.*\)/\1/')
+    _current_version=$(vke -v | sed 's/vke version \(.*\)/\1/')
     [[ "$_current_version" != "$_latest_version" ]] && {
         heading 'New version of the VKE cli is available'
         echo "${VKE_BOLD}You currently have version $_current_version"
         echo "A new version ($_latest_version) is available${VKE_RESET}"
         echo "Move $VKE_LATEST_CLI to your path if you want the latest, e.g."
-        echo -e " \tmv $VKE_LATEST_CLI /usr/local/bin/vke\n"
+        echo -e " \\tmv $VKE_LATEST_CLI /usr/local/bin/vke\\n"
     }
     return 0
 }
@@ -70,7 +72,7 @@ export VKE_PREFIX='/usr/local/bin'
 place_in_path() {
     [[ -e "$VKE_PREFIX/vke_auth" ]] || {
         for file in $(find $PWD -name "vke_*" | grep -Ev '.yml|.sample'); do
-            ln -sf $file $VKE_PREFIX
+            ln -sf "$file" $VKE_PREFIX
         done
     }
 }
@@ -78,7 +80,7 @@ place_in_path() {
 heading() {
     echo
     printf "${VKE_DIM}=%.0s" {1..79}
-    echo -e "\n${1}" | fold -s -w 79
+    echo -e "\\n${1}" | fold -s -w 79
     printf -- "-%.0s${VKE_RESET}" {1..79}
     echo
     return 0
@@ -90,12 +92,12 @@ erun() {
 }
 
 vke_get_admin_for_object() {
-    local obj="$1"
-    local policy=$(vke -o json cluster iam show "$1")
-    local direct=$(echo $policy | jq -r '.direct.bindings[]')
-    local inherited=$(echo $policy | jq -r '.inherited[].bindings[]')
+    local obj, policy, direct, inherited, admin
+    policy=$(vke -o json cluster iam show "$1")
+    direct=$(echo $policy | jq -r '.direct.bindings[]')
+    inherited=$(echo $policy | jq -r '.inherited[].bindings[]')
 
-    local admin=$(echo $direct | jq -r 'select(.role == "smartcluster.admin") | .subjects[]')
+    admin=$(echo $direct | jq -r 'select(.role == "smartcluster.admin") | .subjects[]')
     if [[ -z "$admin" ]]; then
         admin=$(echo $inherited | jq -r 'select(.role == "smartcluster.admin") | .subjects[]')
         if [[ -z "$admin" ]]; then
@@ -127,7 +129,7 @@ type vke &> /dev/null || {
     vke_cli_url
     vke_download_cli
     echo "Move $VKE_LATEST_CLI to your path, e.g."
-    echo -e " \tmv $VKE_LATEST_CLI /usr/local/bin/vke\n"
+    echo -e " \\tmv $VKE_LATEST_CLI /usr/local/bin/vke\\n"
     echo "Once completed, you can restart this script."
     exit 1
 }

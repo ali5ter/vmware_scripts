@@ -53,40 +53,40 @@ trap _clean_up EXIT
 
 # select a smart cluster and generate kube-config file or create from scratch
 
- read -p "Do you want use an existing smart cluster? [Y/n] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Nn]$ ]]; then
+read -p "Do you want use an existing smart cluster? [Y/n] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
 
-        vke_auth
+    vke_auth
 
-        ## Construct the name and display name just to test the two
-        _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
-        _dname="alb-🦊-guestbook-${_name}"
-        _name="alb-guestbook-${_name}"
-        _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+    ## Construct the name and display name just to test the two
+    _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/photon_controller/generate_word_string.sh | bash -s 2)
+    _dname="alb-🦊-guestbook-${_name}"
+    _name="alb-guestbook-${_name}"
+    _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
 
-        erun vke cluster create \
-            --name "$_name" --display-name "$_dname" \
-            --privilegedMode --force \
-            --region "$VKE_DEFAULT_REGION" \
-            --folder "$VKE_DEFAULT_FOLDER" \
-            --project "$VKE_DEFAULT_PROJECT"
+    erun vke cluster create \
+        --name "$_name" --display-name "$_dname" \
+        --privilegedMode --force \
+        --region "$VKE_DEFAULT_REGION" \
+        --folder "$VKE_DEFAULT_FOLDER" \
+        --project "$VKE_DEFAULT_PROJECT"
 
-        ## Monitor the state of the cluster before it becomes 'READY'
-        get_cluster_state() { vke --output json cluster show "$_name" | jq -r '.details.state'; }
+    ## Monitor the state of the cluster before it becomes 'READY'
+    get_cluster_state() { vke --output json cluster show "$_name" | jq -r '.details.state'; }
 
-        echo -en "\\nWaiting for Smart Cluster to be ready..."
-        until [ "$(get_cluster_state)" == "READY" ]; do
-            sleep 10
-            echo '.'
-        done
-        echo ' done'
+    echo -en "\\nWaiting for Smart Cluster to be ready..."
+    until [ "$(get_cluster_state)" == "READY" ]; do
+        sleep 10
+        echo '.'
+    done
+    echo ' done'
 
-        vke cluster auth setup "$_name"
+    vke cluster auth setup "$_name"
 
-    else
-        vke_cluster_auth
-    fi
+else
+    vke_cluster_auth
+fi
 
 # download config files ------------------------------------------------------
 
