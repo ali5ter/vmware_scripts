@@ -48,10 +48,8 @@ sgw() {
 # set up sshuttle tunnel via jumpbox of the testved
 lsgw() {
     ggw
-    set -x
     # shellcheck disable=SC2086
     lshu "$(grep $1 /tmp/testbeds.txt  | cut -d' ' -f2 | head -1)"
-    set +x
 }
 
 # unclaim a testbed
