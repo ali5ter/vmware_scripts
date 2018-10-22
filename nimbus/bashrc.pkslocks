@@ -21,9 +21,11 @@ ggw() {
     pushd ${LOCKS_REPO} || exit 1
     git pull
     # shellcheck disable=SC2086
-    grep GW: ${LOCK_PATS} | cut -d' ' -f1,3 | tee /tmp/testbeds.txt
+    grep GW: ${LOCK_PATS} | cut -d' ' -f1,2,3 | tee /tmp/testbeds.txt
     # shellcheck disable=SC2086
     grep vcenter_ip: ${LOCK_PATS} | cut -d' ' -f1,2 | tee -a /tmp/testbeds.txt
+    # shellcheck disable=SC2086
+    grep NSX-MANAGER: ${LOCK_PATS} | cut -d' ' -f1,2,3 | tee -a /tmp/testbeds.txt
     for l in $(cut -d':' -f1 /tmp/testbeds.txt | grep ui | sort | uniq); do
         # shellcheck disable=SC2086
         echo "$l: $(git log -1 --format=oneline $l | tee -a /tmp/testbeds.txt)"
