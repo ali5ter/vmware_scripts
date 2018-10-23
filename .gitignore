@@ -1,3 +1,6 @@
 photon_controller/assets/*.ova
 **/ovftool-log.txt
 **/vic-machine.log
+nimbus
+git_tools/giteng*
+git_tools/gitlab_migrate_from_gitweb
