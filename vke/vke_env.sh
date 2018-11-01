@@ -92,7 +92,6 @@ erun() {
 }
 
 vke_get_admin_for_object() {
-    local obj, policy, direct, inherited, admin
     policy=$(vke -o json cluster iam show "$1")
     direct=$(echo $policy | jq -r '.direct.bindings[]')
     inherited=$(echo $policy | jq -r '.inherited[].bindings[]')
