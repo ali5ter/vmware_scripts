@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# @file bashrc.vke_api
+# Set up environment to perform API calls to VKE
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+source "vke_config.sh"
+
+VKE_API_ENDPOINT=https://api.vke.cloud.vmware.com
+
+# Find the CSP endpoint
+CSP_ENDPOINT=$(curl -sSX GET ${VKE_API_ENDPOINT}/v1/system/auth | jq -r .CSPHost)
+
+# Aquire access token from CSP
+CSP_ACCESS_TOKEN=$(curl -sSX POST https://${CSP_ENDPOINT}/csp/gateway/am/api/auth/api-tokens/authorize\?refresh_token\=${VKE_TOKEN} | jq -r .access_token)
+
+# Find the VKE auth endpoint
+VKE_AUTH_ENDPOINT=$(curl -sSX GET ${VKE_API_ENDPOINT}/v1/system/auth | jq -r .endpoint)
+
+# Find the VKE token endpoint
+VKE_TOKEN_ENDPOINT=$(curl -sSX GET ${VKE_AUTH_ENDPOINT}/openidconnect/${VKE_CSP_ORG_ID}/.well-known/openid-configuration | jq -r .token_endpoint)
+
+# Exchange CSP_ACCESS_TOKEN for API_TOKEN
+VKE_API_TOKEN=$(curl -sSX POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=urn:vmware:grant_type:federation_token&access_token=${CSP_ACCESS_TOKEN}&scope=openid offline_access rs_admin_server at_groups id_groups rs_vmdir" ${VKE_TOKEN_ENDPOINT} | jq -r .access_token)
+
+function vkeApi() {
+    curl -sSX GET -H "Authorization: Bearer ${VKE_API_TOKEN}" "${VKE_API_ENDPOINT}/v1/$1"
+}
+
+# verify the token is working by listing all available regions
+# vkeApi system/regions | jq .
