@@ -14,7 +14,7 @@ echo
 [[ $REPLY =~ ^[Yy]$ ]] && "$PWD/vic_clean.sh"
 
 NUM_VCHS=2
-VCH_NAMES=$(seq $NUM_VCHS | xargs -Iz "$PWD/../photon_controller/generate_word_string.sh" 2)
+VCH_NAMES=$(seq $NUM_VCHS | xargs -Iz "$PWD/../tools/generate_word_string" 2)
 TIMEOUT="6m"
 CERT_DIR="./certs"
 
