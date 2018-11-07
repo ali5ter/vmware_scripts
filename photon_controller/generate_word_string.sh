@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file pc_create_flavors.sh
+# @file generate_word_string
 # Cheesy word string generator
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
@@ -12,6 +12,8 @@ NUM_WORDS=${1:-3}
 DELIM=${2:--}
 
 string=''
+# shellcheck disable=SC2034
+# shellcheck disable=SC2086
 for i in $(seq $NUM_WORDS); do
     rnum=$(perl -e 'print int rand $ARGV[0], "\n"; ' -- "$TOTAL_WORDS")
     word=$(sed -n "$rnum p" $WORDFILE)
@@ -19,4 +21,4 @@ for i in $(seq $NUM_WORDS); do
     else string="${string}${DELIM}$word"
     fi
 done
-echo "$string" | tr '[:upper:]' '[:lower:]'
+echo "$string" | sed s/\'//g | tr '[:upper:]' '[:lower:]'
