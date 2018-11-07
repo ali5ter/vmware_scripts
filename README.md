@@ -7,15 +7,13 @@ The [Fusion directory](Fusion) contains scripts that work with [VMware Fusion](h
 
 The [git_tools directory](git_tools) contains scripts that work with GIT.
 
-The [Photon Controller directory](photon_controller) contains scripts to work with [VMware Photon Controller](https://vmware.github.io/photon-controller/)
-
 The [vsphere directory](vsphere) containes scripts to work with  [vSphere 5.5, 6.x](http://www.vmware.com/uk/products/vsphere.html)
 
 The [vcloud_director directory](vcloud_director) contains scripts to work with [vCloud Director v8](http://www.vmware.com/uk/products/vcloud-director.html)
 
 The [vic directory](vic) contains scripts to work with [vSphere Integrated Containers 1.2](https://www.vmware.com/products/vsphere/integrated-containers.html)
 
-The [vke directory](vke) contains scripts to work with [vSphere Kubernetes Engine](https://cloud.vmware.com/vmware-kubernetes-engine)
+The [vke directory](vke) contains scripts to work with [vSphere Cloud PKS (formerly VKE)](https://cloud.vmware.com/vmware-cloud-pks)
 
 ## Contribution
 If you've stumbled upon this project and wish to contribute, please
