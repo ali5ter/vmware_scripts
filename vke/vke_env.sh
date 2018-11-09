@@ -144,7 +144,7 @@ type kubectl &> /dev/null || {
 }
 
 ## The API token can only be retrieved from the vke cli config...
-export VKE_API_TOKEN="$(jq -r .Token ~/.vke-cli/vke-config)"
+export VKE_API_TOKEN="$(jq -r 'select(.Token)|.Token' ~/.vke-cli/vke-config)"
 
 export VKE_SCRIPT_PATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
