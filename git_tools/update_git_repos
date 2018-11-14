@@ -67,16 +67,14 @@ install_plist() {
 </plist>
 EOPLIST
     )
-    [[ "$OSTYPE" == "darwin"* ]] && {
-        if [[ ! -f "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE" || "$UPDATE_PLIST" == 'y' ]]; then
-            if launchctl list | grep "$LAUNCHD_PLIST_FILE" >/dev/null; then
-                launchctl unload "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
-            fi
-            log "Loading launchd plist at $LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
-            echo "$LAUNCHD_PLIST_CONTENT" > "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
-            launchctl load "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+    if [[ ! -f "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE" || "$UPDATE_PLIST" == 'y' ]]; then
+        if launchctl list | grep "$LAUNCHD_PLIST_FILE" >/dev/null; then
+            launchctl unload "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
         fi
-    }
+        log "Loading launchd plist at $LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+        echo "$LAUNCHD_PLIST_CONTENT" > "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+        launchctl load "$LAUNCHD_DIR/$LAUNCHD_PLIST_FILE"
+    fi
 }
 
 notify() {
@@ -93,7 +91,7 @@ update_git_repos() {
     ## Find repos and pull changes from their origin
     REPOS="$(find . -type d | grep -E ".git$" | sed 's/\/\.git//g' | sed 's/ /##/g')"
     for repo in $REPOS; do
-        repo=$(echo "$repo" | sed 's/##/ /g')
+        repo=${repo//##/ }
         log "Updating $repo..."
         cd "$repo"
         git pull 2>&1 | logger -s
@@ -112,6 +110,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-install_plist
+[[ "$OSTYPE" == "darwin"* ]] && install_plist
+## TODO: COnfigure cron job for linux
 notify
 update_git_repos
