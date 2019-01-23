@@ -3,6 +3,7 @@
 # Populate a VMware Kubernetes Engine Project with a Smart Cluster and some Namespaces
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
+# shellcheck disable=SC1091
 source vke_env.sh
 
 VKE_CLUSTER_NUM=1
@@ -29,8 +30,8 @@ help() {
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -n | --number_clusters )    VKE_CLUSTER_NUM=$2; shift; shift ;;
-        -d | --development )        VKE_CLUSTER_TYPE='developer'; shift ;;
-        -p | --production )         VKE_CLUSTER_TYPE='production'; shift ;;
+        -d | --development )        VKE_CLUSTER_TYPE='DEVELOPMENT'; shift ;;
+        -p | --production )         VKE_CLUSTER_TYPE='PRODUCTION'; shift ;;
         -N | --no-namespaces )      VKE_NAMESPACES='no'; shift;;
         help | -h | --help )        help; exit 0;;
         * ) shift ;;
@@ -60,7 +61,7 @@ until (( VKE_CLUSTER_NUM == 0 )); do
     
     ## Prompt for type of cluster unless overridden
     if [[ "$VKE_CLUSTER_TYPE" == '' ]]; then
-        _types=$(vke -o json cluster templates list | jq -r '.items[].templateName')
+        _types="production development"
         _type_index=1
         for _type in $_types; do
             _atypes[$_type_index]="$_type"
@@ -79,13 +80,13 @@ until (( VKE_CLUSTER_NUM == 0 )); do
 
     ## Construct the name and display name just to test the two
     _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/tools/generate_word_string | bash -s 2)
-    _name=$(echo "$_type" | cut -c 1-4)"-${_name}"
+    _name=$(echo "$_type" | cut -c 1-3 | tr "[:upper:]" "[:lower:]")"-${_name}"
     _dname="${VKE_CLUSTER_DNAME_PREFIX}-${_name}"
     _name="${VKE_CLUSTER_PREFIX}-${_name}"
     _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
 
     ## Finally create the smart cluster
-    erun vke cluster create --template "$_type" \
+    erun vke cluster create --cluster-type "$_type" \
         --name "$_name" --display-name "$_dname" \
         --privilegedMode --force \
         --region "$VKE_DEFAULT_REGION" --version "$_version"
