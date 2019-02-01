@@ -3,22 +3,23 @@
 # Delete previously created Smart Clusters from a VMware Kubernetes Engine Project.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
+# shellcheck disable=SC1091
 source vke_env.sh
 
 vke_auth
 
 rm -f "${VKE_LOG}"
-VKE_CLUSTERS=$(vke -o json cluster list | jq -r '.items[] | .name +":"+ .folderName +":"+ .projectName' | grep "$VKE_CLUSTER_PREFIX")
+VKE_CLUSTERS=$(vke -o json cluster list)
+VKE_CLUSTER_NAMES=$(jq -r '.items[].name' <<<"$VKE_CLUSTERS" | grep "$VKE_CLUSTER_PREFIX")
 
 echo
-for cluster in $VKE_CLUSTERS; do
-    info=(${cluster//:/ })
-    name=${info[0]}
-    folder=${info[1]}
-    project=${info[2]}
+for name in $VKE_CLUSTER_NAMES; do
+    folder=$(jq --arg NAME "$name" -r '.items[] | select(.name==$NAME).ancestors[] | select(.type == "FOLDER").name' <<< "$VKE_CLUSTERS")
+    project=$(jq --arg NAME "$name" -r '.items[] | select(.name==$NAME).ancestors[] | select(.type == "PROJECT").name' <<< "$VKE_CLUSTERS")
     read -p "Delete $name? [y/N] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # shellcheck disable=SC2069
         vke cluster delete "$name" --folder "$folder" --project "$project" 2>&1 >>"${VKE_LOG}" &
     fi
 done
