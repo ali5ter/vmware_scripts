@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# @file vke_addon_wavefront
+# Add Wavefront proxy and collector to existing Smart Cluster
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source vke_env.sh
+
+# select a smart cluster and generate kube-config file -----------------------
+
+vke_cluster_auth
+echo
+NAME=$(kubectl config current-context)
+NAME="${NAME/-context/}"
+
+# ask for Wavefront URL and Token --------------------------------------------
+
+WAVEFRONT_HOST='vmware.wavefront.com'
+# TODO: Store under working dir
+WAVEFRONT_TOKEN='e72cc514-41c5-482f-8dac-33d396a55ce8'
+
+read -p "What is the hostname of your Wavefront URL? [$WAVEFRONT_HOST] " -r
+echo
+[[ -z $REPLY ]] || WAVEFRONT_HOST="$REPLY"
+
+read -p "What is your Wavefont API Token? [$WAVEFRONT_TOKEN] " -r
+echo
+[[ -z $REPLY ]] || WAVEFRONT_TOKEN="$REPLY"
+
+# deploy wavefront proxy -----------------------------------------------------
+
+heading 'Deploy the Wavefront proxy'
+
+cd ~/tmp || exit 1
+mkdir -p wavefront && cd wavefront || exit 1
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes/master/wavefront-proxy/wavefront.yaml -o wavefront.yaml
+sed -i '' "s/value: WAVEFRONT_URL/value: https:\/\/$WAVEFRONT_HOST\/api\//" wavefront.yaml
+sed -i '' "s/value: YOUR_API_TOKEN/value: $WAVEFRONT_TOKEN/" wavefront.yaml
+
+kubectl create -f wavefront.yaml
+
+# deploy kube-state-metrics service ------------------------------------------
+
+heading 'Deploy the kube-state-metrics service'
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes/master/ksm-all-in-one/kube-state.yaml -o kube-state.yaml
+
+kubectl create -f kube-state.yaml
+
+# deploy wavefront collector ------------------------------------------
+
+heading 'Deploy the Wavefont collector'
+
+mkdir wavefront-collector-dir && cd wavefront-collector-dir || exit 1
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/0-collector-namespace.yaml -o 0-collector-namespace.yaml
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/1-collector-cluster-role.yaml -o 1-collector-cluster-role.yaml
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/2-collector-rbac.yaml -o 2-collector-rbac.yaml
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/3-collector-service-account.yaml -o 3-collector-service-account.yaml
+
+curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/4-collector-deployment.yaml -o 4-collector-deployment.yaml
+sed -i '' "s/clusterName=k8s-cluster/clusterName=$NAME/" 4-collector-deployment.yaml
+# if RBAC is disabled in your Kubernetes cluster, comment out serviceAccountName: wavefront-collector.
+
+cd .. && rm -fR wavefront
+
+kubectl create -f wavefront-collector-dir
