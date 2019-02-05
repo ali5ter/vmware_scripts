@@ -6,6 +6,44 @@
 # shellcheck disable=SC1091
 source vke_env.sh
 
+# helper functions -----------------------------------------------------------
+
+clean_up () {
+    EXIT_CODE=$?
+    echo
+    read -p "Shall I remove all Wavefront related objects? [y/N] " -n 1 -r
+    [[ $REPLY =~ ^[Yy]$ ]] && {
+        rm -fR "$WORKING_DIR"
+
+        kubectl delete deployment.apps/wavefront-proxy service/wavefront-proxy || :
+
+        kubectl delete deployment.apps/kube-state-metrics service/kube-state-metrics -n kube-system || :
+
+        kubectl delete clusterroles.rbac.authorization.k8s.io/kube-state-metrics -n kube-system || :
+        kubectl delete clusterrolebindings.rbac.authorization.k8s.io/kube-state-metrics -n kube-system || :
+        kubectl delete roles.rbac.authorization.k8s.io/kube-state-metrics-resizer -n kube-system || :
+        kubectl delete rolebindings.rbac.authorization.k8s.io/kube-state-metrics -n kube-system || :
+        kubectl delete serviceaccounts/kube-state-metrics -n kube-system || :
+
+        kubectl delete deployment.apps/wavefront-collector -n wavefront-collector || :
+
+        kubectl delete namespace/wavefront-collector -n wavefront-collector || :
+
+        kubectl delete clusterroles.rbac.authorization.k8s.io/wavefront-collector -n wavefront-collector || :
+        kubectl delete clusterrolebindings.rbac.authorization.k8s.io/wavefront-collector -n wavefront-collector || :
+        kubectl delete serviceaccounts/wavefront-collector -n wavefront-collector || :
+    }
+    exit "$EXIT_CODE"
+}
+trap clean_up EXIT
+
+terminal () {
+    [[ "$OSYPE" =~ darwin* ]] && {
+        # shellcheck disable=SC2145
+        osascript -e "tell application \"Terminal\" to do script \"$@\""
+    }
+}
+
 # select a smart cluster and generate kube-config file -----------------------
 
 vke_cluster_auth
@@ -13,29 +51,34 @@ echo
 NAME=$(kubectl config current-context)
 NAME="${NAME/-context/}"
 
+WORKING_DIR="$HOME/tmp/wavefront-$NAME"
+mkdir "$WORKING_DIR"
+pushd "$WORKING_DIR" || exit 1
+
 # ask for Wavefront URL and Token --------------------------------------------
 
-WAVEFRONT_HOST='vmware.wavefront.com'
-# TODO: Store under working dir
+WAVEFRONT_HOST_PREFIX='vmware'
+# TODO: Store under ~/.vke
 WAVEFRONT_TOKEN='e72cc514-41c5-482f-8dac-33d396a55ce8'
 
-read -p "What is the hostname of your Wavefront URL? [$WAVEFRONT_HOST] " -r
+read -p "What goes before .wavefront.com as the hostname for your Wavefront URL? [$WAVEFRONT_HOST_PREFIX] " -r
 echo
-[[ -z $REPLY ]] || WAVEFRONT_HOST="$REPLY"
+[[ -z $REPLY ]] || WAVEFRONT_HOST_PREFIX="$REPLY"
 
 read -p "What is your Wavefont API Token? [$WAVEFRONT_TOKEN] " -r
 echo
 [[ -z $REPLY ]] || WAVEFRONT_TOKEN="$REPLY"
 
+echo "Deploying Wavefront proxy and collector on smart cluster $NAME"
+echo "Metric data will be pushed to Wavefront server at https://$WAVEFRONT_HOST_PREFIX.wavefront.com/api/"
+echo
+
 # deploy wavefront proxy -----------------------------------------------------
 
 heading 'Deploy the Wavefront proxy'
 
-cd ~/tmp || exit 1
-mkdir -p wavefront && cd wavefront || exit 1
-
 curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes/master/wavefront-proxy/wavefront.yaml -o wavefront.yaml
-sed -i '' "s/value: WAVEFRONT_URL/value: https:\/\/$WAVEFRONT_HOST\/api\//" wavefront.yaml
+sed -i '' "s/value: https:\/\/YOUR_CLUSTER/value: https:\/\/$WAVEFRONT_HOST_PREFIX/" wavefront.yaml
 sed -i '' "s/value: YOUR_API_TOKEN/value: $WAVEFRONT_TOKEN/" wavefront.yaml
 
 kubectl create -f wavefront.yaml
@@ -52,7 +95,8 @@ kubectl create -f kube-state.yaml
 
 heading 'Deploy the Wavefont collector'
 
-mkdir wavefront-collector-dir && cd wavefront-collector-dir || exit 1
+mkdir wavefront-collector-dir
+pushd wavefront-collector-dir || exit 1
 
 curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/0-collector-namespace.yaml -o 0-collector-namespace.yaml
 
@@ -64,8 +108,21 @@ curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-colle
 
 curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/4-collector-deployment.yaml -o 4-collector-deployment.yaml
 sed -i '' "s/clusterName=k8s-cluster/clusterName=$NAME/" 4-collector-deployment.yaml
-# if RBAC is disabled in your Kubernetes cluster, comment out serviceAccountName: wavefront-collector.
+#sed -i '' "s/serviceAccountName:/#serviceAccountName:/" 4-collector-deployment.yaml
 
-cd .. && rm -fR wavefront
+popd || exit 1
 
 kubectl create -f wavefront-collector-dir
+
+# monitor deployment ---------------------------------------------------------
+
+popd || exit 1
+
+echo -en "\nDeploying Wavefront Proxy..."
+kubectl wait deployment -l app=wavefront-proxy --for=condition=Ready
+echo "done"
+terminal "vke cluster auth setup $NAME && kubectl logs -f $(kubectl -o json get pod -l app=wavefront-proxy | jq -r '.items[].metadata.name')"
+echo -en "\nDeploying Wavefront Collector..."
+kubectl wait deployment -l name=wavefront-collector --for=condition=Ready --all-namespaces
+echo "done"
+terminal "vke cluster auth setup $NAME && kubectl logs -f $(kubectl -o json get pod -n wavefront-collector | jq -r '.items[].metadata.name') -n wavefront-collector"
