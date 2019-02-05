@@ -57,9 +57,12 @@ pushd "$WORKING_DIR" > /dev/null || exit 1
 
 # ask for Wavefront URL and Token --------------------------------------------
 
-WAVEFRONT_HOST_PREFIX='vmware'
-# TODO: Store under ~/.vke
-WAVEFRONT_TOKEN='e72cc514-41c5-482f-8dac-33d396a55ce8'
+WAVEFRONT_CONFIG="$HOME/.vke/.wavefront_config"
+[[ -d "$(dirname $WAVEFRONT_CONFIG)" ]] || mkdir "$HOME/.vke"
+[[ -f "$WAVEFRONT_CONFIG" ]] && {
+    WAVEFRONT_HOST_PREFIX="$(grep wavefront_host_prefix $WAVEFRONT_CONFIG | cut -d':' -f2)"
+    WAVEFRONT_TOKEN="$(grep wavefront_token $WAVEFRONT_CONFIG | cut -d':' -f2)"
+}
 
 read -p "What goes before .wavefront.com as the hostname for your Wavefront URL? [$WAVEFRONT_HOST_PREFIX] " -r
 echo
@@ -68,6 +71,9 @@ echo
 read -p "What is your Wavefont API Token? [$WAVEFRONT_TOKEN] " -r
 echo
 [[ -z $REPLY ]] || WAVEFRONT_TOKEN="$REPLY"
+
+echo "wavefront_host_prefix:$WAVEFRONT_HOST_PREFIX" > "$WAVEFRONT_CONFIG"
+echo "wavefront_token:$WAVEFRONT_TOKEN" >> "$WAVEFRONT_CONFIG"
 
 echo "Deploying Wavefront proxy and collector on smart cluster $NAME"
 echo "Metric data will be pushed to Wavefront server at https://$WAVEFRONT_HOST_PREFIX.wavefront.com/api/"
