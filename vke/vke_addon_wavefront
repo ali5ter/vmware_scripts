@@ -13,6 +13,7 @@ clean_up () {
     echo
     read -p "Shall I remove all Wavefront related objects? [y/N] " -n 1 -r
     [[ $REPLY =~ ^[Yy]$ ]] && {
+        echo
         rm -fR "$WORKING_DIR"
 
         kubectl delete deployment.apps/wavefront-proxy service/wavefront-proxy || :
@@ -31,14 +32,13 @@ clean_up () {
 
         kubectl delete clusterroles.rbac.authorization.k8s.io/wavefront-collector -n wavefront-collector || :
         kubectl delete clusterrolebindings.rbac.authorization.k8s.io/wavefront-collector -n wavefront-collector || :
-        kubectl delete serviceaccounts/wavefront-collector -n wavefront-collector || :
     }
     exit "$EXIT_CODE"
 }
 trap clean_up EXIT
 
 terminal () {
-    [[ "$OSYPE" =~ darwin* ]] && {
+    [[ "$OSTYPE" =~ darwin* ]] && {
         # shellcheck disable=SC2145
         osascript -e "tell application \"Terminal\" to do script \"$@\""
     }
@@ -53,7 +53,7 @@ NAME="${NAME/-context/}"
 
 WORKING_DIR="$HOME/tmp/wavefront-$NAME"
 mkdir "$WORKING_DIR"
-pushd "$WORKING_DIR" || exit 1
+pushd "$WORKING_DIR" > /dev/null || exit 1
 
 # ask for Wavefront URL and Token --------------------------------------------
 
@@ -96,7 +96,7 @@ kubectl create -f kube-state.yaml
 heading 'Deploy the Wavefont collector'
 
 mkdir wavefront-collector-dir
-pushd wavefront-collector-dir || exit 1
+pushd wavefront-collector-dir > /dev/null || exit 1
 
 curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-collector/master/deploy/kubernetes/0-collector-namespace.yaml -o 0-collector-namespace.yaml
 
@@ -110,19 +110,19 @@ curl -s https://raw.githubusercontent.com/wavefrontHQ/wavefront-kubernetes-colle
 sed -i '' "s/clusterName=k8s-cluster/clusterName=$NAME/" 4-collector-deployment.yaml
 #sed -i '' "s/serviceAccountName:/#serviceAccountName:/" 4-collector-deployment.yaml
 
-popd || exit 1
+popd > /dev/null || exit 1
 
 kubectl create -f wavefront-collector-dir
 
 # monitor deployment ---------------------------------------------------------
 
-popd || exit 1
+popd > /dev/null || exit 1
 
-echo -en "\nDeploying Wavefront Proxy..."
-kubectl wait deployment -l app=wavefront-proxy --for=condition=Ready
+echo -en "\nWaiting for Wavefront Proxy to deploy..."
+kubectl wait deployment -l app=wavefront-proxy --for=condition=available > /dev/null
 echo "done"
-terminal "vke cluster auth setup $NAME && kubectl logs -f $(kubectl -o json get pod -l app=wavefront-proxy | jq -r '.items[].metadata.name')"
-echo -en "\nDeploying Wavefront Collector..."
-kubectl wait deployment -l name=wavefront-collector --for=condition=Ready --all-namespaces
+terminal "vke cluster auth setup $NAME && kubectl logs -f $(kubectl -o json get pod -l app=wavefront-proxy | jq -r '.items[].metadata.name')" > /dev/null
+echo -en "\nWaiting for Wavefront Collector to deploy..."
+kubectl wait deployment -l name=wavefront-collector --for=condition=available -n wavefront-collector > /dev/null
 echo "done"
-terminal "vke cluster auth setup $NAME && kubectl logs -f $(kubectl -o json get pod -n wavefront-collector | jq -r '.items[].metadata.name') -n wavefront-collector"
+terminal "vke cluster auth setup $NAME && kubectl logs -f $(kubectl -o json get pod -n wavefront-collector | jq -r '.items[].metadata.name') -n wavefront-collector" > /dev/null
