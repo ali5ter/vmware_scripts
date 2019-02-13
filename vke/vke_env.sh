@@ -13,11 +13,12 @@ source "vke_config.sh"
 export VKE_LATEST_CLI='/tmp/vke'
 
 vke_cli_url() {
+    local _urls
+    _urls=$(curl -s https://api.vke.cloud.vmware.com/v1/cli)
     case "$OSTYPE" in
-        ## Pulled from `curl https://api.vke.cloud.vmware.com/v1/cli | jq .latest``
-        darwin*)  echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/mac/vke' ;; 
-        linux*)   echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/linux64/vke' ;;
-        msys*)    echo 'https://s3-us-west-2.amazonaws.com/cascade-cli-download/pre-prod-us-west-2/latest/windows64/vke.exe' ;;
+        darwin*)  jq -r .latest.urls.mac <<< "$_urls";; 
+        linux*)   jq -r .latest.urls.linux64 <<< "$_urls";;
+        msys*)    jq -r .latest.urls.windows64 <<< "$_urls";;
         *)        return 1;;
     esac
     return 0
