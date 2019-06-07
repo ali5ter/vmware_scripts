@@ -111,6 +111,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ "$OSTYPE" == "darwin"* ]] && install_plist
-## TODO: COnfigure cron job for linux
+## TODO: Configure cron job for linux
 notify
 update_git_repos
