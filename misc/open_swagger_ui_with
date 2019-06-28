@@ -28,7 +28,7 @@ pgrep -f docker > /dev/null || {
     exit 1
 }
 
-docker ps -a | grep "$SWAGGER_UI_IMAGE" && {
+docker ps -a | grep "$SWAGGER_UI_IMAGE" > /dev/null 2>&1 && {
     docker ps -a | grep "$SWAGGER_UI_IMAGE" | \
         awk '{print $1}' | \
         xargs docker rm -fv > /dev/null 2>&1
@@ -44,4 +44,4 @@ docker run -d --name swagguer-ui \
 # Open brower using swagger ui view on the swagger definition ----------------
 
 [[ "$OSTYPE" == "darwin"* ]] && open "$SWAGGER_URL"
-echo -e "Start Swagger-UI in your browser using $SWAGGER_URL\n"
+echo "View Swagger-UI for $SWAGGER_FILE in your browser using $SWAGGER_URL"
