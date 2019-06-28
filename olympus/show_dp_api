@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# @file show_dp_api
+# Start swagger ui for data protection show_dp_api
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+../misc/open_swagger_ui_with ./dp-swagger.yaml 8881

@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# @file create_octl_completion
+# Create a bash completion script for octl using cli_taxo
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+DIR="$PWD"
+
+olympus_cli_url() {
+    case "$OSTYPE" in
+        darwin*)  echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/darwin/x64/octl' ;; 
+        linux*)   echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/linux/x64/octl' ;;
+        msys*)    echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/windows/x64/octl' ;;
+        *)        return 1;;
+    esac
+    return 0
+}
+
+install_olympus_cli() {
+    echo
+    echo "Installing Olympus CLI... "
+    curl "$(olympus_cli_url)" > ./octl && chmod 755 ./octl
+    return 0
+}
+
+install_cli_taxo() {
+    echo
+    echo "Installing cli_taxo... "
+    curl -O https://raw.githubusercontent.com/ali5ter/cli_taxo/master/cli_taxo.py
+    curl -O https://raw.githubusercontent.com/ali5ter/cli_taxo/master/bash_completion.tmpl
+    curl -O https://raw.githubusercontent.com/ali5ter/cli_taxo/master/requirements.txt
+    pip install --user -r requirements.txt
+    chmod 755 cli_taxo.py
+    return 0
+}
+
+generate_autocomplete_script() {
+    echo
+    echo "Generating autocomplete script... "
+    ./cli_taxo.py octl \
+        --commands-token '^Resources:|^Actions:$' \
+        --commands-filter '^\s\s(?!-)(\S[^,\s]+)' \
+        --options-token '^Flags:|^Global Flags:$' \
+        --options-filter '\s(-\S[^,\s,"]+)\s' \
+        -o bash -O > "$DIR/octl_bash_completion.sh"
+    return 0
+}
+
+cd /tmp || exit 1
+install_olympus_cli
+install_cli_taxo
+export PATH="$PATH:."
+generate_autocomplete_script
+cd "$PWD" || exit 1
