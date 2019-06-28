@@ -10,9 +10,10 @@ DIR="$PWD"
 
 olympus_cli_url() {
     case "$OSTYPE" in
+        # TODO: Find way to get URLs programatically.
         darwin*)  echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/darwin/x64/octl' ;; 
         linux*)   echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/linux/x64/octl' ;;
-        msys*)    echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/windows/x64/octl' ;;
+        # msys*)    echo 'https:/cloudpks-jenkins.svc.eng.vmware.com/job/olympus/job/cli-binary/lastSuccessfulBuild/artifact/windows/x64/octl' ;;
         *)        return 1;;
     esac
     return 0
