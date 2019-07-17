@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# @file show_octl_diagram
+# Show taxo diagram for octl using cli_taxo
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+get_cli_taxo() {
+    [[ -e git_taxo ]] || {
+        git clone git@gitlab.eng.vmware.com:bowena/git_taxo.git
+    }
+    cd git_taxo
+}
+
+cd /tmp || exit 1
+get_cli_taxo
+
+cd exp1 && ./octl_taxo.sh > results/octl_taxo.txt && ./octl_taxo.sh -O > results/octl_taxo_with_options.txt
+cd ../exp2 && ./octl_taxo.sh
+cd ../exp3 && ./octl_taxo.sh && ./generate_results_index.sh
+
+docker build -t ali5ter/cli-taxo-diagrams:1.0 .
+docker ps -a | grep ali5ter/cli-taxo-diagrams > /dev/null 2>&1 && {
+    docker ps -a | grep ali5ter/cli-taxo-diagrams | \
+        awk '{print $1}' | \
+        xargs docker rm -fv > /dev/null 2>&1
+}
+docker run -d -p8080:80 ali5ter/cli-taxo-diagrams:1.0
+open http://localhost:8080/octl_taxo_radial_tree.html
+
+cd "$PWD" || exit 1
