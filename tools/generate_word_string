@@ -3,11 +3,6 @@
 # Word string generator using system dictionary
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-[ "${BASH_SOURCE[0]}" -ef "$0" ] && {
-    echo "Source this script instead of executing it."
-    exit 1
-}
-
 ## Convenience aliases
 alias wstring='generate_word_string'
 
@@ -30,3 +25,5 @@ generate_word_string() {
     done
     echo "$string" | sed s/\'//g | tr '[:upper:]' '[:lower:]'
 }
+
+[ "${BASH_SOURCE[0]}" -ef "$0" ] && generate_word_string "$@"
