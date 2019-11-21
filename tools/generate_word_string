@@ -3,22 +3,30 @@
 # Word string generator using system dictionary
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-[[ -n $DEBUG ]] && set -x
-set -eou pipefail
+[ "${BASH_SOURCE[0]}" -ef "$0" ] && {
+    echo "Source this script instead of executing it."
+    exit 1
+}
 
-WORDFILE="/usr/share/dict/words"
-TOTAL_WORDS=$(awk 'NF!=0 {++c} END {print c}' $WORDFILE)
-NUM_WORDS=${1:-3}
-DELIM=${2:--}
+## Convenience aliases
+alias wstring='generate_word_string'
 
-string=''
-# shellcheck disable=SC2034
-# shellcheck disable=SC2086
-for i in $(seq $NUM_WORDS); do
-    rnum=$(perl -e 'print int rand $ARGV[0], "\n"; ' -- "$TOTAL_WORDS")
-    word=$(sed -n "$rnum p" $WORDFILE)
-    if [ "$string" == "" ]; then string="$word"
-    else string="${string}${DELIM}$word"
-    fi
-done
-echo "$string" | sed s/\'//g | tr '[:upper:]' '[:lower:]'
+generate_word_string() {
+    local wordFiles="/usr/share/dict/words"
+    # shellcheck disable=SC2155
+    local totalWords=$(awk 'NF!=0 {++c} END {print c}' $wordFiles)
+    local numWords=${1:-3}
+    local delim=${2:--}
+
+    local string=''
+    # shellcheck disable=SC2034
+    # shellcheck disable=SC2086
+    for i in $(seq $numWords); do
+        rnum=$(perl -e 'print int rand $ARGV[0], "\n"; ' -- "$totalWords")
+        word=$(sed -n "$rnum p" $wordFiles)
+        if [ "$string" == "" ]; then string="$word"
+        else string="${string}${delim}$word"
+        fi
+    done
+    echo "$string" | sed s/\'//g | tr '[:upper:]' '[:lower:]'
+}
