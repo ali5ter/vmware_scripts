@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# @file dropmon
+# -r ... rotate the log file
+# Super simple recording of network dropouts
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+export LOG=~/.dropmon
+export DROP=0
+export EXIT=0
+export TIMESTAMP=0
+
+# Ping settings...
+export INTERVAL=2
+export TIMEOUT=2
+
+exiting() {
+    echo "Dropout timestamps written to $LOG"
+    EXIT=1
+}
+trap exiting SIGINT SIGTERM
+
+log() {
+    local message="$*"
+    echo "$(date +'%c'): $message" >> "$LOG"
+}
+
+if [[ "$1" == "-r" ]]; then
+    if [[ -f "$LOG" ]]; then
+        mv "$LOG" "${LOG}-$(date '+%s')"
+    fi
+fi
+
+echo -n "Keeping an eye on the connection "
+until [[ $EXIT == 1 ]]; do
+    if ping -i $INTERVAL -t $TIMEOUT google.com >/dev/null 2>&1; then
+        if [[ "$DROP" == 1 ]]; then
+            duration=$(( EPOCHSECONDS - TIMESTAMP ))
+            log "...connection re-established after $duration seconds"
+            DROP=0
+        fi
+        echo -n "."
+    else
+        if [[ "$DROP" == 0 ]]; then
+            TIMESTAMP=$EPOCHSECONDS
+            log "Connection dropped"
+            DROP=1
+        fi
+        echo -n "💀"
+    fi
+done
