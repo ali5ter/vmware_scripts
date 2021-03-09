@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # @file dropmon
 # -r ... rotate the log file
-# Super simple recording of network dropouts
+# Super simple recording of network dropouts. Outputs live overview of dropouts
+# and a csv log file that can be imported to a spreadsheet
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
 
-export LOG=~/.dropmon
+export LOG=~/.dropmon.csv
 export DROP=0
 export EXIT=0
 export TIMESTAMP=0
@@ -17,14 +18,21 @@ export INTERVAL=2
 export TIMEOUT=2
 
 exiting() {
-    echo "Dropout timestamps written to $LOG"
+    echo -e "\nDropout timestamps written to $LOG"
     EXIT=1
 }
 trap exiting SIGINT SIGTERM
 
 log() {
     local message="$*"
-    echo "$(date +'%c'): $message" >> "$LOG"
+    # shellcheck disable=SC2086
+    echo "$(epochToDate $EPOCHSECONDS), $message" >> "$LOG"
+}
+
+# Implemented using macOS version of date...
+epochToDate() {
+    local epoc="$1"
+    date -j -f '%s' +'%m/%d/%Y %H:%M:%S' "$epoc"
 }
 
 if [[ "$1" == "-r" ]]; then
@@ -38,14 +46,14 @@ until [[ $EXIT == 1 ]]; do
     if ping -i $INTERVAL -t $TIMEOUT google.com >/dev/null 2>&1; then
         if [[ "$DROP" == 1 ]]; then
             duration=$(( EPOCHSECONDS - TIMESTAMP ))
-            log "...connection re-established after $duration seconds"
+            # shellcheck disable=SC2086
+            log "$(epochToDate $TIMESTAMP), $duration"
             DROP=0
         fi
         echo -n "."
     else
         if [[ "$DROP" == 0 ]]; then
             TIMESTAMP=$EPOCHSECONDS
-            log "Connection dropped"
             DROP=1
         fi
         echo -n "💀"
