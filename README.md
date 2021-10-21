@@ -15,6 +15,8 @@ The [vic directory](vic) contains scripts to work with [vSphere Integrated Conta
 
 The [vke directory](vke) contains scripts to work with [vSphere Cloud PKS (formerly VKE)](https://cloud.vmware.com/vmware-cloud-pks)
 
+The [tmc directory](tmc) contains scripts to work with [Tanzu Mission Control](https://tanzu.vmware.com/mission-control)
+
 ## Contribution
 If you've stumbled upon this project and wish to contribute, please
-[let me know](mailto:alister@different.com)
+[let me know](mailto:alister@lewis-bowen.org)
