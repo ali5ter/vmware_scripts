@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# @file playground
+# Scratchpad of tmc commands while testing
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+function start_cluster() {
+    heading "Make sure a local k8s cluster exists"
+
+    # shellcheck disable=SC2155
+    local cname="$(kind get clusters -q)"
+    # shellcheck disable=SC2153
+    if [ "$cname" == "$TMC_CLUSTER_NAME" ]; then
+        read -p "✋ Looks like a kind cluster, $cname, exists. Want me to delete this one? [y/N] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            kind delete cluster --name="$cname" && \
+            kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
+        fi 
+    else 
+        kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
+    fi
+    echo
+}
+
+function set_up() {
+    heading "Create TMC context to authenticate with TMC service"
+
+    for cmd in tmc kubectl jq; do
+        command -v "$cmd" 1>/dev/null 2>&1 || {
+            echo "🙄 Unable to find $cmd."
+        exit 1
+        }
+    done
+
+    # Create fresh context
+    tmc system context list | grep "$TMC_CONTEXT" >/dev/null && \
+        tmc system context delete "$TMC_CONTEXT" >/dev/null
+    export TMC_API_TOKEN="$TMC_API_TOKEN"
+    tmc login --stg-unstable --name "$TMC_CONTEXT" --no-configure
+
+    # !! Can't list defaults. Have to look in current context
+    # !! but even then, loglevel value is different
+    tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
+    tmc cluster list 1>/dev/null 2>/dev/null || {
+        echo "😱 Looks like the connnection filed while performing a CLI update."
+        last_command_run
+        exit 1
+    }
+    tmc system context list
+    echo
+}
+
+function clean_up() {
+    heading "Clean up cluster resources"
+
+    # TODO: Check cluster still attached
+    read -p "✋ Do you want me to detach $TMC_CLUSTER_NAME? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        tmc cluster delete "$TMC_CLUSTER_NAME" -m attached -p attached \
+            --force
+        # Inspect cluster health
+        # !! output flag not documented
+        echo "Checking cluster $TMC_CLUSTER_NAME has detached"
+        # shellcheck disable=SC2086
+        while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
+                -m attached -p attached \
+                -o json | jq -r .status.phase)" == 'DETACHING' ]; do
+            echo -n '.'
+            sleep 10
+        done
+        echo ' ✅'
+    fi
+
+    read -p "✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        kind delete cluster --name="$TMC_CLUSTER_NAME"
+    fi
+}
+
+set_up
+
+start_cluster
+
+
+heading "Create cluster group $TMC_CLUSTER_GROUP if it exists"
+
+# Create cluster group to manage policy on this cluster
+tmc clustergroup list --all | grep "$TMC_CLUSTER_GROUP" || {
+    # !! name is not positional parameter
+    # !! what does 'stringToString' mean in the help?
+    tmc clustergroup create \
+        -n "$TMC_CLUSTER_GROUP" -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+}
+
+heading "Attach local k8s cluster it isn't already"
+
+# Bring local cluster under TMC management
+tmc cluster list --all | grep "$TMC_CLUSTER_NAME" || {
+    # !! name is not positional parameter
+    # !! no description option
+    # !! can't get label option to work
+    # !! what does 'stringToString' mean in the help?
+    tmc cluster attach -n "$TMC_CLUSTER_NAME" -g "$TMC_CLUSTER_GROUP"
+    #    -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+    sleep 5
+    kubectl apply -f k8s-attach-manifest.yaml
+    rm k8s-attach-manifest.yaml
+}
+
+# List tmc pods and services before connection to TMC
+kubectl get pods,svc -n vmware-system-tmc
+
+# Check if TMC can see this cluster
+# !! output flag not documented
+echo "Checking TMC thinks $TMC_CLUSTER_NAME is ready"
+# shellcheck disable=SC2086
+while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
+        -m attached -p attached \
+        -o json | jq -r .status.phase)" != 'READY' ]; do
+    echo -n '.'
+    sleep 10
+done
+echo ' ✅'
+
+# List tmc pods and services after connection to TMC
+kubectl get pods,svc -n vmware-system-tmc
+
+# Check if TMC can see this cluster
+# !! output flag not documented
+echo "Checking TMC thinks $TMC_CLUSTER_NAME is healthy"
+# shellcheck disable=SC2086
+while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
+        -m attached -p attached \
+        -o json | jq -r .status.health)" != 'HEALTHY' ]; do
+    echo -n '.'
+    sleep 10
+done
+echo ' ✅'
+
+# Inspect cluster
+tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
+
+heading "Add some policies to the cluster"
+
+# Add access policy
+# !! Inconsistent use of positional arg for cluster name
+# !! Be nice if there was a role binding name
+echo "Add an access policy role binding to allow a user to edit this cluster"
+tmc cluster iam add-binding "$TMC_CLUSTER_NAME" \
+    -m attached -p attached \
+    -r cluster.edit -u bowena@vmware.com
+
+# List access policies
+# !! No list command
+# tmc cluster iam list \
+#     --clust
+# kubectl get rolebindings,clusterrolebinding \
+#     --all-namespaces | grep cluster.edit
+
+# Add security policy
+# !! No autocomplete for security-policy subcommand
+# !! Help doesn't talk about cluster name flag
+# !! No name parameter
+echo "Add a security policy for baseline lockdown of the cluster"
+tmc cluster security-policy create \
+    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
+    -r baseline
+
+# List security policies
+# !! No autocomplete for security-policy subcommand
+tmc cluster security-policy list \
+    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
+
+# TODO: Run a conformance inspection
+
+# TODO: Deploy an app on the cluster
+
+# TODO: Create a workspace where we can manage namespaces
+
+# TODO: Bring new namespace under TMC management
+
+# TODO: Enable TO or TSM integration on this cluster
+
+clean_up
