@@ -44,13 +44,26 @@ function set_up() {
     # !! Can't list defaults. Have to look in current context
     # !! but even then, loglevel value is different
     tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
+    # tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
     tmc cluster list 1>/dev/null 2>/dev/null || {
         echo "😱 Looks like the connnection filed while performing a CLI update."
-        last_command_run
         exit 1
     }
     tmc system context list
     echo
+}
+
+function context_detail() {
+    heading "Context detail"
+    tmc system context current -o json > context.json
+    echo -e "Organization ID:\\t$(jq -r .spec.orgId context.json)"
+    echo -e "Endpoint:\\t$(jq -r .spec.endpoint context.json)"
+    echo -e "Username:\\t$(jq -r .status.userName context.json)"
+    echo -e "Org perms:\\t$(jq -r .status.permissions context.json)"
+    echo "Defaults:"
+    echo -e "Management cluster: \\t$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
+    echo -e "Provisioner: \\t$(jq -r .spec.env.PROVISIONER_NAME context.json)"
+    rm context.json
 }
 
 function clean_up() {
@@ -83,6 +96,8 @@ function clean_up() {
 }
 
 set_up
+
+context_detail
 
 start_cluster
 
@@ -117,7 +132,7 @@ kubectl get pods,svc -n vmware-system-tmc
 
 # Check if TMC can see this cluster
 # !! output flag not documented
-echo "Checking TMC thinks $TMC_CLUSTER_NAME is ready"
+echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is ready"
 # shellcheck disable=SC2086
 while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
         -m attached -p attached \
@@ -132,7 +147,7 @@ kubectl get pods,svc -n vmware-system-tmc
 
 # Check if TMC can see this cluster
 # !! output flag not documented
-echo "Checking TMC thinks $TMC_CLUSTER_NAME is healthy"
+echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is healthy"
 # shellcheck disable=SC2086
 while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
         -m attached -p attached \
@@ -176,7 +191,31 @@ tmc cluster security-policy create \
 tmc cluster security-policy list \
     --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
 
-# TODO: Run a conformance inspection
+heading "Run a minimal inspection scan on the cluster"
+
+# Run a Conformance inspection scan
+tmc cluster inspection scan create \
+    -c "$TMC_CLUSTER_NAME" -m attached -p attached
+
+## !! No -c option
+scanName="$(tmc cluster inspection scan list \
+    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
+    -o json | jq -r .fullname.name)"
+
+echo -n "Monitoring the inspection scan"
+## !! Why does cluster need to be defined?
+# shellcheck disable=SC2086 
+while [ "$(tmc cluster inspection scan get $scanName \
+    --cluster-name alb-dev-local -m attached -p attached \
+    -o json | jq -r .status.phase)" == "RUNNING" ]; do
+    echo -n '.'
+    sleep 10
+done
+echo ' ✅'
+
+tmc cluster inspection scan get "$scanName" \
+    --cluster-name alb-dev-local -m attached -p attached \
+    -o json | jq -r .status.conditions.READY.message
 
 # TODO: Deploy an app on the cluster
 

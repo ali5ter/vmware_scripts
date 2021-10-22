@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# @file playground
+# Scratchpad of tmc commands while testing
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+# filters on list of scans json output
+scanNames()         { echo "$1" | jq -r .scans[].fullName.name; }
+scanDetail()        { echo "$1" | jq --arg n "$2" -r '.scans[] | select(.fullName.name == '\$n')'; }
+# filters on scan json output
+scanPhase()         { echo "$1" | jq -r .status.phase; }
+scanType()          { echo "$1" | jq -r .status.report.info.scanType; }
+scanTestsTotal()    { echo "$1" | jq -r .status.report.info.progressInfo.totalNumTests; }
+scanTestsDone()     { echo "$1" | jq -r .status.report.info.progressInfo.numTestsCompleted; }
+scanResult()        { echo "$1" | jq -r .status.report.info.result; }
+
+get_scans() {
+    ## !! List doesn't tell me state of the scans by default
+    ## !! No -c option
+    tmc cluster inspection scan list \
+        --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
+        -o json
+}
+
+is_scan_running() {
+    if [ "$(get_scans | grep -c RUNNING)" -eq 0 ]; then
+        return 1
+    fi
+    return 0
+}
+
+list_scans() {
+    # Show status of existing scans (similar to the TMC GUI)
+    local scans detail type phase ttotal tdone percentage result
+    scans="$(get_scans)"
+    printf "%-37s  %-15s  %s\\n" "NAME" "TYPE" "RESULT"
+    for scan in $(scanNames "$scans"); do
+        detail=$(scanDetail "$scans" "$scan")
+        type="$(scanType "$detail")"
+        phase="$(scanPhase "$detail")"
+        result="$(scanResult "$detail")"
+        case $phase in
+            RUNNING)
+                ttotal="$(scanTestsTotal "$detail")"
+                tdone="$(scanTestsDone "$detail")"
+                percentage=$(echo "scale=4; $tdone/$ttotal * 100" | bc | cut -d . -f 1)
+                result="$percentage% ($tdone/$ttotal) tests run"
+                ;;
+            COMPLETE)
+                [ "$result" == "FAILURE" ] && {
+                    ttotal="$(scanTestsTotal "$detail")"
+                    tdone="$(scanTestsDone "$detail")"
+                    result="$result ($tdone/$ttotal) tests failed"
+                }
+                ;;
+        esac
+        printf "%-37s  %-15s  %s\\n" "$scan" "$type" "$result"
+    done
+    echo
+}
+
+heading "Run a conformance inspection scan on the cluster"
+
+list_scans
+
+is_scan_running && exit 1
+
+# Run a conformance inspection scan
+echo "Start a conformance inspection scan on $TMC_CLUSTER_NAME"
+scanName="$(tmc cluster inspection scan create \
+    --inspection-type CONFORMANCE \
+    -c $TMC_CLUSTER_NAME -m attached -p attached \
+    | tail -n 1 | cut -d'"' -f2)"
+echo
+
+echo -n "Wait for the inspection scan to start running"
+## !! Why does cluster need to be defined?
+# shellcheck disable=SC2086 
+while [ "$(tmc cluster inspection scan get $scanName \
+    --cluster-name $TMC_CLUSTER_NAME -m attached -p attached \
+    -o json | jq -r .status.phase)" == "RUNNING" ]; do
+    echo -n '.'
+    sleep 10
+done
+echo ' ✅'
+echo
+
+list_scans
