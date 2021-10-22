@@ -41,6 +41,9 @@ heading() {
 function set_up() {
     heading "Create TMC context to authenticate with TMC service"
 
+    local cmd context
+
+    # Check our tools are installed
     for cmd in tmc kubectl jq; do
         command -v "$cmd" 1>/dev/null 2>&1 || {
             echo "🙄 Unable to find $cmd."
@@ -54,19 +57,29 @@ function set_up() {
     export TMC_API_TOKEN="$TMC_API_TOKEN"
     tmc login --stg-unstable --name "$TMC_CONTEXT" --no-configure
 
+    # Update the context with defaults
     # !! Can't list defaults. Have to look in current context
     # !! but even then, loglevel value is different
     tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
     # tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
+    context="$(tmc system context list)"
+    echo
+
+    # Test we can talk to the TMC API
     tmc cluster list 1>/dev/null 2>/dev/null || {
         echo "😱 Looks like the connnection filed while performing a CLI update."
         exit 1
     }
-    tmc system context list
+
+    # Check how context is updated after using it
+    echo "Show context content diff before and after auth..."
+    diff <( echo "$context" ) <( tmc system context list )
     echo
 }
 
 function context_detail() {
+    # !! Extra work to extract some summary info for the context
+    # !! Be nice if this were default output
     heading "Context detail"
     tmc system context current -o json > context.json
     echo -e "Organization ID:\\t$(jq -r .spec.orgId context.json)"
@@ -77,6 +90,7 @@ function context_detail() {
     echo -e "Management cluster: \\t$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
     echo -e "Provisioner: \\t$(jq -r .spec.env.PROVISIONER_NAME context.json)"
     rm context.json
+    echo
 }
 
 function start_local_cluster() {
@@ -106,18 +120,8 @@ function clean_up() {
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         tmc cluster delete "$TMC_CLUSTER_NAME" -m attached -p attached \
             --force
-        # Inspect cluster health
-        # !! output flag not documented
-        echo "Checking cluster $TMC_CLUSTER_NAME has detached"
-        # shellcheck disable=SC2086
-        while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
-                -m attached -p attached \
-                -o json | jq -r .status.phase)" == 'DETACHING' ]; do
-            echo -n '.'
-            sleep 10
-        done
-        echo ' ✅'
     fi
+    echo
 
     read -p "✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] " -n 1 -r
     echo
