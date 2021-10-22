@@ -6,7 +6,9 @@
 # shellcheck disable=SC1091
 source tmc_env.sh
 
-function start_cluster() {
+# functions ------------------------------------------------------------------
+
+function start_local_cluster() {
     heading "Make sure a local k8s cluster exists"
 
     # shellcheck disable=SC2155
@@ -95,12 +97,13 @@ function clean_up() {
     fi
 }
 
+# stand up env ---------------------------------------------------------------
+
 set_up
 
 context_detail
 
-start_cluster
-
+start_local_cluster
 
 heading "Create cluster group $TMC_CLUSTER_GROUP if it exists"
 
@@ -111,6 +114,8 @@ tmc clustergroup list --all | grep "$TMC_CLUSTER_GROUP" || {
     tmc clustergroup create \
         -n "$TMC_CLUSTER_GROUP" -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
 }
+
+# attach local cluster -------------------------------------------------------
 
 heading "Attach local k8s cluster it isn't already"
 
@@ -160,6 +165,8 @@ echo ' ✅'
 # Inspect cluster
 tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
 
+# play with policies ---------------------------------------------------------
+
 heading "Add some policies to the cluster"
 
 # Add access policy
@@ -189,21 +196,23 @@ tmc cluster security-policy create \
 # List security policies
 # !! No autocomplete for security-policy subcommand
 tmc cluster security-policy list \
-    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
+    --cluster-name "$TMC_CLUSTER_NAME" -m attache
+    
+# run a default (lite) inpection scan ----------------------------------------
 
 heading "Run a minimal inspection scan on the cluster"
 
-# Run a Conformance inspection scan
+# Run a lite inspection scan
 tmc cluster inspection scan create \
     -c "$TMC_CLUSTER_NAME" -m attached -p attached
 
-## !! No -c option
+# !! No -c option
 scanName="$(tmc cluster inspection scan list \
     --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
     -o json | jq -r .fullname.name)"
 
 echo -n "Monitoring the inspection scan"
-## !! Why does cluster need to be defined?
+# !! Why does cluster need to be defined?
 # shellcheck disable=SC2086 
 while [ "$(tmc cluster inspection scan get $scanName \
     --cluster-name alb-dev-local -m attached -p attached \

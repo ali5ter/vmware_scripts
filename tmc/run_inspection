@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# @file playground
-# Scratchpad of tmc commands while testing
+# @file run_inspection
+# Playing around with TMC inspections
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091
 source tmc_env.sh
+
+# functions ------------------------------------------------------------------
 
 # filters on list of scans json output
 scanNames()         { echo "$1" | jq -r .scans[].fullName.name; }
@@ -17,8 +19,8 @@ scanTestsDone()     { echo "$1" | jq -r .status.report.info.progressInfo.numTest
 scanResult()        { echo "$1" | jq -r .status.report.info.result; }
 
 get_scans() {
-    ## !! List doesn't tell me state of the scans by default
-    ## !! No -c option
+    # !! List doesn't tell me state of the scans by default
+    # !! No -c option
     tmc cluster inspection scan list \
         --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
         -o json
@@ -33,6 +35,8 @@ is_scan_running() {
 
 list_scans() {
     # Show status of existing scans (similar to the TMC GUI)
+    # !! This is a lot of work just to get an idea of a scan status/result
+    # !! All the info is in the json but not in the default list response
     local scans detail type phase ttotal tdone percentage result
     scans="$(get_scans)"
     printf "%-37s  %-15s  %s\\n" "NAME" "TYPE" "RESULT"
@@ -61,6 +65,8 @@ list_scans() {
     echo
 }
 
+# run a conformance inspection scan if non are running -----------------------
+
 heading "Run a conformance inspection scan on the cluster"
 
 list_scans
@@ -76,7 +82,7 @@ scanName="$(tmc cluster inspection scan create \
 echo
 
 echo -n "Wait for the inspection scan to start running"
-## !! Why does cluster need to be defined?
+# !! Why does cluster need to be defined?
 # shellcheck disable=SC2086 
 while [ "$(tmc cluster inspection scan get $scanName \
     --cluster-name $TMC_CLUSTER_NAME -m attached -p attached \
