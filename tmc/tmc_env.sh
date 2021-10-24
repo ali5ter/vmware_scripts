@@ -38,7 +38,7 @@ heading() {
     echo
 }
 
-function set_up() {
+set_up() {
     heading "Create TMC context to authenticate with TMC service"
 
     local cmd context
@@ -77,7 +77,7 @@ function set_up() {
     echo
 }
 
-function context_detail() {
+context_detail() {
     # !! Extra work to extract some summary info for the context
     # !! Be nice if this were default output
     heading "Context detail"
@@ -93,7 +93,7 @@ function context_detail() {
     echo
 }
 
-function start_local_cluster() {
+start_local_cluster() {
     heading "Make sure a local k8s cluster exists"
     # shellcheck disable=SC2155
     local cname="$(kind get clusters -q)"
@@ -106,12 +106,25 @@ function start_local_cluster() {
             kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
         fi 
     else 
-        kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
+        kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"f
     fi
     echo
 }
 
-function clean_up() {
+deploy_application() {
+    [ "$(kubectl get ns nb 2>/dev/null | grep -c nb)" -eq 0 ] && {
+        heading "Deploy a sample application to a local k8s cluster"
+        git clone git@github.com:ali5ter/name-brainstormulator.git
+        cd name-brainstormulator
+        echo
+        kubectl apply -f deployment.yaml
+        echo
+    }
+    kubectl get pods,svc -n nb
+    echo
+}
+
+clean_up() {
     heading "Clean up cluster resources"
 
     # TODO: Check cluster still attached
