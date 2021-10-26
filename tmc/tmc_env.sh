@@ -111,9 +111,73 @@ start_local_cluster() {
             kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
         fi 
     else 
-        kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"f
+        kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
     fi
     echo
+}
+
+attach_local_cluster() {
+    heading "Create cluster group $TMC_CLUSTER_GROUP unless it exists"
+
+    # Create cluster group to manage policy on this cluster
+    if tmc clustergroup list --all | grep "$TMC_CLUSTER_GROUP" >/dev/null; then
+        echo "Cluster group $TMC_CLUSTER_GROUP exists"
+    else
+        # !! name is not positional parameter
+        # !! what does 'stringToString' mean in the help?
+        erun tmc clustergroup create \
+            -n "$TMC_CLUSTER_GROUP" -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+    fi
+
+    heading "Attach local k8s cluster it isn't already"
+
+    # Bring local cluster under TMC management
+    if ! tmc cluster list --all | grep "$TMC_CLUSTER_NAME" >/dev/null; then
+        # !! name is not positional parameter
+        # !! no description option
+        # !! can't get label option to work
+        # !! what does 'stringToString' mean in the help?
+        erun tmc cluster attach -n "$TMC_CLUSTER_NAME" -g "$TMC_CLUSTER_GROUP"
+        #    -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+        sleep 5
+        erun kubectl apply -f k8s-attach-manifest.yaml
+        rm k8s-attach-manifest.yaml
+
+        # List tmc pods and services before connection to TMC
+        erun kubectl get pods,svc -n vmware-system-tmc
+
+        # Check if TMC can see this cluster
+        # !! output flag not documented
+        echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is ready"
+        # shellcheck disable=SC2086
+        while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
+                -m attached -p attached \
+                -o json | jq -r .status.phase)" != 'READY' ]; do
+            echo -n '.'
+            sleep 10
+        done
+        echo ' ✅'
+        echo
+
+        # List tmc pods and services after connection to TMC
+        erun kubectl get pods,svc -n vmware-system-tmc
+
+        # Check if TMC can see this cluster
+        # !! output flag not documented
+        echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is healthy"
+        # shellcheck disable=SC2086
+        while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
+                -m attached -p attached \
+                -o json | jq -r .status.health)" != 'HEALTHY' ]; do
+            echo -n '.'
+            sleep 10
+        done
+        echo ' ✅'
+        echo
+    fi
+
+    # Inspect cluster
+    erun tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
 }
 
 deploy_application() {

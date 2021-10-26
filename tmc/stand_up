@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# @file playground
+# Stand up a local cluster and auth with TMC API
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+set_up
+
+context_detail
+
+start_local_cluster
+
+attach_local_cluster
