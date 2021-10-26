@@ -17,34 +17,33 @@ start_local_cluster
 heading "Create cluster group $TMC_CLUSTER_GROUP unless it exists"
 
 # Create cluster group to manage policy on this cluster
-tmc clustergroup list --all | grep "$TMC_CLUSTER_GROUP" || {
+if tmc clustergroup list --all | grep "$TMC_CLUSTER_GROUP" >/dev/null; then
+    echo "Cluster group $TMC_CLUSTER_GROUP exists"
+else
     # !! name is not positional parameter
     # !! what does 'stringToString' mean in the help?
-    tmc clustergroup create \
+    erun tmc clustergroup create \
         -n "$TMC_CLUSTER_GROUP" -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
-}
+fi
 
 # attach local cluster -------------------------------------------------------
 
 heading "Attach local k8s cluster it isn't already"
 
 # Bring local cluster under TMC management
-tmc cluster list --all | grep "$TMC_CLUSTER_NAME" || {
+if ! tmc cluster list --all | grep "$TMC_CLUSTER_NAME" >/dev/null; then
     # !! name is not positional parameter
     # !! no description option
     # !! can't get label option to work
     # !! what does 'stringToString' mean in the help?
-    tmc cluster attach -n "$TMC_CLUSTER_NAME" -g "$TMC_CLUSTER_GROUP"
+    erun tmc cluster attach -n "$TMC_CLUSTER_NAME" -g "$TMC_CLUSTER_GROUP"
     #    -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
     sleep 5
-    echo
-    kubectl apply -f k8s-attach-manifest.yaml
+    erun kubectl apply -f k8s-attach-manifest.yaml
     rm k8s-attach-manifest.yaml
-    echo
 
     # List tmc pods and services before connection to TMC
-    kubectl get pods,svc -n vmware-system-tmc
-    echo
+    erun kubectl get pods,svc -n vmware-system-tmc
 
     # Check if TMC can see this cluster
     # !! output flag not documented
@@ -60,8 +59,7 @@ tmc cluster list --all | grep "$TMC_CLUSTER_NAME" || {
     echo
 
     # List tmc pods and services after connection to TMC
-    kubectl get pods,svc -n vmware-system-tmc
-    echo
+    erun kubectl get pods,svc -n vmware-system-tmc
 
     # Check if TMC can see this cluster
     # !! output flag not documented
@@ -75,11 +73,10 @@ tmc cluster list --all | grep "$TMC_CLUSTER_NAME" || {
     done
     echo ' ✅'
     echo
-}
+fi
 
 # Inspect cluster
-tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
-echo
+erun tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
 
 # play with policies ---------------------------------------------------------
 
@@ -89,10 +86,9 @@ heading "Add some policies to the cluster"
 # !! Inconsistent use of positional arg for cluster name
 # !! Be nice if there was a role binding name
 echo "Add an access policy role binding to allow a user to edit this cluster"
-tmc cluster iam add-binding "$TMC_CLUSTER_NAME" \
+erun tmc cluster iam add-binding "$TMC_CLUSTER_NAME" \
     -m attached -p attached \
     -r cluster.edit -u bowena@vmware.com
-echo
 
 # List access policies
 # !! No list command
@@ -106,16 +102,14 @@ echo
 # !! Help doesn't talk about cluster name flag
 # !! No name parameter
 echo "Add a security policy for baseline lockdown of the cluster"
-tmc cluster security-policy create \
+erun tmc cluster security-policy create \
     --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
     -r baseline
-echo
 
 # List security policies
 # !! No autocomplete for security-policy subcommand
-tmc cluster security-policy list \
+erun tmc cluster security-policy list \
     --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
-echo
     
 # run a default (lite) inpection scan ----------------------------------------
 
@@ -146,10 +140,9 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ' ✅'
     echo
 
-    tmc cluster inspection scan get "$scanName" \
+    erun tmc cluster inspection scan get "$scanName" \
         --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
         -o json | jq -r .status.conditions.READY.message
-    echo
 fi
 
 # Bring application namespace under management -------------------------------
@@ -161,31 +154,30 @@ heading "Bring app namespace under management"
 
 # Create a workspace where we can manage namespaces
 # !! --all flag doesn't seem to make any difference
-tmc workspace list --all | grep "$TMC_WORKSPACE" || {
+if tmc workspace list --all | grep "$TMC_WORKSPACE" >/dev/null; then
+    echo "Workspace $TMC_WORKSPACE exists"
+else
     # !! Shouldn't name be a positional parameter?
     # !! what does 'stringToString' mean in the help?
-    tmc workspace create -n "$TMC_WORKSPACE" \
+    erun tmc workspace create -n "$TMC_WORKSPACE" \
         -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
-    echo
-    rmc workspace get "$TMC_WORKSPACE"
-    echo
-}
+    erun workspace get "$TMC_WORKSPACE"
+fi
 
 # !! TMC list command doesn't appear to list any namespaces
 tmc cluster namespace get "$namespace" \
-    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached >/dev/null || {
+    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
+    1>/dev/null 2>/dev/null || {
     # Bring new namespace under TMC management
     # !! Shouldn't name be a positional parameter?
     # !! Why is 'k' used as option for workspace name?
-    tmc cluster namespace attach -n "$namespace" -k "$TMC_WORKSPACE" \
+    erun tmc cluster namespace attach -n "$namespace" -k "$TMC_WORKSPACE" \
         -c "$TMC_CLUSTER_NAME" -m attached -p attached \
         -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
-    echo
     # !! List command does not list any namespaces!
     # !! No -c option
-    tmc cluster namespace list \
+    erun tmc cluster namespace list \
         --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
-    echo
 
     # Check if TMC has atached this namespace
     echo -n "Checking TMC thinks $namespace is attached"
@@ -200,14 +192,12 @@ tmc cluster namespace get "$namespace" \
     echo
 }
 
-tmc workspace get "$TMC_WORKSPACE"
-echo
+erun tmc workspace get "$TMC_WORKSPACE"
 
 # !! No -c option
 # !! Can not get namespaces which are unmanaged, only those that are managed
-tmc cluster namespace get "$namespace" \
+erun tmc cluster namespace get "$namespace" \
     --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
-echo
 
 # TODO: Enable TO or TSM integration on this cluster
 

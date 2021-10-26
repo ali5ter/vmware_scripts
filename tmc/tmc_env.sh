@@ -38,6 +38,11 @@ heading() {
     echo
 }
 
+erun() {
+    ( set -x; "$@"; )
+    echo
+}
+
 set_up() {
     heading "Create TMC context to authenticate with TMC service"
 
@@ -55,12 +60,12 @@ set_up() {
     tmc system context list | grep "$TMC_CONTEXT" >/dev/null && \
         tmc system context delete "$TMC_CONTEXT" >/dev/null
     export TMC_API_TOKEN="$TMC_API_TOKEN"
-    tmc login --stg-unstable --name "$TMC_CONTEXT" --no-configure
+    erun tmc login --stg-unstable --name "$TMC_CONTEXT" --no-configure
 
     # Update the context with defaults
     # !! Can't list defaults. Have to look in current context
     # !! but even then, loglevel value is different
-    tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
+    erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
     # tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
     context="$(tmc system context list)"
     echo
@@ -82,13 +87,13 @@ context_detail() {
     # !! Be nice if this were default output
     heading "Context detail"
     tmc system context current -o json > context.json
-    echo -e "Organization ID:\\t$(jq -r .spec.orgId context.json)"
-    echo -e "Endpoint:\\t$(jq -r .spec.endpoint context.json)"
-    echo -e "Username:\\t$(jq -r .status.userName context.json)"
-    echo -e "Org perms:\\t$(jq -r .status.permissions context.json)"
+    printf "Organization ID:  %s\n" "$(jq -r .spec.orgId context.json)"
+    printf "Endpoint:         %s\n" "$(jq -r .spec.endpoint context.json)"
+    printf "Username:         %s\n" "$(jq -r .status.userName context.json)"
+    printf "Org perms:        %s\n" "$(jq -r .status.permissions context.json)"
     echo "Defaults:"
-    echo -e "Management cluster: \\t$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
-    echo -e "Provisioner: \\t$(jq -r .spec.env.PROVISIONER_NAME context.json)"
+    printf "Management cluster:  %s\n" "$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
+    printf "Provisioner:         %s\n" "$(jq -r .spec.env.PROVISIONER_NAME context.json)"
     rm context.json
     echo
 }
@@ -114,13 +119,12 @@ start_local_cluster() {
 deploy_application() {
     [ "$(kubectl get ns nb 2>/dev/null | grep -c nb)" -eq 0 ] && {
         heading "Deploy a sample application to a local k8s cluster"
-        git clone git@github.com:ali5ter/name-brainstormulator.git
+        erun git clone git@github.com:ali5ter/name-brainstormulator.git
         cd name-brainstormulator
-        echo
-        kubectl apply -f deployment.yaml
-        echo
+        erun kubectl apply -f deployment.yaml
+        cd .. && rmdir -fR name-brainstormulator
     }
-    kubectl get pods,svc -n nb
+    erun kubectl get pods,svc -n nb
     echo
 }
 
@@ -131,7 +135,7 @@ clean_up() {
     read -p "✋ Do you want me to detach $TMC_CLUSTER_NAME? [y/N] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        tmc cluster delete "$TMC_CLUSTER_NAME" -m attached -p attached \
+        erun tmc cluster delete "$TMC_CLUSTER_NAME" -m attached -p attached \
             --force
     fi
     echo
