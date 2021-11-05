@@ -65,18 +65,18 @@ set_up() {
     # Update the context with defaults
     # !! Can't list defaults. Have to look in current context
     # !! but even then, loglevel value is different
+    # !! by trial and error, discovered you can unset defaults with no flags
     erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
-    # tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
     context="$(tmc system context list)"
     echo
 
-    # Test we can talk to the TMC API
+    # Test if TMC API end-point is reachable
     tmc cluster list 1>/dev/null 2>/dev/null || {
         echo "😱 Looks like the connnection filed while performing a CLI update."
         exit 1
     }
 
-    # Check how context is updated after using it
+    # Check if context is updated after using it
     echo "Show context content diff before and after auth..."
     diff <( echo "$context" ) <( tmc system context list )
     echo
@@ -94,6 +94,7 @@ context_detail() {
     echo "Defaults:"
     printf "Management cluster:  %s\n" "$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
     printf "Provisioner:         %s\n" "$(jq -r .spec.env.PROVISIONER_NAME context.json)"
+    printf "Log-level:           %s\n" "$(jq -r .spec.env.TMC_LOG_LEVEL context.json)"
     rm context.json
     echo
 }
@@ -186,7 +187,7 @@ deploy_application() {
         erun git clone git@github.com:ali5ter/name-brainstormulator.git
         cd name-brainstormulator
         erun kubectl apply -f deployment.yaml
-        cd .. && rmdir -fR name-brainstormulator
+        cd .. && rm -fR name-brainstormulator
     }
     erun kubectl get pods,svc -n nb
     echo
