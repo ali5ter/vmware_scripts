@@ -6,8 +6,8 @@
 # shellcheck disable=SC2034
 TMC_CONTEXT='tmc-unstable'
 TMC_API_TOKEN="$(cat ~/.config/$TMC_CONTEXT-token)"
-TMC_MNGMT_CLUSTER='aws-hosted'
-TMC_PROVISIONER='alb-test'
+TMC_MNGMT_CLUSTER='attached'
+TMC_PROVISIONER='attached'
 TMC_LOG_LEVEL='debug'
 TMC_CLUSTER_NAME='alb-dev-local'
 TMC_CLUSTER_GROUP='alb-test'
