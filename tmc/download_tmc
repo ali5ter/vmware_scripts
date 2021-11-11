@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# @file download_tmc
+# Download and install the TMC CLI binary
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+export TMC_DOWNLOAD_URLS="$HOME/.config/tmc_download_urls"
+BIN_DIR='/usr/local/bin'
+OS_TYPE="${1-$OSTYPE}"
+
+# shellcheck disable=SC2120
+store_urls() {
+    local init ostypes response
+    init=${1-}
+    ostypes=('darwinX64' 'linuxX64' 'windowsX64')
+
+    # Use BinariesService API method to get CLI download URLs
+    # @ref https://developer.vmware.com/apis/1079/tanzu-mission-control#/BinariesService/Manage_V1alpha1_System_BinariesService_Get
+    response="$(api_get /v1alpha1/system/binaries)"
+
+    [[ -f "$TMC_DOWNLOAD_URLS" ]] || touch "$TMC_DOWNLOAD_URLS"
+    # shellcheck disable=SC2188
+    [[ "$init" == 'init' ]] && > "$TMC_DOWNLOAD_URLS"
+
+    for os in "${ostypes[@]}"; do
+        printf "%s %s\n" "$os" "$(jq -r ".versions.latest.${os}" <<< "$response")" \
+            >> "$TMC_DOWNLOAD_URLS"
+    done
+}
+
+get_url_for() {
+    local osType="${1-$OSTYPE}"
+
+    [[ -f "$TMC_DOWNLOAD_URLS" ]] || store_urls
+
+    case "$OSTYPE" in
+        darwin*) grep darwin "$TMC_DOWNLOAD_URLS" | awk '{print $2}';;
+        linux*) grep linux "$TMC_DOWNLOAD_URLS" | awk '{print $2}';;
+        windows*) grep windows "$TMC_DOWNLOAD_URLS" | awk '{print $2}';;
+        *) return 1;;
+    esac
+}
+
+download_tmc_for() {
+    local osType="${1-$OSTYPE}"
+
+    get_url_for "$osType"
+    curl -fsSL "$(get_url_for "$osType")" -o tmc
+    chmod 755 tmc
+    mv tmc "$BIN_DIR"
+}
+
+download_tmc_for "$OS_TYPE"

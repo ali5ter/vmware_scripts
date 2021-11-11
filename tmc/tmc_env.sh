@@ -43,6 +43,14 @@ erun() {
     echo
 }
 
+api_get() {
+    # Standard API GET
+    # @ref https://developer.vmware.com/apis/1079/tanzu-mission-control
+    local method="$1"
+    curl -sSX GET -H "Authorization: Bearer $CSP_ACCESS_TOKEN" \
+    "${TMC_API_ENDPOINT}${method}"
+}
+
 set_up() {
     heading "Create TMC context to authenticate with TMC service"
 
@@ -59,11 +67,12 @@ set_up() {
     # Create fresh context
     tmc system context list | grep "$TMC_CONTEXT" >/dev/null && \
         tmc system context delete "$TMC_CONTEXT" >/dev/null
-    export TMC_API_TOKEN="$TMC_API_TOKEN"
+    export TMC_API_TOKEN="$CSP_API_TOKEN"
     erun tmc login --stg-unstable --name "$TMC_CONTEXT" --no-configure
 
     # Update the context with defaults
     # !! Can't list defaults. Have to look in current context
+    # !! Unable to set defaults independenty from each other
     # !! but even then, loglevel value is different
     # !! by trial and error, discovered you can unset defaults with no flags
     erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
@@ -105,7 +114,7 @@ start_local_cluster() {
     local cname="$(kind get clusters -q)"
     # shellcheck disable=SC2153
     if [ "$cname" == "$TMC_CLUSTER_NAME" ]; then
-        read -p "✋ Looks like a kind cluster, $cname, exists. Want me to delete this one? [y/N] " -n 1 -r
+        read -p "${TMC_BOLD}✋ Looks like a kind cluster, $cname, exists. Want me to delete this one? [y/N] ${TMC_RESET}" -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             kind delete cluster --name="$cname" && \
@@ -197,7 +206,7 @@ clean_up() {
     heading "Clean up cluster resources"
 
     # TODO: Check cluster still attached
-    read -p "✋ Do you want me to detach $TMC_CLUSTER_NAME? [y/N] " -n 1 -r
+    read -p "${TMC_BOLD}✋ Do you want me to detach $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         erun tmc cluster delete "$TMC_CLUSTER_NAME" -m attached -p attached \
@@ -205,7 +214,7 @@ clean_up() {
     fi
     echo
 
-    read -p "✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] " -n 1 -r
+    read -p "${TMC_BOLD}✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         kind delete cluster --name="$TMC_CLUSTER_NAME"
