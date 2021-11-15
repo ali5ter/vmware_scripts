@@ -186,6 +186,18 @@ attach_local_cluster() {
         echo
     fi
 
+    # Update the cluster metadata
+    # ! Since options to set it at create time don't appear to work
+    # ! Still can't set the description
+    # ! Description flag inconsistent with creation command
+    # ! Help text should description label value format as, key1=value1,key2=value2...
+    erun tmc cluster update "$TMC_CLUSTER_NAME" -m attached -p attached \
+        --description "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+
+    # Apparently you can update using a template
+    # tmc cluster template get attached
+    # provides the attached template but there's no variable for description
+
     # Inspect cluster
     erun tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
 }
