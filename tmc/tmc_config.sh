@@ -8,8 +8,9 @@ CSP_API_TOKEN="$(cat ~/.config/csp-staging-token)" # CSP refresh token
 CSP_ENDPOINT_HOSTNAME='console-stg.cloud.vmware.com' # staging
 CSP_ENDPOINT="https://${CSP_ENDPOINT_HOSTNAME}/csp/gateway/am/api"
 CSP_ACCESS_TOKEN="$(\
-    curl -sSX POST ${CSP_ENDPOINT}/auth/api-tokens/authorize\?refresh_token\=${CSP_API_TOKEN} |\
+    curl -sSX POST "${CSP_ENDPOINT}/auth/api-tokens/authorize\?refresh_token\=${CSP_API_TOKEN}" |\
     jq -r .access_token)"
+
 TMC_CONTEXT='tmc-unstable'
 TMC_API_ENDPOINT_HOSTNAME='tmc-users-unstable.tmc-dev.cloud.vmware.com' # unstable
 TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"

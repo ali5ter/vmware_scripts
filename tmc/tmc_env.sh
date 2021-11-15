@@ -172,7 +172,7 @@ attach_local_cluster() {
         # List tmc pods and services after connection to TMC
         erun kubectl get pods,svc -n vmware-system-tmc
 
-        # Check if TMC can see this cluster
+        # Check if TMC installed agents provide healthy status
         # !! output flag not documented
         echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is healthy"
         # shellcheck disable=SC2086
@@ -209,7 +209,8 @@ clean_up() {
     read -p "${TMC_BOLD}✋ Do you want me to detach $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        erun tmc cluster delete "$TMC_CLUSTER_NAME" -m attached -p attached \
+        erun tmc cluster delete "$TMC_CLUSTER_NAME" \
+            -m attached -p attached \
             --force
     fi
     echo
