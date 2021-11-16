@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # @file tmc_config.sh
 # VMware Tanzu Mission Control account settings and preferences
+# Note that this only messes around with staging stacks 'unstable' and 'stable'
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC2034
@@ -11,8 +12,9 @@ CSP_ACCESS_TOKEN="$(\
     curl -sSX POST "${CSP_ENDPOINT}/auth/api-tokens/authorize\?refresh_token\=${CSP_API_TOKEN}" |\
     jq -r .access_token)"
 
-TMC_CONTEXT='tmc-unstable'
-TMC_API_ENDPOINT_HOSTNAME='tmc-users-unstable.tmc-dev.cloud.vmware.com' # unstable
+TMC_STACK="${1:-unstable}"  # unstable|stable
+TMC_CONTEXT="tmc-${TMC_STACK}"
+TMC_API_ENDPOINT_HOSTNAME="tmc-users-${TMC_STACK}.tmc-dev.cloud.vmware.com"
 TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"
 TMC_MNGMT_CLUSTER='attached'
 TMC_PROVISIONER='attached'
@@ -22,4 +24,4 @@ TMC_CLUSTER_GROUP='alb-test'
 TMC_WORKSPACE='alb-test'
 TMC_DESCRIPTION="🦄  Alister testing again. Please delete if needed."
 TMC_LABELS='env=test,generatedFrom=vmware_scripts'
-TMC_UPDATE_DATE="$HOME/.config/.tmc_last_update"
+# TMC_UPDATE_DATE="$HOME/.config/.tmc_last_update"

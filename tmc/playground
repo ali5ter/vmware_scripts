@@ -53,7 +53,7 @@ erun tmc cluster security-policy list \
 
 heading "Run a minimal inspection scan on the cluster"
 
-read -p "✋ A scan can take a while to run. Do you want to run one now? [y/N] " -n 1 -r
+read -p "${TMC_BOLD}✋ A scan can take a while to run. Do you want to run one now? [y/N] ${TMC_RESET}" -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Run a lite inspection scan

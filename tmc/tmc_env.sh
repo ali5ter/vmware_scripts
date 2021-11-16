@@ -64,11 +64,19 @@ set_up() {
         }
     done
 
-    # Create fresh context
-    tmc system context list | grep "$TMC_CONTEXT" >/dev/null && \
-        tmc system context delete "$TMC_CONTEXT" >/dev/null
+    # Use existing or create a new context
     export TMC_API_TOKEN="$CSP_API_TOKEN"
-    erun tmc login --stg-unstable --name "$TMC_CONTEXT" --no-configure
+    if tmc system context list | grep "$TMC_CONTEXT" >/dev/null; then
+        read -p "${TMC_BOLD}✋ Looks like context, $TMC_CONTEXT, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            tmc system context delete "$TMC_CONTEXT" >/dev/null
+            erun tmc login --stg-"$TMC_STACK" --name "$TMC_CONTEXT" --no-configure
+        fi 
+    else 
+        erun tmc login --stg-"$TMC_STACK" --name "$TMC_CONTEXT" --no-configure
+    fi
+    echo
 
     # Update the context with defaults
     # !! Can't list defaults. Have to look in current context
@@ -114,7 +122,7 @@ start_local_cluster() {
     local cname="$(kind get clusters -q)"
     # shellcheck disable=SC2153
     if [ "$cname" == "$TMC_CLUSTER_NAME" ]; then
-        read -p "${TMC_BOLD}✋ Looks like a kind cluster, $cname, exists. Want me to delete this one? [y/N] ${TMC_RESET}" -n 1 -r
+        read -p "${TMC_BOLD}✋ Looks like a kind cluster, $cname, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             kind delete cluster --name="$cname" && \
