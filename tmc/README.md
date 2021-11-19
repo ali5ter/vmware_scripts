@@ -5,7 +5,7 @@ These are bash scripts written to explore the [VMware Tanzu Mission Control](htt
 If you have access to TMC, then you can download the binary from the SaaS GUI. However, as a conveniece, a [download_tmc](download_tmc) script is provided here that uses the TMC API to know where to download the CLI binary.
 
 ## Environment
-The [tmc_env.sh](tmc_env.sh) script can be sourced to provide the variables and some helper functions to help work with the TMC CLI (and API). All configuration can be modified in [tmc_env.sh](tmc_env.sh).
+The [tmc_env.sh](tmc_env.sh) script can be sourced to provide the variables and some helper functions to help work with the TMC CLI (and API). All configuration can be modified in [tmc_config.sh](tmc_config.sh).
 
 Some helper functions that I find useful:
 | Function Name | Use |
