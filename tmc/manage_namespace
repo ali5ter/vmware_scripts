@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# @file manage_namespace
+# Bring application namespace under management
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+heading "Bring app namespace under management"
+
+# Deploy a test application on local k8s  ------------------------------------
+
+deploy_application
+namespace='nb'
+
+# Update the context with defaults -------------------------------------------
+
+# !! Can't list defaults. Have to look in current context
+# !! Unable to set defaults independenty from each other
+# !! but even then, loglevel value is different
+# !! by trial and error, discovered you can unset defaults with no flags
+erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER"
+
+# Bring app namespace under management  --------------------------------------
+
+# Create a workspace where we can manage namespaces
+# !! --all flag doesn't seem to make any difference
+if tmc workspace list --all | grep "$TMC_WORKSPACE" >/dev/null; then
+    echo "Workspace $TMC_WORKSPACE exists"
+else
+    # !! Shouldn't name be a positional parameter?
+    # !! what does 'stringToString' mean in the help?
+    erun tmc workspace create -n "$TMC_WORKSPACE" \
+        -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+    sleep 5
+    erun tmc workspace get "$TMC_WORKSPACE"
+fi
+
+# !! no -c option for --cluster-name
+# !! Unlike UI, can't list namespaces which are unmanaged, only those that are managed
+erun tmc cluster namespace list \
+    --cluster-name "$TMC_CLUSTER_NAME"
+
+# Get the namespace instead
+tmc cluster namespace get "$namespace" \
+    --cluster-name "$TMC_CLUSTER_NAME" \
+    1>/dev/null 2>/dev/null || {
+    # Bring new namespace under TMC management
+    # !! Shouldn't name be a positional parameter?
+    # !! Why is 'k' used as option for workspace name?
+    erun tmc cluster namespace attach -n "$namespace" -k "$TMC_WORKSPACE" \
+        -c "$TMC_CLUSTER_NAME" \
+        -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+    # !! List command does not list any namespaces!
+    # !! Seems like only managed namespaces might be shown
+    # !! No -c option
+    # !! No short flag for workspace name
+    erun tmc cluster namespace list \
+        --cluster-name "$TMC_CLUSTER_NAME" \
+        --workspace-name "$TMC_WORKSPACE"
+
+    # Check if TMC has atached this namespace
+    echo -n "Checking TMC thinks $namespace is attached"
+    # !! Can only inspect namespace from cluster point-of-view not workspace
+    # shellcheck disable=SC2086
+    while [ "$(tmc cluster namespace get "$namespace" \
+            --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
+            -o json | jq -r .status.phase)" == 'ATTACHING' ]; do
+        echo -n '.'
+        sleep 10
+    done
+    echo ' ✅'
+    echo
+}
+
+# !! Inspecting a workspace shows no hint of child information
+erun tmc workspace get "$TMC_WORKSPACE"
+
+# !! No -c option for cluster name
+# !! No way to filter on workspace name
+# !! Can not get namespaces which are unmanaged, only those that are managed
+erun tmc cluster namespace get "$namespace" \
+    --cluster-name "$TMC_CLUSTER_NAME"
+
+# !! Can only inspect namespace from cluster point-of-view not workspace
+# erun tmc workspace namespace get \
+#     --namespace "$namespace" \
+#     --cluster-name "$TMC_CLUSTER_NAME"
