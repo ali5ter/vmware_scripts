@@ -10,7 +10,7 @@ The [tmc_env.sh](tmc_env.sh) script can be sourced to provide the variables and 
 Some helper functions that I find useful:
 | Function Name | Use |
 | :------- | ------- |
-| set_up | checks for an existing login context and adds one if you want it |
+| set_up \[unstable\|stable\] | checks for an existing login context and adds one if you want it... if you don't pass the stack name then it will default to 'unstable' |
 | context_detail | instead of outputting yaml for the current context, this presents a formatted summary |
 | start_local_cluster | stands up a local k8s kind cluster if you don't already have one (requires docker) |
 | attach_local_cluster | uses the TMC CLI to bring your local k8s cluster under management |
@@ -21,8 +21,8 @@ Some helper functions that I find useful:
 Current list of bash scripts and what they do:
 | Script | Use |
 | :------- | ------- |
-| [playground](playground) | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome |
-| [stand_up](stand_up) | stand up a local k8s cluster and attach it to TMC |
+| [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome... if you don't pass the stack name then it will default to 'unstable' |
+| [stand_up](stand_up) \[unstable\|stable\] | stand up a local k8s cluster and attach it to TMC... if you don't pass the stack name then it will default to 'unstable' |
 | [tear_down](tear_down) | delete the local k8s cluster and detach it from TMC |
 | [manage_namespace](manage_namespace) | deploy a test app on a local k8s cluster and attach its namespace to TMC |
 | [run_inspection](run_inspection) | run a conformance inspection on a local k8s cluster |
