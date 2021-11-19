@@ -83,59 +83,9 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         -o json | jq -r .status.conditions.READY.message
 fi
 
-# Bring application namespace under management -------------------------------
+# deploy an application and bring its namespace under TMC management
 
-deploy_application
-namespace='nb'
-
-heading "Bring app namespace under management"
-
-# Create a workspace where we can manage namespaces
-# !! --all flag doesn't seem to make any difference
-if tmc workspace list --all | grep "$TMC_WORKSPACE" >/dev/null; then
-    echo "Workspace $TMC_WORKSPACE exists"
-else
-    # !! Shouldn't name be a positional parameter?
-    # !! what does 'stringToString' mean in the help?
-    erun tmc workspace create -n "$TMC_WORKSPACE" \
-        -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
-    erun workspace get "$TMC_WORKSPACE"
-fi
-
-# !! TMC list command doesn't appear to list any namespaces
-tmc cluster namespace get "$namespace" \
-    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
-    1>/dev/null 2>/dev/null || {
-    # Bring new namespace under TMC management
-    # !! Shouldn't name be a positional parameter?
-    # !! Why is 'k' used as option for workspace name?
-    erun tmc cluster namespace attach -n "$namespace" -k "$TMC_WORKSPACE" \
-        -c "$TMC_CLUSTER_NAME" -m attached -p attached \
-        -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
-    # !! List command does not list any namespaces!
-    # !! No -c option
-    erun tmc cluster namespace list \
-        --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
-
-    # Check if TMC has atached this namespace
-    echo -n "Checking TMC thinks $namespace is attached"
-    # shellcheck disable=SC2086
-    while [ "$(tmc cluster namespace get "$namespace" \
-            --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
-            -o json | jq -r .status.phase)" == 'ATTACHING' ]; do
-        echo -n '.'
-        sleep 10
-    done
-    echo ' ✅'
-    echo
-}
-
-erun tmc workspace get "$TMC_WORKSPACE"
-
-# !! No -c option
-# !! Can not get namespaces which are unmanaged, only those that are managed
-erun tmc cluster namespace get "$namespace" \
-    --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached
+"${TMC_SCRIPT_DIR}/manage_namespace"
 
 # TODO: Enable TO or TSM integration on this cluster
 

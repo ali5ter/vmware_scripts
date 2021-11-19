@@ -46,7 +46,6 @@ get_url_for() {
 download_tmc_for() {
     local osType="${1-$OSTYPE}"
 
-    get_url_for "$osType"
     curl -fsSL "$(get_url_for "$osType")" -o tmc
     chmod 755 tmc
     mv tmc "$BIN_DIR"

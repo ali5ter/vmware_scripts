@@ -4,10 +4,14 @@
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
+# @ref https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425
 set -eou pipefail
 
 # shellcheck disable=SC1091
 source tmc_config.sh
+
+# shellcheck disable=SC2034
+TMC_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # helper functions -----------------------------------------------------------
 
@@ -27,6 +31,7 @@ set_text_control_evars() {
     export TMC_REV="$(tput rev)"
     # shellcheck disable=SC2155
     export TMC_RESET="$(tput sgr0)"
+    return 0
 }
 set_text_control_evars
 
@@ -54,7 +59,7 @@ api_get() {
 set_up() {
     heading "Create TMC context to authenticate with TMC service"
 
-    local cmd context
+    local cmd
 
     # Check our tools are installed
     for cmd in tmc kubectl jq; do
@@ -84,19 +89,20 @@ set_up() {
     # !! but even then, loglevel value is different
     # !! by trial and error, discovered you can unset defaults with no flags
     erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
-    context="$(tmc system context list)"
-    echo
+    # context="$(tmc system context list)"
+    # echo
 
     # Test if TMC API end-point is reachable
-    tmc cluster list 1>/dev/null 2>/dev/null || {
-        echo "😱 Looks like the connnection filed while performing a CLI update."
+    erun tmc cluster list >/dev/null 2>/tmp/tmc-cluster-list.log || {
+        echo "😱 Looks like the connnection filed while performing a CLI command..."
+        tail -n1 /tmp/tmc-cluster-list.log
         exit 1
     }
 
-    # Check if context is updated after using it
-    echo "Show context content diff before and after auth..."
-    diff <( echo "$context" ) <( tmc system context list )
-    echo
+    # # Check if context is updated after using it
+    # echo "Show context content diff before and after auth..."
+    # diff <( echo "$context" ) <( tmc system context list )
+    # echo
 }
 
 context_detail() {
@@ -212,12 +218,15 @@ attach_local_cluster() {
 
 deploy_application() {
     [ "$(kubectl get ns nb 2>/dev/null | grep -c nb)" -eq 0 ] && {
+
         heading "Deploy a sample application to a local k8s cluster"
+
         erun git clone git@github.com:ali5ter/name-brainstormulator.git
         cd name-brainstormulator
         erun kubectl apply -f deployment.yaml
         cd .. && rm -fR name-brainstormulator
     }
+
     erun kubectl get pods,svc -n nb
     echo
 }
