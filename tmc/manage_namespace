@@ -37,11 +37,11 @@ else
 fi
 
 # !! no -c option for --cluster-name
-# !! Unlike UI, can't list namespaces which are unmanaged, only those that are managed
-erun tmc cluster namespace list \
-    --cluster-name "$TMC_CLUSTER_NAME"
+# !! Can't list namespaces which are unmanaged, only those that are managed
+# erun tmc cluster namespace list \
+#     --cluster-name "$TMC_CLUSTER_NAME"
 
-# Get the namespace instead
+# Get the namespace instead of listing it
 tmc cluster namespace get "$namespace" \
     --cluster-name "$TMC_CLUSTER_NAME" \
     1>/dev/null 2>/dev/null || {
