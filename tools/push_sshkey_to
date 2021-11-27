@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# @file push_sshkey_to <user> <ip>
+# Copy ssh rsa key to remote machine
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+USER=${1:-null}
+IP=${2:-null}
+
+promptForNull() {
+    local value="$1"; shift
+    # shellcheck disable=2124
+    local msg="$@"
+    if [[ "$value" == 'null' ]]; then
+        read -p "✋ $msg " -r
+        echo
+        value="$REPLY"
+    fi 
+    echo "$value"
+}
+
+USER=$(promptForNull "$USER" "You forgot to give me the username for the remote system?")
+IP=$(promptForNull "$IP" "You forgot to give me the FQDN or IP for the remote system?")
+
+[ -f ~/.ssh/id_rsa ] || {
+    ssh-keygen -q -b 2048 -t rsa -N "" -f ~/.ssh/id_rsa
+}
+echo "🔐 Copying ssh key file to remote system"
+ssh-copy-id "$USER@$IP"
