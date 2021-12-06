@@ -19,13 +19,13 @@ attach_local_cluster
 
 # play with cluster templates ------------------------------------------------
 
-heading "Change cluster metadata using a clsuter template"
+heading "Change cluster metadata using a cluster template"
 
 echo "What cluster templates do we have"
 erun tmc cluster template list
 
 echo "Get and modify the 'attached' cluster template"
-erun tmc cluser template get attached > cluster_template.yaml
+erun tmc cluster template get attached > cluster_template.yaml
 
 echo "Update our existing cluster using the template"
 # erun tmc cluster update 
