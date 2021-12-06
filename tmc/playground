@@ -10,13 +10,27 @@ source tmc_env.sh
 
 set_up
 
+heading "Context detail"
 context_detail
 
 start_local_cluster
 
 attach_local_cluster
 
-# play with policies ---------------------------------------------------------
+# play with cluster templates ------------------------------------------------
+
+heading "Change cluster metadata using a clsuter template"
+
+echo "What cluster templates do we have"
+erun tmc cluster template list
+
+echo "Get and modify the 'attached' cluster template"
+erun tmc cluser template get attached > cluster_template.yaml
+
+echo "Update our existing cluster using the template"
+# erun tmc cluster update 
+
+# play with access policies --------------------------------------------------
 
 heading "Add some policies to the cluster"
 
@@ -34,6 +48,8 @@ erun tmc cluster iam add-binding "$TMC_CLUSTER_NAME" \
 #     --clust
 # kubectl get rolebindings,clusterrolebinding \
 #     --all-namespaces | grep cluster.edit
+
+# play with security policies ------------------------------------------------
 
 # Add security policy
 # !! No autocomplete for security-policy subcommand
@@ -83,10 +99,4 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         -o json | jq -r .status.conditions.READY.message
 fi
 
-# deploy an application and bring its namespace under TMC management
-
-"${TMC_SCRIPT_DIR}/manage_namespace"
-
 # TODO: Enable TO or TSM integration on this cluster
-
-clean_up

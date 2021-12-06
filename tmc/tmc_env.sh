@@ -56,6 +56,15 @@ api_get() {
     "${TMC_API_ENDPOINT}${method}"
 }
 
+check_stack() {
+    read -p "${TMC_BOLD}✋ What stack do you want to use? [$TMC_STACK] " -r
+    echo
+    TMC_STACK="${REPLY:-$TMC_STACK}"
+    TMC_CONTEXT="tmc-${TMC_STACK}"
+    TMC_API_ENDPOINT_HOSTNAME="tmc-users-${TMC_STACK}.tmc-dev.cloud.vmware.com"
+    TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"
+}
+
 set_up() {
     heading "Create TMC context to authenticate with TMC service"
 
@@ -68,6 +77,8 @@ set_up() {
         exit 1
         }
     done
+
+    check_stack
 
     # Use existing or create a new context
     export TMC_API_TOKEN="$CSP_API_TOKEN"
@@ -108,7 +119,6 @@ set_up() {
 context_detail() {
     # !! Extra work to extract some summary info for the context
     # !! Be nice if this were default output
-    heading "Context detail"
     tmc system context current -o json > context.json
     printf "Organization ID:  %s\n" "$(jq -r .spec.orgId context.json)"
     printf "Endpoint:         %s\n" "$(jq -r .spec.endpoint context.json)"

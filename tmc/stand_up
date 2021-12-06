@@ -8,6 +8,7 @@ source tmc_env.sh
 
 set_up
 
+heading "Context detail"
 context_detail
 
 start_local_cluster
