@@ -7,7 +7,12 @@ If you have access to TMC, then you can download the binary from the SaaS GUI. H
 ## Environment
 The [tmc_env.sh](tmc_env.sh) script can be sourced to provide the variables and some helper functions to help work with the TMC CLI (and API). All configuration can be modified in [tmc_config.sh](tmc_config.sh).
 
-Some helper functions that I find useful:
+These scripts rely on some tools as prerequisites: the TMC CLI (obviously), kubectl, jq and fzf.
+If you're using macOS, other than TMC, these are all available via [homebrew](https://brew.sh) and can be installed with
+  
+`brew install kubectl jq fzf`
+
+Some helper functions that the [tmc_env.sh](tmc_env.sh) script provides which you might find useful:
 | Function Name | Use |
 | :------- | ------- |
 | set_up \[unstable\|stable\] | checks for an existing login context and adds one if you want it... if you don't pass the stack name then it will default to 'unstable' |
@@ -26,6 +31,7 @@ Current list of bash scripts and what they do:
 | [tear_down](tear_down) | delete the local k8s cluster and detach it from TMC |
 | [manage_namespace](manage_namespace) | deploy a test app on a local k8s cluster and attach its namespace to TMC |
 | [run_inspection](run_inspection) | run a conformance inspection on a local k8s cluster |
+| [data_protection](data_protection) | set up data protection on a local k8s cluster |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.

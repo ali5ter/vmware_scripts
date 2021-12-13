@@ -71,7 +71,7 @@ set_up() {
     local cmd
 
     # Check our tools are installed
-    for cmd in tmc kubectl jq; do
+    for cmd in tmc kubectl jq fzf; do
         command -v "$cmd" 1>/dev/null 2>&1 || {
             echo "🙄 Unable to find $cmd."
         exit 1

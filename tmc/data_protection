@@ -1,0 +1,301 @@
+#!/usr/bin/env bash
+# @file run_inspection
+# Playing around with TMC inspections
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+export CREDENTIAL=''
+export TARGET_LOCATION=''
+export NAMESPACE_NAME=''
+export BACKUP_NAME=''
+
+# functions ------------------------------------------------------------------
+
+dp_exists_for() {
+    local clusterName="${1:-$TMC_CLUSTER_NAME}"
+
+    tmc cluster extension list --cluster-name "$clusterName" | grep -q data-protection
+
+    # Could have tested on the following too...
+    # tmc cluster dataprotection get --cluster-name "$TMC_CLUSTER_NAME"
+    # kubectl get pods -n velero | grep -q velero
+}
+
+delete_dp_resources_for() {
+    local clusterName="${1:-$TMC_CLUSTER_NAME}"
+
+    for resource in backup schedule restore; do
+
+        echo "Delete existing ${resource}s for cluster '$clusterName'"
+
+        for resourceName in $(tmc cluster dataprotection "$resource" list \
+                --cluster-name "$clusterName" -o json \
+                | jq -r .${resource}s[].fullName.name); do
+
+            erun tmc cluster dataprotection "$resource" delete "$resourceName" \
+                --cluster-name "$clusterName"
+
+            echo -n "Waiting for $resource '$resourceName' to be deleted"
+            # !! Why does cluster need to be defined?
+            # shellcheck disable=SC2086 
+            while tmc cluster dataprotection "$resource" list \
+                --cluster-name "$clusterName" \
+                | grep -q "$resourceName"; do
+                echo -n '.'
+                sleep 2
+            done
+            echo ' ✅'
+            echo
+        done
+    done
+    echo
+}
+
+disable_dp_for() {
+    local clusterName="${1:-$TMC_CLUSTER_NAME}"
+
+    delete_dp_resources_for "$clusterName"
+
+    echo "Disable data protection capability for cluster '$clusterName'"
+    erun tmc cluster dataprotection delete \
+        --cluster-name "$clusterName" \
+        --delete-backups
+
+    echo -n "Waiting data protection capability to be disabled"
+    # shellcheck disable=SC2086 
+    while dp_exists_for "$clusterName"; do
+        echo -n '.'
+        sleep 10
+    done
+    echo ' ✅'
+    echo
+}
+
+get_dp_credential() {
+    # !! Help doesn't tell you what capability or provider strings to use
+    tmc account credential list \
+        --capability DATA_PROTECTION --provider AWS_EC2 -o json \
+        | jq -r .credentials[].fullName.name \
+        | fzf --height=40% --layout=reverse --info=inline --border
+}
+
+get_targetLocation_using() {
+    local credential="${1:-$CREDENTIAL}"
+
+    local targetLocations numTargetLocations
+
+    targetLocations="$(tmc dataprotection provider backuplocation list -o json \
+        | jq -r --arg c "$credential" \
+        '.backupLocations[] | select(.spec.credential.name == $c) | .fullName.name')"
+
+    numTargetLocations="$(echo "$targetLocations" | wc -l | xargs)"
+
+    case "$numTargetLocations" in
+        0)
+            echo "😱 Unable to find a target location that uses the account credential '$credential'"
+            exit 1
+            ;;
+        1)
+            echo "$targetLocations" | tr -d '\r'
+            ;;
+        *)
+            echo "$targetLocations" | fzf --height=40% --layout=reverse --info=inline --border
+            ;;
+    esac
+}
+
+assign_cluster_group_to_target_location() {
+    local targetLocation="${1-$TARGET_LOCATION}"
+    local clusterGroup="${2:-$TMC_CLUSTER_GROUP}"
+    local credentialName="${3:-$CREDENTIAL}"
+
+    local assignedClusterGroups
+
+    assignedClusterGroups="$(tmc dataprotection provider backuplocation get "$targetLocation" \
+         -o json | jq -r '.spec.assignedGroups[].clustergroup.name')"
+
+    if grep -q "$clusterGroup" <<< "$assignedClusterGroups"; then
+        echo "Cluster group '$clusterGroup' already assigned to target location '$targetLocation'"
+    else
+        echo "Assigning cluster group '$clusterGroup' to target location '$targetLocation'"
+        assignedClusterGroups="$assignedClusterGroups
+$clusterGroup"
+        erun tmc dataprotection provider backuplocation update "$targetLocation" \
+            -n "$targetLocation" \
+            --credential-name "$credentialName" \
+            --assigned-cluster-groups "$(tr "\n" "," <<< "$assignedClusterGroups" | sed 's/.$//')"
+    fi
+}
+
+enable_dp_for() {
+    local clusterName="${1:-$TMC_CLUSTER_NAME}"
+    local targetLocation="${2:-$TARGET_LOCATION}"
+    local clusterGroup="${3:-$TMC_CLUSTER_GROUP}"
+
+    echo "Assigning cluster group '$clusterGroup' to target location '$targetLocation'"
+    assign_cluster_group_to_target_location "$targetLocation" "$clusterGroup"
+    echo
+
+    # enable data protection on cluster if needed
+    # !! CLI uses 'backuplocation' not target location
+    echo "Enabling data protection on local cluster..."
+    erun tmc cluster dataprotection create \
+        --cluster-name "$clusterName" \
+        --backup-location-names "$targetLocation" \
+        --disable-restic
+    echo
+
+    # monitor data protection enablment
+    echo -n "Waiting for data protection to be enabled on local cluster"
+    # !! Why does cluster need to be defined?
+    # shellcheck disable=SC2086 
+    while [ "$(tmc cluster dataprotection get \
+        --cluster-name "$clusterName" \
+        -o json | jq -r .status.phase)" != "READY" ]; do
+        echo -n '.'
+        sleep 10
+    done
+    echo ' ✅'
+    echo
+}
+
+backup_cluster() {
+    local backupName="${1:-$BACKUP_NAME}"
+    local clusterName="${2:-$TMC_CLUSTER_NAME}"
+    local targetLocation="${3:-$TARGET_LOCATION}"
+
+    echo "Creating a baseline backup of the cluster..."
+    erun tmc cluster dataprotection backup create \
+        -n "$backupName" -c "$clusterName" \
+        -d "baseline backup for whole cluster" \
+        --backup-location-name "$targetLocation" \
+        --ttl 48h0m0s \
+        -l "$TMC_LABELS"
+
+    echo -n "Monitoring the baseline backup"
+    # !! Why does cluster need to be defined?
+    # shellcheck disable=SC2086 
+    while [ "$(tmc cluster dataprotection backup get $backupName \
+        --cluster-name $clusterName \
+        -o json | jq -r .status.phase)" != "COMPLETED" ]; do
+        echo -n '.'
+        sleep 10
+    done
+    echo ' ✅'
+    echo
+}
+
+schedule_backup_namespace() {
+    local namespace="${1:-$NAMESPACE_NAME}"
+    local clusterName="${2:-$TMC_CLUSTER_NAME}"
+    local targetLocation="${3:-$TARGET_LOCATION}"
+    
+    erun tmc cluster dataprotection schedule create \
+        -n "$namespace" -c "$clusterName" \
+        --backup-location-name "$targetLocation" \
+        --description "backup schedule for namespace $namespace" \
+        --ttl 24h0m0s \
+        --rate "0 13 15 * *" \
+        -l "$TMC_LABELS"
+    echo
+}
+
+restore_cluster() {
+    local backupName="${1:-$BACKUP_NAME}"
+    local clusterName="${2:-$TMC_CLUSTER_NAME}"
+    local targetLocation="${3:-$TARGET_LOCATION}"
+
+    echo "Restore cluster from baseline backup..."
+    erun tmc cluster dataprotection restore create \
+        -n "${backupName}-restore" \
+        -b "$backupName" -c "$clusterName" \
+        -d "baseline restore for whole cluster" \
+        -l "$TMC_LABELS"
+        # --include-namespaces "$NAMESPACE_NAME" \
+
+    echo -n "Monitoring the baseline restore"
+    # !! Why does cluster need to be defined?
+    # shellcheck disable=SC2086 
+    while [ "$(tmc cluster dataprotection restore get $"${backupName}-restore" \
+        --cluster-name $clusterName \
+        -o json | jq -r .status.phase)" != "COMPLETED" ]; do
+        echo -n '.'
+        sleep 10
+    done
+    echo ' ✅'
+    echo
+}
+
+# baseline back up of whole cluster ------------------------------------------
+
+heading "Set up baseline backup for entire local cluster"
+
+echo "${TMC_BOLD}✋ Please select a suitable account credential for data protection on EC2 ${TMC_RESET}"
+CREDENTIAL=$(get_dp_credential)
+echo "'$CREDENTIAL' selected"
+echo
+
+echo "Finding target location that uses the account credential '$CREDENTIAL'..."
+TARGET_LOCATION="$(get_targetLocation_using "$CREDENTIAL")"
+echo "'$TARGET_LOCATION' selected"
+echo
+
+if dp_exists_for "$TMC_CLUSTER_NAME"; then
+    read -p "${TMC_BOLD}✋ Looks like a data protection is already enabled for cluster '$TMC_CLUSTER_NAME'. Want me to re-enable it? [y/N] ${TMC_RESET}" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        disable_dp_for "$TMC_CLUSTER_NAME"
+        enable_dp_for "$TMC_CLUSTER_NAME"
+    else
+        # clean up backup. scehdule and restore objects
+        delete_dp_resources_for "$TMC_CLUSTER_NAME"
+    fi
+else 
+    enable_dp_for "$TMC_CLUSTER_NAME"
+fi
+
+# Create a namespace to play with
+NAMESPACE_NAME="dp-test-$(date "+%Y%m%d%H%M%S")"
+erun kubectl delete ns -l env=alb-dp-test   # cleanup old dp-test namespaces
+erun kubectl create ns "$NAMESPACE_NAME"
+erun kubectl label ns "$NAMESPACE_NAME" env=alb-dp-test
+# erun tmc cluster namespace attach -n "$NAMESPACE_NAME" -k "$TMC_WORKSPACE" \
+#         -c "$TMC_CLUSTER_NAME" \
+#         -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+
+BACKUP_NAME="baseline"
+backup_cluster "$BACKUP_NAME"
+
+erun tmc cluster dataprotection backup list \
+    --cluster-name "$TMC_CLUSTER_NAME" \
+    | grep -E --color=auto "${BACKUP_NAME}|$"
+
+# scheduled backup of a given namespace --------------------------------------
+
+heading "Schedule backup for critical namespace in the local cluster"
+
+erun kubectl get ns -A | grep -E --color=auto "${NAMESPACE_NAME}|$"
+
+echo "Create a scheduled backup of the new namespace"
+schedule_backup_namespace "$NAMESPACE_NAME"
+
+erun tmc cluster dataprotection schedule list \
+    --cluster-name "$TMC_CLUSTER_NAME" \
+    | grep -E --color=auto "${NAMESPACE_NAME}|$"
+
+# restore backup of a given namespace ----------------------------------------
+
+heading "Simulate accidental deletion of namespace and do full restore"
+
+erun kubectl delete ns "$NAMESPACE_NAME"
+erun kubectl get ns -A
+
+restore_cluster "$BACKUP_NAME"
+
+erun tmc cluster dataprotection restore list \
+    --cluster-name "$TMC_CLUSTER_NAME" \
+    | grep -E --color=auto "${BACKUP_NAME}|$"
+
+erun kubectl get ns -A | grep -E --color=auto "${NAMESPACE_NAME}|$"
