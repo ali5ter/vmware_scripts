@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file run_inspection
-# Playing around with TMC inspections
+# Playing around with TMC data protection
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091
