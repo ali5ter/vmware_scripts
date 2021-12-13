@@ -38,8 +38,6 @@ delete_dp_resources_for() {
                 --cluster-name "$clusterName"
 
             echo -n "Waiting for $resource '$resourceName' to be deleted"
-            # !! Why does cluster need to be defined?
-            # shellcheck disable=SC2086 
             while tmc cluster dataprotection "$resource" list \
                 --cluster-name "$clusterName" \
                 | grep -q "$resourceName"; do
@@ -64,7 +62,6 @@ disable_dp_for() {
         --delete-backups
 
     echo -n "Waiting data protection capability to be disabled"
-    # shellcheck disable=SC2086 
     while dp_exists_for "$clusterName"; do
         echo -n '.'
         sleep 10
@@ -149,8 +146,6 @@ enable_dp_for() {
 
     # monitor data protection enablment
     echo -n "Waiting for data protection to be enabled on local cluster"
-    # !! Why does cluster need to be defined?
-    # shellcheck disable=SC2086 
     while [ "$(tmc cluster dataprotection get \
         --cluster-name "$clusterName" \
         -o json | jq -r .status.phase)" != "READY" ]; do
@@ -175,7 +170,6 @@ backup_cluster() {
         -l "$TMC_LABELS"
 
     echo -n "Monitoring the baseline backup"
-    # !! Why does cluster need to be defined?
     # shellcheck disable=SC2086 
     while [ "$(tmc cluster dataprotection backup get $backupName \
         --cluster-name $clusterName \
@@ -216,7 +210,6 @@ restore_cluster() {
         # --include-namespaces "$NAMESPACE_NAME" \
 
     echo -n "Monitoring the baseline restore"
-    # !! Why does cluster need to be defined?
     # shellcheck disable=SC2086 
     while [ "$(tmc cluster dataprotection restore get $"${backupName}-restore" \
         --cluster-name $clusterName \
@@ -256,7 +249,8 @@ else
     enable_dp_for "$TMC_CLUSTER_NAME"
 fi
 
-# Create a namespace to play with
+# Create a namespace to play with --------------------------------------------
+
 NAMESPACE_NAME="dp-test-$(date "+%Y%m%d%H%M%S")"
 erun kubectl delete ns -l env=alb-dp-test   # cleanup old dp-test namespaces
 erun kubectl create ns "$NAMESPACE_NAME"
