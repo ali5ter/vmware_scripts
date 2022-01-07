@@ -249,8 +249,6 @@ else
     enable_dp_for "$TMC_CLUSTER_NAME"
 fi
 
-# Create a namespace to play with --------------------------------------------
-
 NAMESPACE_NAME="dp-test-$(date "+%Y%m%d%H%M%S")"
 erun kubectl delete ns -l env=alb-dp-test   # cleanup old dp-test namespaces
 erun kubectl create ns "$NAMESPACE_NAME"

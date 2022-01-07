@@ -99,4 +99,67 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         -o json | jq -r .status.conditions.READY.message
 fi
 
-# TODO: Enable TO or TSM integration on this cluster
+# Enable TO or TSM integration on this cluster
+
+export toCredential=''
+
+get_to_credential() {
+    # !! Help doesn't tell you what capability or provider strings to use
+    tmc account credential list \
+        --capability TANZU_OBSERVABILITY -o json \
+        | jq -r .credentials[].fullName.name \
+        | fzf --height=40% --layout=reverse --info=inline --border
+}
+
+heading "Set up TO integration for your cluster"
+
+echo "${TMC_BOLD}✋ Please select a suitable account credential for tanzu observability ${TMC_RESET}"
+toCredential=$(get_to_credential)
+echo "'$toCredential' selected"
+echo
+
+# Grab the name TMC uses for the TO integration
+# !! No format compatability of capability/integration name as seen in accounts
+integrationName="$(tmc integration list -o json \
+    | jq -r '.integrations[].fullName.name' | grep observability)"
+
+# !! Why is cluster group listed in the output when scoped to a cluster?
+# !! Doesn't list the account credential used unless you output json
+if tmc clustergroup integration list --cluster-group-name "$TMC_CLUSTER_GROUP" \
+        | grep -q "$integrationName"; then
+    echo "Tanzu Observability already integrated with cluster group $TMC_CLUSTER_GROUP"
+else
+    echo "Enable Tanzu Observability for cluster group $TMC_CLUSTER_GROUP"
+    # !! options don't follow consistent format with rest of tmc CLI
+    erun tmc clustergroup integration create \
+        --full-name.cluster-group-name "$TMC_CLUSTER_GROUP" \
+        --full-name.name "$integrationName" \
+        --spec.credential-name "$toCredential"
+fi
+
+echo -n "Monitoring the integration of tanzu observability"
+# !! Why does cluster need to be defined?
+phase='PENDING'
+while [ "$phase" == 'PENDING' ]; do
+    # shellcheck disable=SC2086 
+    phase="$(tmc clustergroup integration get $integrationName \
+    --cluster-group-name $TMC_CLUSTER_GROUP \
+    -o json | jq -r .status.phase)"
+    case "$phase" in
+        COMPLETE)
+            echo ' ✅'
+            break
+            ;;
+        ERROR)
+            echo -n ' 😱 not all integrations successfully reconciled'
+            break
+            ;;
+        PENDING)
+            echo -n '.'
+            sleep 10
+    esac
+done
+echo
+
+# !! Doesn't show you what clusters to is installed on
+erun tmc clustergroup integration get "$integrationName" --cluster-group-name "$TMC_CLUSTER_GROUP"
