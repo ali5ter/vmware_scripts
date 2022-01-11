@@ -46,8 +46,48 @@ erun tmc cluster iam add-binding "$TMC_CLUSTER_NAME" \
 # !! No list command
 # tmc cluster iam list \
 #     --clust
-# kubectl get rolebindings,clusterrolebinding \
-#     --all-namespaces | grep cluster.edit
+# So resort to listing k8s rolebindings...
+erun kubectl get rolebindings -A | grep "$TMC_CLUSTER_NAME"
+echo
+
+get_cluster_access_policies() {
+    local cluster="${1:-TMC_CLUSTER_NAME}"
+    tmc cluster iam get-policy "$cluster" \
+        -m attached -p attached \
+        -o json | jq -r '.policyList[]'
+}
+
+# filters on list of scans json output
+accessPolicyNames()         { echo "$1" | jq -r '.meta.uid'; }
+accessPolicyDetail()        { echo "$1" | jq --arg n "$2" -r '. | select(.meta.uid == '\$n')'; }
+accessPolicyType()          { echo "$1" | jq -r '.meta.parentReferences[].rid' | cut -d':' -f 2; }
+accessPolicyRole()          { echo "$1" | jq -r '.roleBindings[].role'; }
+accessPolicySubjects()      { echo "$1" | jq --arg r "$2" -r '.roleBindings[] | select(.role == '\$r') | .subjects[].name'; }
+
+list_cluster_access_policies() {
+    local cluster="${1:-TMC_CLUSTER_NAME}"
+    local policies detail type role subject subjects
+    policies="$(get_cluster_access_policies "$cluster")"
+    printf "%-15s  %-32s  %s\\n" "TYPE" "ROLE" "SUBJECTS"
+    for policy in $(accessPolicyNames "$policies"); do
+        detail=$(accessPolicyDetail "$policies" "$policy")
+        type="$(accessPolicyType "$detail")"
+        case $type in
+            org)    type='organization';;
+            c)      type='cluster';;
+        esac
+        for role in $(accessPolicyRole "$detail"); do
+            subjects=''
+            for subject in $(accessPolicySubjects "$detail" "$role"); do
+                subjects="$subjects $subject"
+            done
+            printf "%-15s  %-32s  %s\\n" "$type" "$role" "$subjects"
+        done
+    done
+    echo
+}
+
+list_cluster_access_policies "$TMC_CLUSTER_NAME"
 
 # play with security policies ------------------------------------------------
 
