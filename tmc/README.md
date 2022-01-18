@@ -5,12 +5,18 @@ These are bash scripts written to explore the [VMware Tanzu Mission Control](htt
 If you have access to TMC, then you can download the binary from the SaaS GUI. However, as a conveniece, a [download_tmc](download_tmc) script is provided here that uses the TMC API to know where to download the CLI binary.
 
 ## Environment
-The [tmc_env.sh](tmc_env.sh) script can be sourced to provide the variables and some helper functions to help work with the TMC CLI (and API). All configuration can be modified in [tmc_config.sh](tmc_config.sh). Make sure to generate an API Token form your VMware Cloud account settings for the TMC service(s) you intent to run these scripts against. The [tmc_config.sh](tmc_config.sh) currently expects to see this token in a local file at `~/.config/csp-staging-token`.
+The [tmc_env.sh](tmc_env.sh) script can be sourced to provide the variables and some helper functions to help work with the TMC CLI (and API). 
 
-These scripts rely on some tools as prerequisites: the TMC CLI (obviously), kubectl, jq and fzf.
-If you're using macOS, other than TMC, these are all available via [homebrew](https://brew.sh) and can be installed with
+All configuration can be modified in [tmc_config.sh](tmc_config.sh). Make sure to generate an API Token form your VMware Cloud account settings for the TMC service(s) you intent to run these scripts against. The [tmc_config.sh](tmc_config.sh) currently expects to see this token in a local file at `~/.config/csp-staging-token`.
+
+These scripts rely on some tools as prerequisites: the TMC CLI (obviously), kind, kubectl, jq and fzf.
+If you're using macOS, other than TMC, these are all available via [homebrew](https://brew.sh)...
   
-`brew install kubectl jq fzf`
+`brew install kind kubectl jq fzf`
+
+Using `kind` to stand up a kubernetes cluster assumes that docker is present. There are different options to do this, but if you're using macOS, a good option is to install [Docker Desktop](https://www.docker.com/products/docker-desktop) using [homebrew](https://brew.sh)...
+
+`brew install --cask docker`
 
 Some helper functions that the [tmc_env.sh](tmc_env.sh) script provides which you might find useful:
 | Function Name | Use |
