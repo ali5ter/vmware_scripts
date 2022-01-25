@@ -221,6 +221,10 @@ restore_cluster() {
     echo
 }
 
+# check what cluster to play with data protection on -------------------------
+
+set_cluster
+
 # baseline back up of whole cluster ------------------------------------------
 
 heading "Set up baseline backup for entire local cluster"

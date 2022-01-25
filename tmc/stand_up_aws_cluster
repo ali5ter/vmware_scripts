@@ -11,7 +11,7 @@ set_provider_to aws
 
 # Adjust for the TMC AWS-Hosted management cluster name
 # !! Guess this is just something you gatta know
-export TMC_MANAGEMENT_CLUSTER='aws-hosted'
+export TMC_MNGMT_CLUSTER='aws-hosted'
 
 export CREDENTIAL=''
 
@@ -19,7 +19,7 @@ export CREDENTIAL=''
 
 get_provisioner() {
     tmc managementcluster provisioner list \
-        --management-cluster-name "$TMC_MANAGEMENT_CLUSTER" \
+        --management-cluster-name "$TMC_MNGMT_CLUSTER" \
         | fzf --height=40% --layout=reverse --info=inline --border
 }
 
@@ -29,7 +29,7 @@ get_host_aws_credential() {
     # !! Thought there might be a way to list accounts credentials under
     #    tmc managementcluster
     tmc account management-cluster provisioner credential list \
-        --management-cluster-name "$TMC_MANAGEMENT_CLUSTER" \
+        --management-cluster-name "$TMC_MNGMT_CLUSTER" \
         --provisioner-name "$provisioner" -o json \
         | jq -r .credentials[].fullName.name \
         | fzf --height=40% --layout=reverse --info=inline --border
@@ -39,7 +39,7 @@ get_host_aws_credential() {
 
 heading "Deploy k8s on TMC Hosted AWS system if it isn't already"
 
-if tmc cluster list --all | grep "$TMC_MANAGEMENT_CLUSTER" | grep -q "$TMC_CLUSTER_NAME"; then
+if tmc cluster list --all | grep "$TMC_MNGMT_CLUSTER" | grep -q "$TMC_CLUSTER_NAME"; then
     echo "✅ Cluster $TMC_CLUSTER_NAME exists"
 else
     # Assumes the provisioner is already created (via the UI)
@@ -69,7 +69,7 @@ else
     # !! You still have to know what all the inputs are, so here you'd need to know all
     #    the details from your AWS account (which is automatically fetched in the UI)
     erun tmc cluster create -t default --name "$TMC_CLUSTER_NAME" \
-        --management-cluster-name "$TMC_MANAGEMENT_CLUSTER" \
+        --management-cluster-name "$TMC_MNGMT_CLUSTER" \
         --provisioner-name "$TMC_PROVISIONER" \
         --cluster-group "$TMC_CLUSTER_GROUP" \
         --description "$TMC_DESCRIPTION" \
@@ -85,7 +85,7 @@ else
     echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is ready"
     # shellcheck disable=SC2086
     while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
-            -m "$TMC_MANAGEMENT_CLUSTER" -p "$TMC_PROVISIONER" \
+            -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" \
             -o json | jq -r .status.phase)" != 'READY' ]; do
         echo -n '.'
         sleep 10
@@ -98,7 +98,7 @@ else
     echo -n "Checking TMC thinks $TMC_CLUSTER_NAME is healthy"
     # shellcheck disable=SC2086
     while [ "$(tmc cluster get $TMC_CLUSTER_NAME \
-            -m "$TMC_MANAGEMENT_CLUSTER" -p "$TMC_PROVISIONER" \
+            -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" \
             -o json | jq -r .status.health)" != 'HEALTHY' ]; do
         echo -n '.'
         sleep 10

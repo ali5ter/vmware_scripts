@@ -6,6 +6,10 @@
 # shellcheck disable=SC1091
 source tmc_env.sh
 
+# Check what cluster to play with --------------------------------------------
+
+set_cluster
+
 heading "Bring app namespace under management"
 
 # Deploy a test application on local k8s  ------------------------------------
@@ -26,13 +30,14 @@ erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER"
 # Create a workspace where we can manage namespaces
 # !! --all flag doesn't seem to make any difference
 if tmc workspace list --all | grep "$TMC_WORKSPACE" >/dev/null; then
-    echo "Workspace $TMC_WORKSPACE exists"
+    echo "✅ Workspace $TMC_WORKSPACE exists"
 else
     # !! Shouldn't name be a positional parameter?
     # !! what does 'stringToString' mean in the help?
     erun tmc workspace create -n "$TMC_WORKSPACE" \
         -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
     sleep 5
+
     erun tmc workspace get "$TMC_WORKSPACE"
 fi
 
@@ -51,6 +56,7 @@ tmc cluster namespace get "$namespace" \
     erun tmc cluster namespace attach -n "$namespace" -k "$TMC_WORKSPACE" \
         -c "$TMC_CLUSTER_NAME" \
         -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
+    sleep 5
     # !! List command does not list any namespaces!
     # !! Seems like only managed namespaces might be shown
     # !! No -c option

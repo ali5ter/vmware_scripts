@@ -11,24 +11,24 @@ set_provider_to aws
 
 # Adjust for the TMC AWS-Hosted management cluster name
 # !! Guess this is just something you gatta know
-export TMC_MANAGEMENT_CLUSTER='aws-hosted'
+export TMC_MNGMT_CLUSTER='aws-hosted'
 
 # Delete a k8s using a one-node control plane on AWS EC2 ---------------------
 
 heading "Delete k8s on TMC Hosted AWS system if it isn't already"
 
-if tmc cluster list --all | grep "$TMC_MANAGEMENT_CLUSTER" | grep -q "$TMC_CLUSTER_NAME"; then
+if tmc cluster list --all | grep "$TMC_MNGMT_CLUSTER" | grep -q "$TMC_CLUSTER_NAME"; then
 
     # Cheesy way of grabbing the provisioner name
     # shellcheck disable=SC2155
     export TMC_PROVISIONER="$(tmc cluster list --all \
-        | grep "$TMC_MANAGEMENT_CLUSTER" \
+        | grep "$TMC_MNGMT_CLUSTER" \
         | grep "$TMC_CLUSTER_NAME" \
         | awk '{print $3}')"
 
     # Do not use --force so that TMC cleans up AWS resources
     erun tmc cluster delete "$TMC_CLUSTER_NAME" \
-        --management-cluster-name "$TMC_MANAGEMENT_CLUSTER" \
+        --management-cluster-name "$TMC_MNGMT_CLUSTER" \
         --provisioner-name "$TMC_PROVISIONER"
 else
     echo "Cluster $TMC_CLUSTER_NAME does not exist. Nothing to remove."

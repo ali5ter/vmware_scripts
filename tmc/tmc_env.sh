@@ -59,10 +59,10 @@ api_get() {
 check_stack() {
     read -p "${TMC_BOLD}✋ What stack do you want to use? [$TMC_STACK] " -r
     echo
-    TMC_STACK="${REPLY:-$TMC_STACK}"
-    TMC_CONTEXT="tmc-${TMC_STACK}"
-    TMC_API_ENDPOINT_HOSTNAME="tmc-users-${TMC_STACK}.tmc-dev.cloud.vmware.com"
-    TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"
+    export TMC_STACK="${REPLY:-$TMC_STACK}"
+    export TMC_CONTEXT="tmc-${TMC_STACK}"
+    export TMC_API_ENDPOINT_HOSTNAME="tmc-users-${TMC_STACK}.tmc-dev.cloud.vmware.com"
+    export TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"
 }
 
 set_up() {
@@ -141,11 +141,11 @@ start_local_cluster() {
         read -p "${TMC_BOLD}✋ Looks like a kind cluster, $cname, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            kind delete cluster --name="$cname" && \
-            kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
+            erun kind delete cluster --name="$cname" && \
+            erun kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
         fi 
     else 
-        kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
+        erun kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER_NAME"
     fi
     echo
 }
@@ -225,10 +225,9 @@ attach_local_cluster() {
     fi
 
     # Update the cluster metadata
-    # ! Since options to set it at create time don't appear to work
-    # ! Still can't set the description
-    # ! Description flag inconsistent with creation command
-    # ! Help text should description label value format as, key1=value1,key2=value2...
+    # !! Still can't set the description
+    # !! Description flag inconsistent with creation command
+    # !! Help text should description label value format as, key1=value1,key2=value2...
     erun tmc cluster update "$TMC_CLUSTER_NAME" -m attached -p attached \
         --description "$TMC_DESCRIPTION" -l "$TMC_LABELS"
 
@@ -238,6 +237,78 @@ attach_local_cluster() {
 
     # Inspect cluster
     erun tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
+}
+
+get_cluster_summary() {
+    local cluster_search_token clusters num_clusters
+
+    # shellcheck disable=SC2016
+    cluster_search_token="$(grep CLUSTER_NAME tmc_config.sh \
+        | cut -d'=' -f2 \
+        | sed 's/\${TMC_PROVIDER}//' \
+        | xargs)"
+
+    # shellcheck disable=SC2086
+    clusters="$(tmc cluster list --all | grep $cluster_search_token)"
+    
+    num_clusters="$(echo "$clusters" | wc -l | xargs)"
+
+    case "$num_clusters" in
+        0)
+            echo "😱 Uanble to figure out what cluster to use"
+            exit 1
+            ;;
+        1)
+            echo "$clusters"
+            ;;
+        *)
+            echo "$clusters" | fzf --height=40% --layout=reverse --info=inline --border 
+            ;;
+    esac
+}
+
+set_cluster() {
+    echo "${TMC_BOLD}✋ Please select the cluster you would like to operate on ${TMC_RESET}"
+    # shellcheck disable=SC2155
+    local cluster="$(get_cluster_summary)"
+    # shellcheck disable=SC2155
+    # shellcheck disable=SC2086
+    export TMC_CLUSTER_NAME="$(awk '{print $1}' <<< $cluster)"
+    # shellcheck disable=SC2155
+    # shellcheck disable=SC2086
+    export TMC_MNGMT_CLUSTER="$(awk '{print $2}' <<< $cluster)"
+    # shellcheck disable=SC2155
+    # shellcheck disable=SC2086
+    export TMC_PROVISIONER="$(awk '{print $3}' <<< $cluster)"
+    echo "'$TMC_CLUSTER_NAME' selected"
+    echo
+
+    # Update the context with defaults
+    # !! Can't list defaults. Have to look in current context
+    # !! Unable to set defaults independenty from each other
+    # !! but even then, loglevel value is different
+    # !! by trial and error, discovered you can unset defaults with no flags
+    erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
+
+    # Grab the kubeconfig from TMC
+    local kubeconfig_file="$HOME/.config/kubeconfig_${TMC_CLUSTER_NAME}_${TMC_STACK}.yaml"
+    if [[ "$TMC_MNGMT_CLUSTER" =~ attached|aws-hosted ]]; then
+        # Could find local context if attached cluster is actually local
+        #   kubectl config use-context $(kubectl config get-contexts | grep alb-dev-local)
+        # Store kubeconfig from TMC for selected attached cluster
+        erun tmc cluster auth kubeconfig get "$TMC_CLUSTER_NAME" > "$kubeconfig_file"
+    else
+        # Pulling kubeconfig from TMC for selected provisioned cluster
+        erun tmc cluster auth admin-kubeconfig get "$TMC_CLUSTER_NAME" > "$kubeconfig_file"
+    fi
+
+    # Add kubeconfig to the list that kubectl should look at
+    if ! grep -q "$kubeconfig_file" <<< "$KUBECONFIG"; then
+        export KUBECONFIG="$KUBECONFIG:$kubeconfig_file"
+    fi
+
+    # Switch kubectl context
+    erun kubectl config use-context "$TMC_CLUSTER_NAME"
 }
 
 deploy_application() {

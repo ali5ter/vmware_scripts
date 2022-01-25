@@ -22,7 +22,8 @@ get_scans() {
     # !! List doesn't tell me state of the scans by default
     # !! No -c option
     tmc cluster inspection scan list \
-        --cluster-name "$TMC_CLUSTER_NAME" -m attached -p attached \
+        --cluster-name "$TMC_CLUSTER_NAME" \
+        -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" \
         -o json
 }
 
@@ -65,6 +66,10 @@ list_scans() {
     echo
 }
 
+# Check what cluster to play with --------------------------------------------
+
+set_cluster
+
 # run a conformance inspection scan if non are running -----------------------
 
 heading "Run a conformance inspection scan on the cluster"
@@ -77,15 +82,17 @@ is_scan_running && exit 1
 echo "Start a conformance inspection scan on $TMC_CLUSTER_NAME"
 scanName="$(tmc cluster inspection scan create \
     --inspection-type CONFORMANCE \
-    -c "$TMC_CLUSTER_NAME" -m attached -p attached \
+    -c "$TMC_CLUSTER_NAME" \
+    -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" \
     | tail -n 1 | cut -d'"' -f2)"
 echo
 
 echo -n "Wait for the inspection scan to start running"
 # !! Why does cluster need to be defined?
 # shellcheck disable=SC2086 
-while [ "$(tmc cluster inspection scan get $scanName \
-    --cluster-name $TMC_CLUSTER_NAME -m attached -p attached \
+until [ "$(tmc cluster inspection scan get $scanName \
+    --cluster-name $TMC_CLUSTER_NAME \
+    -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" \
     -o json | jq -r .status.phase)" == "RUNNING" ]; do
     echo -n '.'
     sleep 10
