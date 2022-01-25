@@ -38,6 +38,8 @@ Current list of bash scripts and what they do:
 | [manage_namespace](manage_namespace) | deploy a test app on a local k8s cluster and attach its namespace to TMC |
 | [run_inspection](run_inspection) | run a conformance inspection on a local k8s cluster |
 | [data_protection](data_protection) | set up data protection on a local k8s cluster |
+| [stand_up_aws_cluster](stand_up_aws_cluster) | stand up a TMC AWS Hosted EC2 k8s cluster |
+| [tear_down_aws_cluster](tear_down_aws_cluster) | delete the TMC AWS Hosted EC2 k8s cluster |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.
