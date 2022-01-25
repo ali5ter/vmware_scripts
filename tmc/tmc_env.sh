@@ -150,12 +150,24 @@ start_local_cluster() {
     echo
 }
 
+set_provider_to() {
+    local provider="${1}"
+    export TMC_PROVIDER="$provider"
+    # shellcheck disable=SC2155
+    # shellcheck disable=SC2086
+    # shellcheck disable=SC2016
+    export TMC_CLUSTER_NAME="$(grep CLUSTER_NAME tmc_config.sh | \
+        cut -d'=' -f2 | \
+        sed 's/\${TMC_PROVIDER}/'$TMC_PROVIDER'/' | \
+        xargs)"
+}
+
 attach_local_cluster() {
     heading "Create cluster group $TMC_CLUSTER_GROUP unless it exists"
 
     # Create cluster group to manage policy on this cluster
     if tmc clustergroup list --all | grep "$TMC_CLUSTER_GROUP" >/dev/null; then
-        echo "Cluster group $TMC_CLUSTER_GROUP exists"
+        echo "✅ Cluster group $TMC_CLUSTER_GROUP exists"
     else
         # !! name is not positional parameter
         # !! what does 'stringToString' mean in the help?
@@ -166,7 +178,9 @@ attach_local_cluster() {
     heading "Attach local k8s cluster it isn't already"
 
     # Bring local cluster under TMC management
-    if ! tmc cluster list --all | grep "$TMC_CLUSTER_NAME" >/dev/null; then
+    if tmc cluster list --all | grep "$TMC_CLUSTER_NAME" >/dev/null; then
+        echo "✅ Cluster $TMC_CLUSTER_NAME is already attached"
+    else
         # !! name is not positional parameter
         # !! no description option
         # !! can't get label option to work

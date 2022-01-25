@@ -19,8 +19,14 @@ TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"
 TMC_MNGMT_CLUSTER='attached'
 TMC_PROVISIONER='attached'
 TMC_LOG_LEVEL='debug'
-TMC_CLUSTER_NAME='alb-dev-local'
+TMC_PROVIDER='local'
+TMC_CLUSTER_NAME="alb-dev-${TMC_PROVIDER}"
 TMC_CLUSTER_GROUP='alb-test'
 TMC_WORKSPACE='alb-test'
 TMC_DESCRIPTION="🦄  Alister testing again. Please delete if needed."
 TMC_LABELS='env=test,generatedFrom=vmware_scripts'
+
+AWS_SSH_KEY="alb-sshkey-test"
+AWS_REGION="us-east-2"
+AWS_AZ="${AWS_REGION}a"
+AWS_K8S_VERSION="1.20.11-1-amazon2"
