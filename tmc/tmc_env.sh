@@ -297,7 +297,7 @@ set_cluster() {
     erun tmc configure -m "$TMC_MNGMT_CLUSTER" -p "$TMC_PROVISIONER" -l "$TMC_LOG_LEVEL"
 
     # Grab the kubeconfig from TMC
-    local kubeconfig_file="$HOME/.config/kubeconfig_${TMC_CLUSTER_NAME}_${TMC_STACK}.yaml"
+    local kubeconfig_file="${TMC_KUBECONFIG_STORE_PREFIX}${TMC_CLUSTER_NAME}_${TMC_STACK}.yaml"
     if [[ "$TMC_MNGMT_CLUSTER" =~ attached|aws-hosted ]]; then
         # Could find local context if attached cluster is actually local
         #   kubectl config use-context $(kubectl config get-contexts | grep alb-dev-local)
@@ -308,13 +308,13 @@ set_cluster() {
         erun tmc cluster auth admin-kubeconfig get "$TMC_CLUSTER_NAME" > "$kubeconfig_file"
     fi
 
-    # Add kubeconfig to the list that kubectl should look at
-    if ! grep -q "$kubeconfig_file" <<< "$KUBECONFIG"; then
-        export KUBECONFIG="$KUBECONFIG:$kubeconfig_file"
-    fi
+    # Make sure kubectl uses kubeconfig so context works
+    # shellcheck disable=SC2139
+    local invocation="kubectl --kubeconfig $kubeconfig_file"
+    # shellcheck disable=SC2139
+    alias kubectl="$invocation"
 
-    # Switch kubectl context
-    erun kubectl config use-context "$TMC_CLUSTER_NAME"
+    echo "🚨  all kubectl commands will actually use '$invocation'"
 }
 
 deploy_application() {
@@ -322,6 +322,7 @@ deploy_application() {
 
         heading "Deploy a sample application to a local k8s cluster"
 
+        [[ -d name-brainstormulator ]] && rm -fR name-brainstormulator
         erun git clone git@github.com:ali5ter/name-brainstormulator.git
         cd name-brainstormulator
         erun kubectl apply -f deployment.yaml
@@ -336,7 +337,7 @@ remove_tmc_managed_cluster() {
     local cluster_name management_cluster provisioner
     cluster_name="${1:-$TMC_CLUSTER_NAME}"
     management_cluster="${2:-$TMC_MNGMT_CLUSTER}"
-    provisioner="${2:-$TMC_PROVISIONER}"
+    provisioner="${3:-$TMC_PROVISIONER}"
 
     # Will use --force option on attached cluster because they are most
     # likely managing out local kind cluster that we can easily clean up
@@ -359,7 +360,7 @@ _remove_tmc_managed_cluster_using_cluster_summary() {
     # exract the management cluster and provisioner based on the 
     # cluster name. Use the JSON output which may be more reliable
     # than the formatted output and deal with duplicated cluster names
-    
+
     local cluster_summary cluster_name management_cluster provisioner
 
     # This is content that comes from a line of output from the command
@@ -373,7 +374,8 @@ _remove_tmc_managed_cluster_using_cluster_summary() {
 
     remove_tmc_managed_cluster "$cluster_name" "$management_cluster" "$provisioner"
     rm -f "$HOME/.config/kubeconfig_${cluster_name}_${TMC_STACK}.yaml"
-    # TODO: Clean up KUBECONFIG
+    
+    erun kubectl config unset "contexts.${cluster_name}"
 }
 
 clean_up() {
@@ -399,6 +401,9 @@ clean_up() {
 
     # Leave TMC defaults in a standard state
     erun tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
+
+    # Clean up kubeconfig files
+    rm -fR "$TMC_KUBECONFIG_STORE_PREFIX"*
 
     read -p "${TMC_BOLD}✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
     echo

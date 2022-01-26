@@ -68,6 +68,8 @@ list_scans() {
 
 # Check what cluster to play with --------------------------------------------
 
+check_stack
+
 set_cluster
 
 # run a conformance inspection scan if non are running -----------------------

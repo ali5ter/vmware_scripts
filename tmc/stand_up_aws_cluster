@@ -15,8 +15,6 @@ export TMC_MNGMT_CLUSTER='aws-hosted'
 
 export CREDENTIAL=''
 
-set_up
-
 # functions ------------------------------------------------------------------
 
 get_provisioner() {
@@ -36,6 +34,11 @@ get_host_aws_credential() {
         | jq -r .credentials[].fullName.name \
         | fzf --height=40% --layout=reverse --info=inline --border
 }
+
+set_up
+
+heading "Context detail"
+context_detail
 
 # Deploy a k8s using a one-node control plane on AWS EC2 ---------------------
 

@@ -8,6 +8,8 @@ source tmc_env.sh
 
 # Check what cluster to play with --------------------------------------------
 
+check_stack
+
 set_cluster
 
 heading "Bring app namespace under management"

@@ -114,7 +114,7 @@ assign_cluster_group_to_target_location() {
          -o json | jq -r '.spec.assignedGroups[].clustergroup.name')"
 
     if grep -q "$clusterGroup" <<< "$assignedClusterGroups"; then
-        echo "Cluster group '$clusterGroup' already assigned to target location '$targetLocation'"
+        echo "✅ Cluster group '$clusterGroup' already assigned to target location '$targetLocation'"
     else
         echo "Assigning cluster group '$clusterGroup' to target location '$targetLocation'"
         assignedClusterGroups="$assignedClusterGroups
@@ -221,7 +221,9 @@ restore_cluster() {
     echo
 }
 
-# check what cluster to play with data protection on -------------------------
+# Check what cluster to play with --------------------------------------------
+
+check_stack
 
 set_cluster
 

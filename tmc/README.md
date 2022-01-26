@@ -30,17 +30,19 @@ Some helper functions that the [tmc_env.sh](tmc_env.sh) script provides which yo
 | remove_tmc_managed_cluster | delete/detach the current TMC managed cluster |
 | clean_up | deleted/detaches TMC managed clusters and removes your local k8s cluster |
 
+These scripts will store any kubeconfig files that TMC provides under `~/.config` and your KUBECONFIG environment variable will be appended with a path for kubectl to look there.
+
 ## Scripts
 Current list of bash scripts and what they do:
 | Script | Use |
 | :------- | ------- |
 | [stand_up](stand_up) \[unstable\|stable\] | stand up a local k8s cluster and attach it to TMC... if you don't pass the stack name then it will default to 'unstable' |
-| [stand_up_aws_cluster](stand_up_aws_cluster) \[unstable\|stable\] | stand up a TMC AWS Hosted EC2 k8s cluster... if you don't pass the stack name then it will default to 'unstable'  |
+| [stand_up_aws_cluster](stand_up_aws_cluster) \[unstable\|stable\] | stand up a TMC AWS Hosted EC2 k8s cluster  |
 | [tear_down](tear_down) | choose which TMC managed cluster to delete/detach and delete the local k8s cluster |
-| [manage_namespace](manage_namespace) | deploy a test app on a TMC managed k8s cluster and attach its namespace to TMC |
-| [run_inspection](run_inspection) | run a conformance inspection on a TMC managed k8s cluster |
-| [data_protection](data_protection) | set up data protection on a TMC managed k8s cluster |
-| [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome... if you don't pass the stack name then it will default to 'unstable' |
+| [manage_namespace](manage_namespace) \[unstable\|stable\] | deploy a test app on a TMC managed k8s cluster and attach its namespace to TMC |
+| [run_inspection](run_inspection) \[unstable\|stable\]| run a conformance inspection on a TMC managed k8s cluster |
+| [data_protection](data_protection) \[unstable\|stable\]| set up data protection on a TMC managed k8s cluster |
+| [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.
