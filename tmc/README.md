@@ -25,21 +25,22 @@ Some helper functions that the [tmc_env.sh](tmc_env.sh) script provides which yo
 | context_detail | instead of outputting yaml for the current context, this presents a formatted summary |
 | start_local_cluster | stands up a local k8s kind cluster if you don't already have one (requires docker) |
 | attach_local_cluster | uses the TMC CLI to bring your local k8s cluster under management |
+| set_cluster | select a TMC manager k8s cluster to work with |
 | deploy_application | asks your local k8s cluster to stand up a test app [(name-brainstormulator)](https://github.com/ali5ter/name-brainstormulator) |
-| clean_up | detaches and removes your local k8s cluster |
+| remove_tmc_managed_cluster | delete/detach the current TMC managed cluster |
+| clean_up | deleted/detaches TMC managed clusters and removes your local k8s cluster |
 
 ## Scripts
 Current list of bash scripts and what they do:
 | Script | Use |
 | :------- | ------- |
-| [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome... if you don't pass the stack name then it will default to 'unstable' |
 | [stand_up](stand_up) \[unstable\|stable\] | stand up a local k8s cluster and attach it to TMC... if you don't pass the stack name then it will default to 'unstable' |
+| [stand_up_aws_cluster](stand_up_aws_cluster) \[unstable\|stable\] | stand up a TMC AWS Hosted EC2 k8s cluster... if you don't pass the stack name then it will default to 'unstable'  |
 | [tear_down](tear_down) | delete the local k8s cluster and detach it from TMC |
-| [manage_namespace](manage_namespace) | deploy a test app on a local k8s cluster and attach its namespace to TMC |
-| [run_inspection](run_inspection) | run a conformance inspection on a local k8s cluster |
-| [data_protection](data_protection) | set up data protection on a local k8s cluster |
-| [stand_up_aws_cluster](stand_up_aws_cluster) | stand up a TMC AWS Hosted EC2 k8s cluster |
-| [tear_down_aws_cluster](tear_down_aws_cluster) | delete the TMC AWS Hosted EC2 k8s cluster |
+| [manage_namespace](manage_namespace) | deploy a test app on a TMC managed k8s cluster and attach its namespace to TMC |
+| [run_inspection](run_inspection) | run a conformance inspection on a TMC managed k8s cluster |
+| [data_protection](data_protection) | set up data protection on a TMC managed k8s cluster |
+| [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome... if you don't pass the stack name then it will default to 'unstable' |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.

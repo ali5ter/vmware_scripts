@@ -239,8 +239,8 @@ attach_local_cluster() {
     erun tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
 }
 
-get_cluster_summary() {
-    local cluster_search_token clusters num_clusters
+get_cluster_summaries() {
+    local cluster_search_token clusters
 
     # shellcheck disable=SC2016
     cluster_search_token="$(grep CLUSTER_NAME tmc_config.sh \
@@ -249,7 +249,13 @@ get_cluster_summary() {
         | xargs)"
 
     # shellcheck disable=SC2086
-    clusters="$(tmc cluster list --all | grep $cluster_search_token)"
+    tmc cluster list --all | grep $cluster_search_token
+}
+
+get_cluster_summary() {
+    local clusters num_clusters
+
+    clusters="$(get_cluster_summaries)"
     
     num_clusters="$(echo "$clusters" | wc -l | xargs)"
 
@@ -326,22 +332,72 @@ deploy_application() {
     echo
 }
 
+remove_tmc_managed_cluster() {
+    local cluster_name management_cluster provisioner
+    cluster_name="${1:-$TMC_CLUSTER_NAME}"
+    management_cluster="${2:-$TMC_MNGMT_CLUSTER}"
+    provisioner="${2:-$TMC_PROVISIONER}"
+
+    # Will use --force option on attached cluster because they are most
+    # likely managing out local kind cluster that we can easily clean up
+    # For those clusters we've provisioned we will have TMC attempt to clean
+    # up the resources on the supporting IaS.
+    if [[ "$management_cluster" == 'attached' ]]; then
+        erun tmc cluster delete "$cluster_name" \
+            -m "$management_cluster" \
+            -p "$provisioner" \
+            --force
+    else
+        erun tmc cluster delete "$cluster_name" \
+            -m "$management_cluster" \
+            -p "$provisioner"
+    fi
+}
+
+_remove_tmc_managed_cluster_using_cluster_summary() {
+    local cluster_summary cluster_name management_cluster provisioner
+
+    # This is content that comes from a line of output from the command
+    #   tmc cluster list
+    # and contains the cluster name, management cluster and provisioner
+    cluster_summary="${1}"
+
+    cluster_name="$(awk '{print $1}' <<< "$cluster_summary")"
+    management_cluster="$(awk '{print $2}' <<< "$cluster_summary")"
+    provisioner="$(awk '{print $3}' <<< "$cluster_summary")"
+
+    remove_tmc_managed_cluster "$cluster_name" "$management_cluster" "$provisioner"
+    rm -f "$HOME/.config/kubeconfig_${cluster_name}_${TMC_STACK}.yaml"
+    # TODO: Clean up KUBECONFIG
+}
+
 clean_up() {
     heading "Clean up cluster resources"
 
-    # TODO: Check cluster still attached
-    read -p "${TMC_BOLD}✋ Do you want me to detach $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
+    local cluster_summary cluster_name management_cluster provisioner
+
+    read -p "${TMC_BOLD}✋ Do you want me to delete/detach all clusters? [y/N] ${TMC_RESET}" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        erun tmc cluster delete "$TMC_CLUSTER_NAME" \
-            -m attached -p attached \
-            --force
+        while read -r cluster_summary; do
+            _remove_tmc_managed_cluster_using_cluster_summary "$cluster_summary"
+        done <<< "$(get_cluster_summaries)"
+    else
+        echo "${TMC_BOLD}✋ Please select the cluster you would like to delete/detach ${TMC_RESET}"
+        cluster_summary="$(get_cluster_summary)"
+        cluster_name="$(awk '{print $1}' <<< "$cluster_summary")"
+        echo "'$cluster_name' selected"
+        echo
+        _remove_tmc_managed_cluster_using_cluster_summary "$cluster_summary"
     fi
     echo
+
+    # Leave TMC defaults in a standard state
+    erun tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
 
     read -p "${TMC_BOLD}✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        kind delete cluster --name="$TMC_CLUSTER_NAME"
+        erun kind delete cluster --name="$TMC_CLUSTER_NAME"
     fi
 }
