@@ -355,6 +355,11 @@ remove_tmc_managed_cluster() {
 }
 
 _remove_tmc_managed_cluster_using_cluster_summary() {
+    # TODO: Make this more of a general service function that can 
+    # exract the management cluster and provisioner based on the 
+    # cluster name. Use the JSON output which may be more reliable
+    # than the formatted output and deal with duplicated cluster names
+    
     local cluster_summary cluster_name management_cluster provisioner
 
     # This is content that comes from a line of output from the command
