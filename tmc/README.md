@@ -36,7 +36,7 @@ Current list of bash scripts and what they do:
 | :------- | ------- |
 | [stand_up](stand_up) \[unstable\|stable\] | stand up a local k8s cluster and attach it to TMC... if you don't pass the stack name then it will default to 'unstable' |
 | [stand_up_aws_cluster](stand_up_aws_cluster) \[unstable\|stable\] | stand up a TMC AWS Hosted EC2 k8s cluster... if you don't pass the stack name then it will default to 'unstable'  |
-| [tear_down](tear_down) | delete the local k8s cluster and detach it from TMC |
+| [tear_down](tear_down) | choose which TMC managed cluster to delete/detach and delete the local k8s cluster |
 | [manage_namespace](manage_namespace) | deploy a test app on a TMC managed k8s cluster and attach its namespace to TMC |
 | [run_inspection](run_inspection) | run a conformance inspection on a TMC managed k8s cluster |
 | [data_protection](data_protection) | set up data protection on a TMC managed k8s cluster |
