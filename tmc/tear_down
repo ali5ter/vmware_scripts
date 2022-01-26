@@ -6,4 +6,10 @@
 # shellcheck disable=SC1091
 source tmc_env.sh
 
+# Check what cluster to play with --------------------------------------------
+
+check_stack
+
+# Clear up all the stuffs ----------------------------------------------------
+
 clean_up
