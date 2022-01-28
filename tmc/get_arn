@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# @file get_arn
+# Fetch the TMC lifecycle ARN from your AWS account
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+get_aws_arn

@@ -29,6 +29,7 @@ Some helper functions that the [tmc_env.sh](tmc_env.sh) script provides which yo
 | deploy_application | asks your local k8s cluster to stand up a test app [(name-brainstormulator)](https://github.com/ali5ter/name-brainstormulator) |
 | remove_tmc_managed_cluster | delete/detach the current TMC managed cluster |
 | clean_up | deleted/detaches TMC managed clusters and removes your local k8s cluster |
+| get_aws_arn | retrieve the TMC lifecycle ARN in your AWS account |
 
 These scripts will store any kubeconfig files that TMC provides under `~/.config` should you need them when running `kubectl` against clusters managed by TMC.
 
@@ -42,6 +43,8 @@ Current list of bash scripts and what they do:
 | [run_inspection](run_inspection) \[unstable\|stable\]| run a conformance inspection on a TMC managed k8s cluster |
 | [data_protection](data_protection) \[unstable\|stable\]| set up data protection on a TMC managed k8s cluster |
 | [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome |
+| [context_detail](context_detail) | display the TMC context detail, any TMC kubeconfigs and local kubectl contexts |
+| [get_arn](get_arn) | display the TCM lifecycle ARN in your AWS account |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.

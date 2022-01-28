@@ -120,15 +120,34 @@ context_detail() {
     # !! Extra work to extract some summary info for the context
     # !! Be nice if this were default output
     tmc system context current -o json > context.json
-    printf "Organization ID:  %s\n" "$(jq -r .spec.orgId context.json)"
-    printf "Endpoint:         %s\n" "$(jq -r .spec.endpoint context.json)"
-    printf "Username:         %s\n" "$(jq -r .status.userName context.json)"
-    printf "Org perms:        %s\n" "$(jq -r .status.permissions context.json)"
-    echo "Defaults:"
-    printf "Management cluster:  %s\n" "$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
-    printf "Provisioner:         %s\n" "$(jq -r .spec.env.PROVISIONER_NAME context.json)"
-    printf "Log-level:           %s\n" "$(jq -r .spec.env.TMC_LOG_LEVEL context.json)"
+    echo "${TMC_BOLD}Tanzu Mission Control context information${TMC_RESET}"
+    printf "  Organization ID:  %s\n" "$(jq -r .spec.orgId context.json)"
+    printf "  Endpoint:         %s\n" "$(jq -r .spec.endpoint context.json)"
+    printf "  Username:         %s\n" "$(jq -r .status.userName context.json)"
+    printf "  Org perms:        \n%s\n" "$(jq -r .status.permissions context.json)"
+    echo "  Defaults:"
+    printf "    Management cluster:  %s\n" "$(jq -r .spec.env.MANAGEMENT_CLUSTER_NAME context.json)"
+    printf "    Provisioner:         %s\n" "$(jq -r .spec.env.PROVISIONER_NAME context.json)"
+    printf "    Log-level:           %s\n" "$(jq -r .spec.env.TMC_LOG_LEVEL context.json)"
     rm context.json
+    echo
+
+    # !! Be nice if there were some description of downloaded TMC KUBECONFIG
+    #    files in a configurable location. Also provide cut and pastable alias
+    echo "${TMC_BOLD}Kubeconfig files for TMC managed clusters${TMC_RESET}"
+    local files=( "$TMC_KUBECONFIG_STORE_PREFIX"* )
+    if [[ -e "${files[0]}" ]]; then
+        for file in "${files[@]}"; do
+            printf "   %s\talias='kubectl --kubeconfig=%s'\n" "$(basename "$file")"  "$file"
+        done
+    else
+        echo "  none"
+    fi
+    echo
+
+    # Calling out the difference between contexts
+    echo "${TMC_BOLD}Local kubectl contexts${TMC_RESET}"
+    erun kubectl config get-contexts
     echo
 }
 
@@ -237,6 +256,27 @@ attach_local_cluster() {
 
     # Inspect cluster
     erun tmc cluster get "$TMC_CLUSTER_NAME" -m attached -p attached
+}
+
+get_aws_arn() {
+    heading "Fetching AWS account ARN"
+
+    AWS_CREDENTIALS="$HOME/.config/vmware-cloudgate-aws-vars.sh"
+
+    if [[ -f "$AWS_CREDENTIALS" ]]; then
+        # shellcheck disable=SC1090
+        source "$AWS_CREDENTIALS"
+    else
+        echo "🙄 Unable to find AWS credentials at $AWS_CREDENTIALS"
+        return 1
+    fi
+
+    if command -v aws 1>/dev/null 2>&1; then
+        aws iam get-role --role-name "clusterlifecycle.tmc.cloud.vmware.com" | jq -r '.Role.Arn'
+    else
+        echo "🙄 Unable to find $cmd CLI."
+        return 1
+    fi    
 }
 
 get_cluster_summaries() {

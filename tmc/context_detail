@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# @file context_detail
+# Dump the TMC context detail
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+context_detail
