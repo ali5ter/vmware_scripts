@@ -49,6 +49,7 @@ heading() {
 }
 
 erun() {
+    export PS4="${TMC_BOLD}Runing command:${TMC_RESET} "
     ( set -x; "$@"; )
     echo
 }
@@ -406,7 +407,7 @@ _remove_tmc_managed_cluster_using_cluster_summary() {
     # cluster name. Use the JSON output which may be more reliable
     # than the formatted output and deal with duplicated cluster names
 
-    local cluster_summary cluster_name management_cluster provisioner
+    local cluster_summary cluster_name management_cluster provisioner kubeconfig
 
     # This is content that comes from a line of output from the command
     #   tmc cluster list
@@ -417,10 +418,16 @@ _remove_tmc_managed_cluster_using_cluster_summary() {
     management_cluster="$(awk '{print $2}' <<< "$cluster_summary")"
     provisioner="$(awk '{print $3}' <<< "$cluster_summary")"
 
+    # Delete/detach this cluster from TMC
     remove_tmc_managed_cluster "$cluster_name" "$management_cluster" "$provisioner"
-    rm -f "$HOME/.config/kubeconfig_${cluster_name}_${TMC_STACK}.yaml"
-    
-    erun kubectl config unset "contexts.${cluster_name}"
+
+    # Remove any kubeconfig file associated with this cluster
+    kubeconfig="${TMC_KUBECONFIG_STORE_PREFIX}${cluster_name}_${TMC_STACK}.yaml"
+    [[ -f "$kubeconfig" ]] && erun rm -f "$kubeconfig"
+
+    # Remove any kubctl context associated with this cluster
+    kubectl config get-contexts | grep -q "${cluster_name}" && \
+        erun kubectl config unset "contexts.${cluster_name}"
 }
 
 clean_up() {
@@ -446,9 +453,6 @@ clean_up() {
 
     # Leave TMC defaults in a standard state
     erun tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
-
-    # Clean up kubeconfig files
-    rm -fR "$TMC_KUBECONFIG_STORE_PREFIX"*
 
     read -p "${TMC_BOLD}✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
     echo
