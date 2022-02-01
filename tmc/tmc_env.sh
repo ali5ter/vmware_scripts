@@ -8,7 +8,12 @@
 set -eou pipefail
 
 # shellcheck disable=SC1091
-source tmc_config.sh
+source tmc_config.sh || {
+    echo "👍 Copying a sample configuration to './tmc_config.sh'"
+    cp tmc_config_sample.sh tmc_config.sh
+    echo "Please edit this config, follow the instructions found there and re-run this script."
+    exit 1
+}
 
 # shellcheck disable=SC2034
 TMC_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
