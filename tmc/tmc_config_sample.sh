@@ -78,7 +78,7 @@ TMC_LABELS='env=test,generatedFrom=vmware_scripts'
 #       aws configure list | grep region | awk '{print $2}'
 # 3. The other variables in this section you can leave.
 
-AWS_SSH_KEY="alb-sshkey-test"
-AWS_REGION="us-east-2"
+AWS_SSH_KEY="<your-keypair-name>"
+AWS_REGION="<your-default-region>"
 AWS_AZ="${AWS_REGION}a"
 AWS_K8S_VERSION="1.20.11-1-amazon2"
