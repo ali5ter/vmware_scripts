@@ -49,7 +49,7 @@ heading() {
 }
 
 erun() {
-    export PS4="${TMC_BOLD}Runing command:${TMC_RESET} "
+    export PS4="🏃‍♀️ >>> "
     ( set -x; "$@"; )
     echo
 }

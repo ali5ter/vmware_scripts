@@ -1,0 +1,4 @@
+.terraform*
+variables*
+plan
+terraform*
