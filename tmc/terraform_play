@@ -22,28 +22,38 @@ command -v terraform 1>/dev/null 2>&1 || {
 
 # functions ------------------------------------------------------------------
 
-tf_generate_vars() {
-    # Generating the var declarations and variables files from tmc_config.sh
-    # shellcheck disable=SC2013
-    for var in $(grep -e '^[CSP|TMC|AWS]' tmc_config.sh| cut -d'=' -f1); do
-        echo "$var = \"${!var}\"" >> "$TF_VARS_FILE"
+tf_set_var() {
+    local var="$1"
+    echo "$var = \"${!var}\"" >> "$TF_VARS_FILE"
         cat << EO_TF_VAR_DECLARATION >> "$TF_VARS_DEFN_FILE"
 variable "$var" {
 type = string
 }
 
 EO_TF_VAR_DECLARATION
+}
+
+tf_generate_vars() {
+    # Generating the var declarations and variables files from tmc_config.sh
+    # shellcheck disable=SC2013
+    for var in $(grep -e '^[CSP|TMC|AWS]' tmc_config.sh| cut -d'=' -f1); do
+        tf_set_var "$var"
     done
+    # Make sure Terraform can refer to the $KUBECONFIG env var
+    export KUBECONFIG_FILE="$HOME/.kube/config"
+    tf_set_var KUBECONFIG_FILE
 }
 
 tf_cleaun_up_tf() {
     # Remove the terraform metadata created when initializing the terraform
     # working directory
-    for file in "$TF_VARS_FILE" "$TF_VARS_DEFN_FILE" "$TF_PLAN_FILE"; do
+    for file in "$TF_VARS_FILE" "$TF_VARS_DEFN_FILE"; do
         [[ -e "$file" ]] && rm "$file"
         touch "$file"
     done
-    rm -fR "$TF_DIR"/.terraform*
+    # rm -fR "$TF_DIR"/.terraform*
+    # rm -fR "$TF_DIR"/terraform.tfstate*
+    # rm -fR "$TF_PLAN_FILE"
 }
 
 tf_set_provider_env_vars() {
@@ -61,6 +71,8 @@ start_local_cluster
 tf_cleaun_up_tf
 tf_generate_vars
 tf_set_provider_env_vars
+
+# export TF_LOG=log_level
 
 # init the terraform working director ----------------------------------------
 # @ref https://www.terraform.io/cli/init

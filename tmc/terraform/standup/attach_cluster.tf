@@ -3,12 +3,16 @@ resource "tmc_cluster" "attach_cluster_without_apply" {
   provisioner_name        = var.TMC_PROVISIONER
   name                    = var.TMC_CLUSTER_NAME
 
+  attach_k8s_cluster {
+    kubeconfig_file = var.KUBECONFIG_FILE
+  }
+
   meta {
     description = var.TMC_DESCRIPTION
     labels      = { 
         "env" : "test", 
         "generatedFrom" : "vmware_scripts", 
-        "using" : "terraform" 
+        "using" : "terraform"
     }
   }
 
