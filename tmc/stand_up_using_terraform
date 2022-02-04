@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# @file stand_up_using_terraform
+# Playing with terraform and the TMC provider
+# @ref https://github.com/vmware/terraform-provider-tanzu-mission-control
+# @ref https://registry.terraform.io/providers/vmware/tanzu-mission-control/latest
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+TF_DIR="$PWD/terraform/standup"
+TF_VARS_DEFN_FILE="${TF_DIR}/variables.tf"
+TF_VARS_FILE="${TF_DIR}/variables.tfvars"
+TF_PLAN_FILE="${TF_DIR}/plan"
+
+command -v terraform 1>/dev/null 2>&1 || {
+    # @ref https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/docker-get-started
+    brew tap hashicorp/tap
+    brew install hashicorp/tap/terraform
+    #terraform -install-autocomplete
+}
+
+# functions ------------------------------------------------------------------
+
+tf_set_var() {
+    local var="$1"
+    echo "$var = \"${!var}\"" >> "$TF_VARS_FILE"
+        cat << EO_TF_VAR_DECLARATION >> "$TF_VARS_DEFN_FILE"
+variable "$var" {
+type = string
+}
+
+EO_TF_VAR_DECLARATION
+}
+
+tf_generate_vars() {
+    # Generating the var declarations and variables files from tmc_config.sh
+    # shellcheck disable=SC2013
+    for var in $(grep -e '^[CSP|TMC|AWS]' tmc_config.sh| cut -d'=' -f1); do
+        tf_set_var "$var"
+    done
+    # Make sure Terraform can refer to the $KUBECONFIG env var
+    export KUBECONFIG_FILE="$HOME/.kube/config"
+    tf_set_var KUBECONFIG_FILE
+}
+
+tf_cleaun_up_tf() {
+    # Clean up our variable files just in prep for regeneration
+    for file in "$TF_VARS_FILE" "$TF_VARS_DEFN_FILE"; do
+        [[ -e "$file" ]] && rm "$file"
+        touch "$file"
+    done
+    # We don't typically want to remove the terraform metadata and state if
+    # it's there so TF knows about the state of our TMC service
+    # rm -fR "$TF_DIR"/.terraform*
+    # rm -fR "$TF_DIR"/terraform.tfstate*
+    # rm -fR "$TF_PLAN_FILE"
+}
+
+tf_set_provider_env_vars() {
+    # @ref https://github.com/vmware/terraform-provider-tanzu-mission-control
+    export TMC_ENDPOINT="$TMC_API_ENDPOINT_HOSTNAME"
+    export TMC_CSP_ENDPOINT="$CSP_ENDPOINT_HOSTNAME"
+    export TMC_CSP_TOKEN="$CSP_API_TOKEN"
+}
+
+# check what stack to use and make sure we have a local cluster running ------
+
+set_up
+start_local_cluster
+
+# prepare config for terraform -----------------------------------------------
+
+tf_cleaun_up_tf
+tf_generate_vars
+tf_set_provider_env_vars
+
+# export TF_LOG=log_level
+
+# init the terraform working director ----------------------------------------
+# @ref https://www.terraform.io/cli/init
+
+erun terraform -chdir="$TF_DIR" init
+
+# figure out diff between the current state and the desired state ------------
+# @ref https://www.terraform.io/cli/commands/plan
+
+erun terraform -chdir="$TF_DIR" plan \
+    -var-file="$TF_VARS_FILE" -out="$TF_PLAN_FILE"
+
+# apply the plan to stand up out TMC resources and attach our cluster --------
+# @ref https://www.terraform.io/cli/commands/apply
+
+erun terraform -chdir="$TF_DIR" apply "$TF_PLAN_FILE"
+
+# clean up -------------------------------------------------------------------
+# @ref https://www.terraform.io/cli/commands/destroy
+
+# erun terraform -chdir="$TF_DIR" destroy
