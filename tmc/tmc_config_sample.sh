@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # @file tmc_config.sh
 # VMware Tanzu Mission Control account settings and preferences
-# Note that this only messes around with staging stacks 'unstable' and 'stable'
+# Note that the default configuration here is set up to use the staging
+# system and the TMC service stacks 'unstable' and 'stable'
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # CSP configuration ----------------------------------------------------------

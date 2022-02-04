@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file stand_up_using_terraform
-# Playing with terraform and the TMC provider
+# Use the TMC terraform provider to attach a local k8s cluster
 # @ref https://github.com/vmware/terraform-provider-tanzu-mission-control
 # @ref https://registry.terraform.io/providers/vmware/tanzu-mission-control/latest
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
@@ -23,6 +23,7 @@ command -v terraform 1>/dev/null 2>&1 || {
 # functions ------------------------------------------------------------------
 
 tf_set_var() {
+    # Echo a terraform variable declaration 
     local var="$1"
     echo "$var = \"${!var}\"" >> "$TF_VARS_FILE"
         cat << EO_TF_VAR_DECLARATION >> "$TF_VARS_DEFN_FILE"
@@ -88,7 +89,7 @@ erun terraform -chdir="$TF_DIR" init
 erun terraform -chdir="$TF_DIR" plan \
     -var-file="$TF_VARS_FILE" -out="$TF_PLAN_FILE"
 
-# apply the plan to stand up out TMC resources and attach our cluster --------
+# apply the plan to stand up our TMC resources and attach our cluster --------
 # @ref https://www.terraform.io/cli/commands/apply
 
 erun terraform -chdir="$TF_DIR" apply "$TF_PLAN_FILE"

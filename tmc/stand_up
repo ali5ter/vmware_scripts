@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file playground
-# Stand up a local cluster and auth with TMC API
+# Stand up a TMC managed k8s cluster and auth with TMC API
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file playground
-# Scratchpad of tmc commands while testing
+# Scratchpad of TMC commands while testing
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

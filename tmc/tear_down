@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file tear_down
-# Detach and remove local cluster
+# Detach/delete TMC managed k8s clusters and remove local k8s cluster
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

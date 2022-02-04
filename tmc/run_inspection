@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file run_inspection
-# Playing around with TMC inspections
+# Example of how to run an inspection on a TMC managed k8s cluster
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # @file manage_namespace
-# Bring application namespace under management
+# Bring a k8s application namespace under TMC management
+# In other words, attach an application namespace
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

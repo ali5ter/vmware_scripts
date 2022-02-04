@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # @file run_inspection
-# Playing around with TMC data protection
+# Example of how to enable data protection on a TMC managed k8s cluster
+# This script creates a baseline backup, creates a regular schedule for deltas on
+# a namespace and performs a restore and after we delete said namespace
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file tmc_env.sh
-# Create an environment where these tmc scripts can work
+# Environment and helper functions used by these TMC scripts
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
