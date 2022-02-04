@@ -45,12 +45,13 @@ tf_generate_vars() {
 }
 
 tf_cleaun_up_tf() {
-    # Remove the terraform metadata created when initializing the terraform
-    # working directory
+    # Clean up our variable files just in prep for regeneration
     for file in "$TF_VARS_FILE" "$TF_VARS_DEFN_FILE"; do
         [[ -e "$file" ]] && rm "$file"
         touch "$file"
     done
+    # We don't typically want to remove the terraform metadata and state if
+    # it's there so TF knows about the state of our TMC service
     # rm -fR "$TF_DIR"/.terraform*
     # rm -fR "$TF_DIR"/terraform.tfstate*
     # rm -fR "$TF_PLAN_FILE"
@@ -63,10 +64,12 @@ tf_set_provider_env_vars() {
     export TMC_CSP_TOKEN="$CSP_API_TOKEN"
 }
 
-# TODO: How does TF dealwith creation of existing TMC resources?
+# check what stack to use and make sure we have a local cluster running ------
 
 set_up
 start_local_cluster
+
+# prepare config for terraform -----------------------------------------------
 
 tf_cleaun_up_tf
 tf_generate_vars
