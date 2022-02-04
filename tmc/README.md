@@ -45,7 +45,7 @@ Current list of bash scripts and what they do:
 | [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome |
 | [context_detail](context_detail) | display the TMC context detail, any TMC kubeconfigs and local kubectl contexts |
 | [get_arn](get_arn) | display the TCM lifecycle ARN in your AWS account |
-| [stand_up_using_terraform](stand_up_using_terraform) | stand up the clsuter group, workspace and attach a local cluster using the [TMC Terraform Provider](https://registry.terraform.io/providers/vmware/tanzu-mission-control/latest) |
+| [stand_up_using_terraform](stand_up_using_terraform) \[unstable\|stable\] | stand up the clsuter group, workspace and attach a local cluster using the [TMC Terraform Provider](https://registry.terraform.io/providers/vmware/tanzu-mission-control/latest) |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.
