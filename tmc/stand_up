@@ -57,6 +57,8 @@ case "$CLUSTER_TYPE" in
         # !! Guess this is just something you gatta know
         export TMC_MNGMT_CLUSTER='aws-hosted'
 
+        create_cluster_group
+
         if tmc cluster list --all | grep "$TMC_MNGMT_CLUSTER" | grep -q "$TMC_CLUSTER_NAME"; then
             echo "✅ Cluster $TMC_CLUSTER_NAME exists"
         else

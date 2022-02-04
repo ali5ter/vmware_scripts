@@ -187,7 +187,7 @@ set_provider_to() {
         xargs)"
 }
 
-attach_local_cluster() {
+create_cluster_group() {
     heading "Create cluster group $TMC_CLUSTER_GROUP unless it exists"
 
     # Create cluster group to manage policy on this cluster
@@ -199,6 +199,11 @@ attach_local_cluster() {
         erun tmc clustergroup create \
             -n "$TMC_CLUSTER_GROUP" -d "$TMC_DESCRIPTION" -l "$TMC_LABELS"
     fi
+}
+
+attach_local_cluster() {
+    
+    create_cluster_group
 
     heading "Attach local k8s cluster it isn't already"
 

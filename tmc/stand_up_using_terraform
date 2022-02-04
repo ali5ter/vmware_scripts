@@ -68,6 +68,7 @@ tf_set_provider_env_vars() {
 # check what stack to use and make sure we have a local cluster running ------
 
 set_up
+context_detail
 start_local_cluster
 
 # prepare config for terraform -----------------------------------------------
