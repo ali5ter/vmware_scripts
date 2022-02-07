@@ -225,7 +225,7 @@ restore_cluster() {
 
 # Check what cluster to play with --------------------------------------------
 
-check_stack
+set_up
 
 set_cluster
 

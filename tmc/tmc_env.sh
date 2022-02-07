@@ -94,12 +94,13 @@ set_up() {
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             tmc system context delete "$TMC_CONTEXT" >/dev/null
             erun tmc login --stg-"$TMC_STACK" --name "$TMC_CONTEXT" --no-configure
+        else
+            erun tmc system context use "$TMC_CONTEXT"
         fi 
     else 
         erun tmc login --stg-"$TMC_STACK" --name "$TMC_CONTEXT" --no-configure
     fi
-    echo
-
+ 
     # Update the context with defaults
     # !! Can't list defaults. Have to look in current context
     # !! Unable to set defaults independenty from each other
@@ -362,6 +363,8 @@ set_cluster() {
     # Make sure kubectl uses kubeconfig so context works
     # shellcheck disable=SC2139
     local invocation="kubectl --kubeconfig $kubeconfig_file"
+    # @ref http://chiefsandendians.blogspot.com/2010/07/linux-scripts-and-alias.html
+    shopt -s expand_aliases
     # shellcheck disable=SC2139
     alias kubectl="$invocation"
 
