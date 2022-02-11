@@ -43,6 +43,7 @@ else
 
     erun tmc workspace get "$TMC_WORKSPACE"
 fi
+echo
 
 # !! no -c option for --cluster-name
 # !! Can't list namespaces which are unmanaged, only those that are managed

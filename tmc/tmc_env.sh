@@ -16,7 +16,10 @@ source tmc_config.sh || {
 }
 
 # shellcheck disable=SC2034
-TMC_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# shellcheck disable=SC2155
+export TMC_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+export PS4="🏃‍♀️ >>> "
 
 # helper functions -----------------------------------------------------------
 
@@ -41,6 +44,7 @@ set_text_control_evars() {
 set_text_control_evars
 
 heading() {
+    # Pretty heading
     echo
     printf "${TMC_DIM}=%.0s" {1..79}
     echo -e "\\n${1}" | fold -s -w 79
@@ -49,9 +53,18 @@ heading() {
 }
 
 erun() {
-    export PS4="🏃‍♀️ >>> "
+    # Echo and run the command passed
     ( set -x; "$@"; )
     echo
+}
+
+kubectl() { 
+    # Like an alias but works in a subshell, this will make sure to include
+    # the value of the KUBECONFIG_OPT we use for the --kubeconfig option
+
+    # shellcheck disable=SC2086
+    # shellcheck disable=SC2068
+    command kubectl $KUBECONFIG_OPT $@
 }
 
 api_get() {
@@ -63,10 +76,11 @@ api_get() {
 }
 
 check_stack() {
-    read -p "${TMC_BOLD}✋ What stack do you want to use? [$TMC_STACK] " -r
-    echo
-    export TMC_STACK="${REPLY:-$TMC_STACK}"
-    export TMC_CONTEXT="tmc-${TMC_STACK}"
+    # Override config defaults to set to the current TMC context
+    # shellcheck disable=SC2155
+    export TMC_CONTEXT="$(tmc system context current -o json | jq -r '.full_name.name')"
+    # Assumes format of context name 'tmc-STACK_NAME'
+    export TMC_STACK="${TMC_CONTEXT#*-}"
     export TMC_API_ENDPOINT_HOSTNAME="tmc-users-${TMC_STACK}.tmc-dev.cloud.vmware.com"
     export TMC_API_ENDPOINT="https://${TMC_API_ENDPOINT_HOSTNAME}"
 }
@@ -311,10 +325,12 @@ get_cluster_summary() {
     
     num_clusters="$(echo "$clusters" | wc -l | xargs)"
 
+    [[ "$clusters" == '' ]] && num_clusters=0
+
     case "$num_clusters" in
         0)
-            echo "😱 Uanble to figure out what cluster to use"
-            exit 1
+            echo
+            return 1
             ;;
         1)
             echo "$clusters"
@@ -329,6 +345,10 @@ set_cluster() {
     echo "${TMC_BOLD}✋ Please select the cluster you would like to operate on ${TMC_RESET}"
     # shellcheck disable=SC2155
     local cluster="$(get_cluster_summary)"
+    [[ -z "$cluster" ]] && {
+        echo "😱 Uanble to figure out what cluster to use"
+        exit 1
+    }
     # shellcheck disable=SC2155
     # shellcheck disable=SC2086
     export TMC_CLUSTER_NAME="$(awk '{print $1}' <<< $cluster)"
@@ -361,14 +381,7 @@ set_cluster() {
     fi
 
     # Make sure kubectl uses kubeconfig so context works
-    # shellcheck disable=SC2139
-    local invocation="kubectl --kubeconfig $kubeconfig_file"
-    # @ref http://chiefsandendians.blogspot.com/2010/07/linux-scripts-and-alias.html
-    shopt -s expand_aliases
-    # shellcheck disable=SC2139
-    alias kubectl="$invocation"
-
-    echo "🚨  all kubectl commands will actually use '$invocation'"
+    export KUBECONFIG_OPT="--kubeconfig $kubeconfig_file"
 }
 
 deploy_application() {

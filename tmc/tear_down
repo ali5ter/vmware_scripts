@@ -8,7 +8,7 @@ source tmc_env.sh
 
 # Check what cluster to play with --------------------------------------------
 
-check_stack
+set_up
 
 # Clear up all the stuffs ----------------------------------------------------
 
