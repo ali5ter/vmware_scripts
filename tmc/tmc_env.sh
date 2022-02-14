@@ -413,6 +413,9 @@ remove_tmc_managed_cluster() {
     management_cluster="${2:-$TMC_MNGMT_CLUSTER}"
     provisioner="${3:-$TMC_PROVISIONER}"
 
+    # Check cluster isn't already in detaching or deleting phase
+    tmc cluster get alb-dev-local | grep -q 'DETACHING\|DELETING' && return
+
     # Will use --force option on attached cluster because they are most
     # likely managing out local kind cluster that we can easily clean up
     # For those clusters we've provisioned we will have TMC attempt to clean
