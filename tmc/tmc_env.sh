@@ -18,7 +18,7 @@ source tmc_config.sh || {
 # shellcheck disable=SC2034
 # shellcheck disable=SC2155
 export TMC_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+export KUBECONFIG_OPT=''
 export PS4="🏃‍♀️ >>> "
 
 # helper functions -----------------------------------------------------------
@@ -168,7 +168,7 @@ context_detail() {
 
     # Calling out the difference between contexts
     echo "${TMC_BOLD}Local kubectl contexts${TMC_RESET}"
-    erun kubectl config get-contexts
+    kubectl config get-contexts
     echo
 }
 
@@ -318,8 +318,11 @@ get_cluster_summaries() {
     tmc cluster list --all | grep $cluster_search_token
 }
 
+# shellcheck disable=SC2120
 get_cluster_summary() {
-    local clusters num_clusters
+    local clusters num_clusters show_one
+
+    show_one="${1:-false}"
 
     clusters="$(get_cluster_summaries)"
     
@@ -333,7 +336,11 @@ get_cluster_summary() {
             return 1
             ;;
         1)
-            echo "$clusters"
+            if [[ "$show_one" == 'true' ]]; then
+                echo "$clusters" | fzf --height=40% --layout=reverse --info=inline --border
+            else
+                echo "$clusters"
+            fi
             ;;
         *)
             echo "$clusters" | fzf --height=40% --layout=reverse --info=inline --border 
@@ -460,11 +467,12 @@ clean_up() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         while read -r cluster_summary; do
-            _remove_tmc_managed_cluster_using_cluster_summary "$cluster_summary"
+            [[ "$cluster_summary" != '' ]] && \
+                _remove_tmc_managed_cluster_using_cluster_summary "$cluster_summary"
         done <<< "$(get_cluster_summaries)"
     else
         echo "${TMC_BOLD}✋ Please select the cluster you would like to delete/detach ${TMC_RESET}"
-        cluster_summary="$(get_cluster_summary)"
+        cluster_summary="$(get_cluster_summary show_one)"
         cluster_name="$(awk '{print $1}' <<< "$cluster_summary")"
         echo "'$cluster_name' selected"
         echo
@@ -475,9 +483,14 @@ clean_up() {
     # Leave TMC defaults in a standard state
     erun tmc configure -m attached -p attached -l "$TMC_LOG_LEVEL"
 
-    read -p "${TMC_BOLD}✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        erun kind delete cluster --name="$TMC_CLUSTER_NAME"
+    # shellcheck disable=SC2155
+    local cname="$(kind get clusters -q)"
+    # shellcheck disable=SC2153
+    if [ "$cname" == "$TMC_CLUSTER_NAME" ]; then
+        read -p "${TMC_BOLD}✋ Do you want me to delete the kind cluster, $TMC_CLUSTER_NAME? [y/N] ${TMC_RESET}" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            erun kind delete cluster --name="$TMC_CLUSTER_NAME"
+        fi
     fi
 }
