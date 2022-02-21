@@ -12,8 +12,11 @@ OS_TYPE="${1-$OSTYPE}"
 
 # shellcheck disable=SC2120
 store_urls() {
+    # - Fetch and store the URLs for TMC CLI binary downloads
+    # @param 'true' string to recreate the URL store (default to 'false')
+
     local init ostypes response
-    init=${1-}
+    init=${1-'false'}
     ostypes=('darwinX64' 'linuxX64' 'windowsX64')
 
     # Use BinariesService API method to get CLI download URLs
@@ -22,7 +25,7 @@ store_urls() {
 
     [[ -f "$TMC_DOWNLOAD_URLS" ]] || touch "$TMC_DOWNLOAD_URLS"
     # shellcheck disable=SC2188
-    [[ "$init" == 'init' ]] && > "$TMC_DOWNLOAD_URLS"
+    [[ "$init" == 'true' ]] && > "$TMC_DOWNLOAD_URLS"
 
     for os in "${ostypes[@]}"; do
         printf "%s %s\n" "$os" "$(jq -r ".versions.latest.${os}" <<< "$response")" \
@@ -31,6 +34,9 @@ store_urls() {
 }
 
 get_url_for() {
+    # - Echo the URL of the TMC CLI binary download for the given OS
+    # @param OS string (defaults to the current $OSTYPE)
+
     local osType="${1-$OSTYPE}"
 
     [[ -f "$TMC_DOWNLOAD_URLS" ]] || store_urls
@@ -44,6 +50,9 @@ get_url_for() {
 }
 
 download_tmc_for() {
+    # - Download TMC CLI binary and move into place
+    # @param OS string (defaults to the current $OSTYPE)
+
     local osType="${1-$OSTYPE}"
 
     curl -fsSL "$(get_url_for "$osType")" -o tmc

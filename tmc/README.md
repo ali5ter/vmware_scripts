@@ -21,7 +21,7 @@ Using `kind` to stand up a kubernetes cluster assumes that docker is present. Th
 Some helper functions that the [tmc_env.sh](tmc_env.sh) script provides which you might find useful:
 | Function Name | Use |
 | :------- | ------- |
-| set_up \[unstable\|stable\] | checks for an existing login context and adds one if you want it... if you don't pass the stack name then it will default to 'unstable' |
+| set_up | checks for an existing login context and adds one if you want it |
 | context_detail | instead of outputting yaml for the current context, this presents a formatted summary |
 | start_local_cluster | stands up a local k8s kind cluster if you don't already have one (requires docker) |
 | attach_local_cluster | uses the TMC CLI to bring your local k8s cluster under management |
@@ -37,15 +37,15 @@ These scripts will store any kubeconfig files that TMC provides under `~/.config
 Current list of bash scripts and what they do:
 | Script | Use |
 | :------- | ------- |
-| [stand_up](stand_up) \[unstable\|stable\] | stand up a k8s cluster that TMC can manage... if you don't pass the stack name then it will default to 'unstable' |
-| [tear_down](tear_down) \[unstable\|stable\] | choose which TMC managed cluster to delete/detach and delete the local k8s cluster |
-| [manage_namespace](manage_namespace) \[unstable\|stable\] | deploy a test app on a TMC managed k8s cluster and attach its namespace to TMC |
-| [run_inspection](run_inspection) \[unstable\|stable\]| run a conformance inspection on a TMC managed k8s cluster |
-| [data_protection](data_protection) \[unstable\|stable\]| set up data protection on a TMC managed k8s cluster |
-| [playground](playground) \[unstable\|stable\] | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome |
+| [stand_up](stand_up) | stand up a k8s cluster that TMC can manage |
+| [tear_down](tear_down) | choose which TMC managed cluster to delete/detach and delete the local k8s cluster |
+| [manage_namespace](manage_namespace) | deploy a test app on a TMC managed k8s cluster and attach its namespace to TMC |
+| [run_inspection](run_inspection) | run a conformance inspection on a TMC managed k8s cluster |
+| [data_protection](data_protection) | set up data protection on a TMC managed k8s cluster |
+| [playground](playground) | general scratchpad script I use to play with the CLI when assembling commands to acheive an outcome |
 | [context_detail](context_detail) | display the TMC context detail, any TMC kubeconfigs and local kubectl contexts |
 | [get_arn](get_arn) | display the TCM lifecycle ARN in your AWS account |
-| [stand_up_using_terraform](stand_up_using_terraform) \[unstable\|stable\] | stand up the cluster group, workspace and attach a local cluster using the [TMC Terraform Provider](https://registry.terraform.io/providers/vmware/tanzu-mission-control/latest) |
+| [stand_up_using_terraform](stand_up_using_terraform) | stand up the cluster group, workspace and attach a local cluster using the [TMC Terraform Provider](https://registry.terraform.io/providers/vmware/tanzu-mission-control/latest) |
 
 ## TMC shell prompt
 I wrote a [Bash shell prompt (tmc-prompt)](https://github.com/ali5ter/tmc-prompt) to make the TMC context, management cluster and provisioner visible.

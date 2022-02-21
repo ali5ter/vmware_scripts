@@ -24,6 +24,7 @@ export PS4="🏃‍♀️ >>> "
 # helper functions -----------------------------------------------------------
 
 set_text_control_evars() {
+    # - Variables for ANSI color codes
     local colors=( BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE )
     for (( i=0; i<${#colors[@]}; i++ )); do
         # shellcheck disable=SC2086
@@ -44,7 +45,8 @@ set_text_control_evars() {
 set_text_control_evars
 
 heading() {
-    # Pretty heading
+    # - Pretty heading
+    # @param message string
     echo
     printf "${TMC_DIM}=%.0s" {1..79}
     echo -e "\\n${1}" | fold -s -w 79
@@ -53,22 +55,24 @@ heading() {
 }
 
 erun() {
-    # Echo and run the command passed
+    # - Echo and run the command passed
+    # @param command string to execute
     ( set -x; "$@"; )
     echo
 }
 
 kubectl() { 
-    # Like an alias but works in a subshell, this will make sure to include
-    # the value of the KUBECONFIG_OPT we use for the --kubeconfig option
-
+    # - Like an alias but works in a subshell, this will make sure to include
+    #   the value of the KUBECONFIG_OPT we use for the --kubeconfig option
+    # @param argument string
     # shellcheck disable=SC2086
     # shellcheck disable=SC2068
     command kubectl $KUBECONFIG_OPT $@
 }
 
 api_get() {
-    # Standard API GET
+    # - Standard TMC API GET using curl
+    # @param TMC API GET method string
     # @ref https://developer.vmware.com/apis/1079/tanzu-mission-control
     local method="$1"
     curl -sSX GET -H "Authorization: Bearer $CSP_ACCESS_TOKEN" \
@@ -76,7 +80,7 @@ api_get() {
 }
 
 check_stack() {
-    # Override config defaults to set to the current TMC context
+    # - Override config defaults to set to the current TMC context
     # shellcheck disable=SC2155
     export TMC_CONTEXT="$(tmc system context current -o json | jq -r '.full_name.name')"
     # Assumes format of context name 'tmc-STACK_NAME'
@@ -86,6 +90,9 @@ check_stack() {
 }
 
 set_up() {
+    # - Check for prerequisite tools, TMC context & defaults, and test that
+    #   TMC API endpoint is reachable
+
     heading "Create TMC context to authenticate with TMC service"
 
     local cmd
@@ -138,6 +145,9 @@ set_up() {
 }
 
 context_detail() {
+    # - Pretty print TMC context detail, any kubeconfig files downloaded from
+    #   TMC and any kubectl contexts
+
     # !! Extra work to extract some summary info for the context
     # !! Be nice if this were default output
     tmc system context current -o json > context.json
@@ -173,7 +183,10 @@ context_detail() {
 }
 
 start_local_cluster() {
+    # - Stand up a local k8s cluster using kind
+
     heading "Make sure a local k8s cluster exists"
+
     # shellcheck disable=SC2155
     local cname="$(kind get clusters -q)"
     # shellcheck disable=SC2153
@@ -191,6 +204,8 @@ start_local_cluster() {
 }
 
 set_provider_to() {
+    # - Update default configuration with the given provider
+    # @param provider name string [local|aws]
     local provider="${1}"
     export TMC_PROVIDER="$provider"
     # shellcheck disable=SC2155
@@ -203,6 +218,9 @@ set_provider_to() {
 }
 
 create_cluster_group() {
+    # - Create a cluster group using default configration
+    # TODO: Remove dependency on default config
+
     heading "Create cluster group $TMC_CLUSTER_GROUP unless it exists"
 
     # Create cluster group to manage policy on this cluster
@@ -217,6 +235,8 @@ create_cluster_group() {
 }
 
 attach_local_cluster() {
+    # - Bring local k8s cluster under TMC management by attaching it
+    # TODO: Separate out monitoring into its own function
     
     create_cluster_group
 
@@ -285,8 +305,11 @@ attach_local_cluster() {
 }
 
 get_aws_arn() {
+    # - Fetch the TMC configured ARN using AWS CLI
+
     heading "Fetching AWS account ARN"
 
+    # TODO: Remove dependency on cloudgate and use typical AWS env vars
     AWS_CREDENTIALS="$HOME/.config/vmware-cloudgate-aws-vars.sh"
 
     if [[ -f "$AWS_CREDENTIALS" ]]; then
@@ -306,6 +329,9 @@ get_aws_arn() {
 }
 
 get_cluster_summaries() {
+    # - Fetch summary list of TMC managed k8s clusters using the same provider
+    # TODO: Remove dependency on default config for provider
+
     local cluster_search_token clusters
 
     # shellcheck disable=SC2016
@@ -320,6 +346,10 @@ get_cluster_summaries() {
 
 # shellcheck disable=SC2120
 get_cluster_summary() {
+    # - Prompt for a specific TMC managed k8s cluster to get its summary
+    # @param 'true' string if ok to show just one cluster for selection
+    #   (defaults to 'false')
+
     local clusters num_clusters show_one
 
     show_one="${1:-false}"
@@ -349,7 +379,10 @@ get_cluster_summary() {
 }
 
 set_cluster() {
+    # - Change configuration to operator on a chosen TMC managed k8s cluster
+
     echo "${TMC_BOLD}✋ Please select the cluster you would like to operate on ${TMC_RESET}"
+
     # shellcheck disable=SC2155
     local cluster="$(get_cluster_summary)"
     [[ -z "$cluster" ]] && {
@@ -392,9 +425,12 @@ set_cluster() {
 }
 
 deploy_application() {
+    # - Deploy a test application (name-brainstormulator) to k8s cluster
+    #   that kubectl has context to
+
     [ "$(kubectl get ns nb 2>/dev/null | grep -c nb)" -eq 0 ] && {
 
-        heading "Deploy a sample application to a local k8s cluster"
+        heading "Deploy a sample application to the current k8s cluster context"
 
         [[ -d name-brainstormulator ]] && rm -fR name-brainstormulator
         erun git clone git@github.com:ali5ter/name-brainstormulator.git
@@ -408,6 +444,11 @@ deploy_application() {
 }
 
 remove_tmc_managed_cluster() {
+    # - Detach or delete a TMC managed k8s cluster
+    # @param cluster name string (defaults to configured value)
+    # @param management cluster name string (defaults to configured value)
+    # @param provisioner name string (defaults to configured value)
+
     local cluster_name management_cluster provisioner
     cluster_name="${1:-$TMC_CLUSTER_NAME}"
     management_cluster="${2:-$TMC_MNGMT_CLUSTER}"
@@ -433,6 +474,11 @@ remove_tmc_managed_cluster() {
 }
 
 _remove_tmc_managed_cluster_using_cluster_summary() {
+    # - Private function to parse cluster name, management cluster name, 
+    #   and provisioner name from chosen cluster summary, detach/remove 
+    #   said cluster and remove any associate kubeconfig and kubectl context
+    # @param cluster summary string
+
     # TODO: Make this more of a general service function that can 
     # exract the management cluster and provisioner based on the 
     # cluster name. Use the JSON output which may be more reliable
@@ -462,6 +508,9 @@ _remove_tmc_managed_cluster_using_cluster_summary() {
 }
 
 clean_up() {
+    # - Clean up selected TMC managed k8s clusters, and their associated
+    #   files and local k8s instance
+    
     heading "Clean up cluster resources"
 
     local cluster_summary cluster_name management_cluster provisioner

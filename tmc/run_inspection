@@ -19,6 +19,8 @@ scanTestsDone()     { echo "$1" | jq -r .status.report.info.progressInfo.numTest
 scanResult()        { echo "$1" | jq -r .status.report.info.result; }
 
 get_scans() {
+    # - Echo json output of inspections for a TCM managed k8s cluster
+    # TODO: Allow funciton args for cluster, mgmt cluster and provisioner
     # !! List doesn't tell me state of the scans by default
     # !! No -c option
     tmc cluster inspection scan list \
@@ -28,6 +30,9 @@ get_scans() {
 }
 
 is_scan_running() {
+    # - Return boolean indicating if there are inspection scans running on
+    #   the current TMC managed k8s cluster
+    # TODO: Allow funciton args for cluster, mgmt cluster and provisioner
     if [ "$(get_scans | grep -c RUNNING)" -eq 0 ]; then
         return 1
     fi
@@ -35,7 +40,9 @@ is_scan_running() {
 }
 
 list_scans() {
-    # Show status of existing scans (similar to the TMC GUI)
+    # - Show status of existing scans (similar to the TMC GUI)
+    # TODO: Allow funciton args for cluster, mgmt cluster and provisioner
+    
     # !! This is a lot of work just to get an idea of a scan status/result
     # !! All the info is in the json but not in the default list response
     local scans detail type phase ttotal tdone percentage result

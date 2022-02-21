@@ -16,6 +16,10 @@ export BACKUP_NAME=''
 # functions ------------------------------------------------------------------
 
 dp_exists_for() {
+    # - Test that data protection enabled for the given TMC managed k8s
+    #   cluster
+    # @param cluster name string (defaults to configured value)
+
     local clusterName="${1:-$TMC_CLUSTER_NAME}"
 
     tmc cluster extension list --cluster-name "$clusterName" | grep -q data-protection
@@ -26,6 +30,10 @@ dp_exists_for() {
 }
 
 delete_dp_resources_for() {
+    # - Clean up backup, restores\ and schedule resources for the given TMC
+    #   managed k8s cluster
+    # @param cluster name string (defaults to configured value)
+
     local clusterName="${1:-$TMC_CLUSTER_NAME}"
 
     for resource in backup schedule restore; do
@@ -54,6 +62,9 @@ delete_dp_resources_for() {
 }
 
 disable_dp_for() {
+    # - Disable data protection for the given TMC managed k8s cluster
+    # @param cluster name string (defaults to configured value)
+
     local clusterName="${1:-$TMC_CLUSTER_NAME}"
 
     delete_dp_resources_for "$clusterName"
@@ -73,6 +84,8 @@ disable_dp_for() {
 }
 
 get_dp_credential() {
+    # - Prompt from list of data protection account credentials
+
     # !! Help doesn't tell you what capability or provider strings to use
     tmc account credential list \
         --capability DATA_PROTECTION --provider AWS_EC2 -o json \
@@ -81,6 +94,9 @@ get_dp_credential() {
 }
 
 get_targetLocation_using() {
+    # - Select the target location using the given account credential
+    # @param account credential name string (defaults to configured value)
+
     local credential="${1:-$CREDENTIAL}"
 
     local targetLocations numTargetLocations
@@ -106,6 +122,11 @@ get_targetLocation_using() {
 }
 
 assign_cluster_group_to_target_location() {
+    # - Add the given cluster group to the given target location
+    # @param target location name string (defaults to configured value)
+    # @param cluster group name string (defaults to configured value)
+    # @param account credential name string (defaults to configured value)
+
     local targetLocation="${1-$TARGET_LOCATION}"
     local clusterGroup="${2:-$TMC_CLUSTER_GROUP}"
     local credentialName="${3:-$CREDENTIAL}"
@@ -129,6 +150,11 @@ $clusterGroup"
 }
 
 enable_dp_for() {
+    # - Enable data protection for the given TMC managed k8s cluster
+    # @param cluster name string (defaults to configured value)
+    # @param target location name string (defaults to configured value)
+    # @param cluster group name string (defaults to configured value)
+
     local clusterName="${1:-$TMC_CLUSTER_NAME}"
     local targetLocation="${2:-$TARGET_LOCATION}"
     local clusterGroup="${3:-$TMC_CLUSTER_GROUP}"
@@ -159,6 +185,11 @@ enable_dp_for() {
 }
 
 backup_cluster() {
+    # - Back up a TMC managed k8s cluster
+    # @param backup name string (defaults to configured value)
+    # @param cluster name string (defaults to configured value)
+    # @param target location name string (defaults to configured value)
+
     local backupName="${1:-$BACKUP_NAME}"
     local clusterName="${2:-$TMC_CLUSTER_NAME}"
     local targetLocation="${3:-$TARGET_LOCATION}"
@@ -184,6 +215,11 @@ backup_cluster() {
 }
 
 schedule_backup_namespace() {
+    # - Create a back up schedule for a TMC managed k8s cluster
+    # @param namespace name string (defaults to configured value)
+    # @param cluster name string (defaults to configured value)
+    # @param target location name string (defaults to configured value)
+
     local namespace="${1:-$NAMESPACE_NAME}"
     local clusterName="${2:-$TMC_CLUSTER_NAME}"
     local targetLocation="${3:-$TARGET_LOCATION}"
@@ -199,6 +235,11 @@ schedule_backup_namespace() {
 }
 
 restore_cluster() {
+    # - Restore a backup on a TMC managed k8s cluster
+    # @param backup name string (defaults to configured value)
+    # @param cluster name string (defaults to configured value)
+    # @param target location name string (defaults to configured value)
+
     local backupName="${1:-$BACKUP_NAME}"
     local clusterName="${2:-$TMC_CLUSTER_NAME}"
     local targetLocation="${3:-$TARGET_LOCATION}"
