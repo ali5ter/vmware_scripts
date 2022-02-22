@@ -2,7 +2,7 @@
 # @file tce_cluster
 # Stand up a TCE unmanaged cluster
 # @ref https://tanzucommunityedition.io/docs/latest/getting-started-unmanaged/
-# @ ref https://tanzucommunityedition.io/docs/latest/ref-unmanaged-cluster/
+# @ref https://tanzucommunityedition.io/docs/latest/ref-unmanaged-cluster/
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 # shellcheck disable=SC1091

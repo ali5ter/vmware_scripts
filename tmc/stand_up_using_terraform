@@ -23,19 +23,21 @@ command -v terraform 1>/dev/null 2>&1 || {
 # functions ------------------------------------------------------------------
 
 tf_set_var() {
-    # Echo a terraform variable declaration 
+    # - Echo a formatted terraform variable declaration
+    # @param variable name string
     local var="$1"
     echo "$var = \"${!var}\"" >> "$TF_VARS_FILE"
         cat << EO_TF_VAR_DECLARATION >> "$TF_VARS_DEFN_FILE"
 variable "$var" {
-type = string
+    type = string
 }
 
 EO_TF_VAR_DECLARATION
 }
 
 tf_generate_vars() {
-    # Generating the var declarations and variables files from tmc_config.sh
+    # - Generating a terraform var declarations and variables file using
+    #   variables found in tmc_config.sh
     # shellcheck disable=SC2013
     for var in $(grep -e '^[CSP|TMC|AWS]' tmc_config.sh| cut -d'=' -f1); do
         tf_set_var "$var"
@@ -46,23 +48,29 @@ tf_generate_vars() {
 }
 
 tf_cleaun_up_tf() {
-    # Clean up our variable files just in prep for regeneration
+    # - Clean up terraform variable files in prep for regeneration
     for file in "$TF_VARS_FILE" "$TF_VARS_DEFN_FILE"; do
         [[ -e "$file" ]] && rm "$file"
         touch "$file"
     done
     # We don't typically want to remove the terraform metadata and state if
     # it's there so TF knows about the state of our TMC service
-    # rm -fR "$TF_DIR"/.terraform*
-    # rm -fR "$TF_DIR"/terraform.tfstate*
-    # rm -fR "$TF_PLAN_FILE"
+    read -p "${TMC_BOLD}✋ Want me to remove the terraform metadata and state? [y/N] ${TMC_RESET}" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm -fR "$TF_DIR"/.terraform*
+        rm -fR "$TF_DIR"/terraform.tfstate*
+        rm -fR "$TF_PLAN_FILE"
+    fi
 }
 
 tf_set_provider_env_vars() {
+    # - Declare variables for the TCM Terraform Provider using the default
+    #   configuration found in tmc_config.sh
     # @ref https://github.com/vmware/terraform-provider-tanzu-mission-control
     export TMC_ENDPOINT="$TMC_API_ENDPOINT_HOSTNAME"
-    export TMC_CSP_ENDPOINT="$CSP_ENDPOINT_HOSTNAME"
-    export TMC_CSP_TOKEN="$CSP_API_TOKEN"
+    export VMW_CLOUD_ENDPOINT="$CSP_ENDPOINT_HOSTNAME"
+    export VMW_CLOUD_API_TOKEN="$CSP_API_TOKEN"
 }
 
 # check what stack to use and make sure we have a local cluster running ------

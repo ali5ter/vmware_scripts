@@ -1,25 +1,20 @@
-resource "tmc_cluster" "attach_cluster_without_apply" {
+resource "tanzu-mission-control_cluster" "attach_cluster_without_apply" {
   management_cluster_name = var.TMC_MNGMT_CLUSTER
   provisioner_name        = var.TMC_PROVISIONER
   name                    = var.TMC_CLUSTER_NAME
-
   attach_k8s_cluster {
     kubeconfig_file = var.KUBECONFIG_FILE
   }
-
   meta {
     description = var.TMC_DESCRIPTION
-    labels      = { 
-        "env" : "test", 
-        "generatedFrom" : "vmware_scripts", 
-        "using" : "terraform"
+    labels = {
+      "env" : "test",
+      "generatedFrom" : "vmware_scripts",
+      "using" : "terraform"
     }
   }
-
   spec {
     # Dependency on the clsuter group wwe want stood up
-    cluster_group = tmc_cluster_group.create_cluster_group.name
+    cluster_group = tanzu-mission-control_cluster_group.create_cluster_group.name
   }
-
-  wait_until_ready = true
 }

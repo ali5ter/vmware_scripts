@@ -187,11 +187,8 @@ start_local_cluster() {
 
     heading "Make sure a local k8s cluster exists"
 
-    # shellcheck disable=SC2155
-    local cname="$(kind get clusters -q)"
-    # shellcheck disable=SC2153
-    if [ "$cname" == "$TMC_CLUSTER_NAME" ]; then
-        read -p "${TMC_BOLD}✋ Looks like a kind cluster, $cname, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
+    if kind get clusters -q | grep -q "$TMC_CLUSTER_NAME"; then
+        read -p "${TMC_BOLD}✋ Looks like a kind cluster, $TMC_CLUSTER_NAME, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             erun kind delete cluster --name="$cname" && \
