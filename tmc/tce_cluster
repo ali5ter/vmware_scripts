@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# @file tce_cluster
+# Stand up a TCE unmanaged cluster
+# @ref https://tanzucommunityedition.io/docs/latest/getting-started-unmanaged/
+# @ ref https://tanzucommunityedition.io/docs/latest/ref-unmanaged-cluster/
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+# functions ------------------------------------------------------------------
+
+function init() {
+    command -v tanzu 1>/dev/null 2>&1 || {
+        # TODO: Open out to OS other than darwin
+        brew install vmware-tanzu/tanzu/tanzu-community-edition
+        # TODO: Get verison or invocation from brew output
+        /usr/local/Cellar/tanzu-community-edition/v0.10.0/libexec/configure-tce.sh
+    }
+}
+
+# Create a TCE unmanaged cluster to play with --------------------------------
+
+set_up
+
+if tanzu uc list | grep -q "$TMC_CLUSTER_NAME"; then
+    read -p "${TMC_BOLD}✋ Looks like a kind cluster, $TMC_CLUSTER_NAME, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        erun tanzu uc delete "$TMC_CLUSTER_NAME" && \
+        erun tanzu uc create "$TMC_CLUSTER_NAME"
+    fi 
+else 
+    erun tanzu uc create "$TMC_CLUSTER_NAME"
+fi
+echo
+
+# Show cluster config --------------------------------------------------------
+
+# tanzu uc config create "$TMC_CLUSTER_NAME"
+cat "$HOME/.config/tanzu/tkg/unmanaged/$TMC_CLUSTER_NAME/config.yaml"

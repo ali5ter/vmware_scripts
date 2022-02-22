@@ -101,7 +101,7 @@ set_up() {
     for cmd in tmc kubectl jq fzf; do
         command -v "$cmd" 1>/dev/null 2>&1 || {
             echo "🙄 Unable to find $cmd."
-        exit 1
+            exit 1
         }
     done
 
