@@ -23,6 +23,8 @@ function init() {
 
 set_up
 
+export TMC_CLUSTER_NAME="$TMC_CLUSTER_NAME-tce-uc"
+
 if tanzu uc list | grep -q "$TMC_CLUSTER_NAME"; then
     read -p "${TMC_BOLD}✋ Looks like a kind cluster, $TMC_CLUSTER_NAME, exists. Want me to recreate it? [y/N] ${TMC_RESET}" -n 1 -r
     echo
@@ -39,3 +41,13 @@ echo
 
 # tanzu uc config create "$TMC_CLUSTER_NAME"
 cat "$HOME/.config/tanzu/tkg/unmanaged/$TMC_CLUSTER_NAME/config.yaml"
+
+erun kubectl get po -A
+
+# Bring it under TMC management ----------------------------------------------
+
+attach_local_cluster
+
+# Use it ---------------------------------------------------------------------
+
+deploy_application
