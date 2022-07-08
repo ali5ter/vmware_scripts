@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# @file cli_plugins_install
+# Set up Tanzu CLI with TMC plugins
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+# shellcheck disable=SC1091
+# source tmc_env.sh
+
+TMP_DIR=~/tmp/tanzu
+REPO_URL='https://github.com/vmware-tanzu/tanzu-framework/releases/download'
+VERSION="v0.23.0"
+
+clean() {
+    [ -d "$TMP_DIR" ] && rm -fR "$TMP_DIR"
+    mkdir -p "$TMP_DIR"
+}
+
+download() {
+    cd "$TMP_DIR" || exit
+    curl -OL "$REPO_URL/$VERSION/tanzu-cli-darwin-amd64.tar.gz"
+    # curl -OL "$REPO_URL/$VERSION/tanzu-framework-darwin-amd64.tar.gz"
+    curl -OL "$REPO_URL/$VERSION/tanzu-framework-plugins-admin-darwin-amd64.tar.gz"
+    curl -OL "$REPO_URL/$VERSION/tanzu-framework-plugins-standalone-darwin-amd64.tar.gz"
+}
+
+install_tanzu_cli() {
+    cd "$TMP_DIR" || exit
+    tar -zxvf tanzu-cli-darwin-amd64.tar.gz
+    install $VERSION/tanzu-core-darwin_amd64 /usr/local/bin/tanzu
+}
+
+install_tanzu_framework_admin_plugins() {
+    cd "$TMP_DIR" || exit
+    tar -zxvf tanzu-framework-plugins-admin-darwin-amd64.tar.gz
+    tanzu plugin install builder --local admin-plugins
+}
+
+install_tanzu_framework_standalone_plugins() {
+    cd "$TMP_DIR" || exit
+    tar -zxvf tanzu-framework-plugins-standalone-darwin-amd64.tar.gz
+    tanzu plugin install login --local standalone-plugins
+}
+
+build_tmc_plugins() {
+    cd "$TMP_DIR" || exit
+    [ -d cli-plugins ] || git clone git@gitlab.eng.vmware.com:olympus/cli-plugins.git
+    cd cli-plugins || exit
+    make build-native-plugins-all
+}
+
+install_tmc_plugins() {
+    for plugin in account audit clustergroup data-protection events iam inspection integration policy tmc-cluster tmc-management-cluster workspace; do
+        tanzu plugin install "$plugin" --local "$PWD/artifacts/darwin/amd64/cli/"
+    done
+}
+
+authenticate() {
+    rm -fR  ~/.config/tanzu/config.yaml
+    tanzu login --endpoint unstable.tmc-dev.cloud.vmware.com \
+        --staging \
+        --apiToken "$(cat ~/.config/csp-staging-token)" \
+        --name tmc-unstable
+}
+
+clean
+download
+install_tanzu_cli
+install_tanzu_framework_admin_plugins
+install_tanzu_framework_standalone_plugins
+build_tmc_plugins
+install_tmc_plugins
+
+authenticate
+tanzu plugin list
+tanzu tmc-cluster list
