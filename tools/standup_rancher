@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# @file standup_rancher
+# -p | --provider ... Azure|AWS|GCP
+# Codification of steps from https://rancher.com/docs/rancher/v2.5/en/quick-start-guide/
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+PROVIDER='azure'
+DESTROY='no'
+RESET='no'
+
+usage() {
+    cat <<EOT
+Stand up a sandbox version of Rancher on a provider using instructions from
+https://rancher.com/docs/rancher/v2.5/en/quick-start-guide/
+
+Usage:
+    standup_rancher [-p azure|aws|gcp] [-r] [-d] [-h]
+
+Options:
+    -p, --provider  The IaaS where Rancher should be deployed.
+                    Defaults to $PROVIDER.
+    -r, --reset     Reset the environment. This will refetch the bootstrap files
+                    that Rancher provides.
+    -d, --destroy   Destroy the environment.
+    -h, --help      Show this help text.
+
+Note: This tool uses terraform and assumes you have it installed.
+Get Terraform from https://www.terraform.io/downloads
+EOT
+exit
+}
+
+bootstrap() {
+    [ "$RESET" == 'yes' ] && rm -fR quickstart
+    [ -d quickstart ] ||  git clone https://github.com/rancher/quickstart
+}
+
+deploy_on_aws() {    
+    echo "You need to supply the AWS Access Key. AWS Secret and Admin password for the Rancher server."
+    echo "Read more about how to supply these values at https://rancher.com/docs/rancher/v2.5/en/quick-start-guide/deployment/amazon-aws-qs/ "
+    read -n 1 -s -r -p "Press any key to continue..."
+    vi terraform.tfvars
+    cp terraform.tfvars /tmp/terraform-aws-rancher.tfvars.backup
+}
+
+deploy_on_azure() {
+
+    local spName='rancher-sandbox'
+
+    get_subscription_id() {
+        [ "$AZURE_CLL_INSTALLED" == 'yes' ] && az account show --query id --output tsv
+    }
+
+    create_service_principle() {
+        [ "$AZURE_CLL_INSTALLED" == 'yes' ] && az ad sp create-for-rbac --name "$spName" \
+            --role Contributor \
+            --scopes /subscriptions/"$(get_subscription_id)"
+        # {
+        #     "appId": "0b15947b-f49d-44cb-93f3-24f8f06aa588",
+        #     "displayName": "alb-test-principle",
+        #     "password": "ksW8Q~sPxUSeh5Jp1O9Km7-P.uWyMDfnK4d3baCD",
+        #     "tenant": "b39138ca-3cee-4b4a-a4d6-cd83d9dd62f0"
+        # }
+    }
+
+    list_service_principles() {
+        [ "$AZURE_CLL_INSTALLED" == 'yes' ] && az ad sp list --show-mine --query "[].{name: appDisplayName, id:id}"
+    }
+
+    delete_service_principle() {
+        local id="$1"
+        [ "$AZURE_CLL_INSTALLED" == 'yes' ] && az ad sp delete --id "$id"
+    }
+    
+    echo "You need to supply the Subscription ID, Client ID, Client Secret, Tenant ID and Admin password for the Rancher server."
+    echo "Read more about how to supply these values at https://rancher.com/docs/rancher/v2.5/en/quick-start-guide/deployment/microsoft-azure-qs/ "
+    read -n 1 -s -r -p "Press any key to continue..."
+    vi terraform.tfvars
+    cp terraform.tfvars /tmp/terraform-azure-rancher.tfvars.backup
+}
+
+deploy_on_gcp() {
+    echo "You need to supply the GCP Service Account path and filename and Admin password for the Rancher server."
+    echo "Read more about how to supply these values at https://rancher.com/docs/rancher/v2.5/en/quick-start-guide/deployment/google-gcp-qs/ "
+    read -n 1 -s -r -p "Press any key to continue..."
+    vi terraform.tfvars
+    cp terraform.tfvars /tmp/terraform-gcp-rancher.tfvars.backup
+}
+
+deploy_on() {
+    local provider="${1:-$PROVIDER}"
+
+    bootstrap
+    cd quickstart/rancher/"$provider"
+    [ -f terraform.tfvars ] || cp terraform.tfvars.example terraform.tfvars
+
+    case "$provider" in
+        aws)    deploy_on_aws; exit;;
+        azure)  deploy_on_azure; exit;;
+        gcp)    deploy_on_gcp; exit;;
+        *)      usage
+    esac
+
+    terraform init
+    terraform apply --auto-approve
+}
+
+destroy_on() {
+    local provider="${1:-$PROVIDER}"
+
+    cd quickstart/rancher/"$provider"
+
+    terraform destroy --auto-approve
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        '-p' | '--provider')    PROVIDER="$2"; shift 2;;
+        '-d' | '--destroy')     DESTROY='yes'; shift;;
+        '-r' | '--reset')       RESET="yes"; shift;;
+        '-h' | '--help' | *)    usage
+    esac
+done
+
+if [[ "$DESTROY" == 'no' ]]; then
+    deploy_on "$PROVIDER"
+else
+    destroy_on "$PROVIDER"
+fi
