@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# @file tanzu_context_plugin
+# Standup an instance of the tanzu CLI with the context plugin for testing
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+SRC_DIR="${1:-$HOME/Documents/Projects/VMware}"
+
+[ -f /usr/local/bin/tanzu ] && rm -f /usr/local/bin/tanzu
+[ -d "$HOME/.config/tanzu*" ] && rm -fR "$HOME/.config/tanzu*"
+
+cd "$SRC_DIR" || exit
+[ -d tanzu-framework ] || git clone https://github.com/vmware-tanzu/tanzu-framework
+cd tanzu-framework
+
+export DEFAULT_STANDALONE_DISCOVERY_IMAGE_TAG="v0.26.0-dev-86-g2e6abb75_vmware.1"
+export TKG_CUSTOM_IMAGE_REPOSITORY=projects-stg.registry.vmware.com/tkg
+export GOPATH="$HOME/go"
+
+make install-cli-oci
+
+ln -sf "$GOPATH/bin/tanzu" /usr/local/bin/tanzu
+
+tanzu config set features.global.context-target true
