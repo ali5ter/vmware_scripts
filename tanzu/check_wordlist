@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# @file check_wordlist
+# Diff tanzu taxo against approved wordlist
+# @author Alister Lewis-Bowen <bowena@vmware.com>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+fetch_wordlist() {
+  curl https://raw.githubusercontent.com/vmware-tanzu/tanzu-plugin-runtime/main/plugin/lint/cli-wordlist.yml -O -s
+}
+
+fetch_taxo() {
+  curl https://raw.githubusercontent.com/ali5ter/cli_taxo/master/exp1/results/tanzu_taxo_with_options.txt -O -s
+}
+
+diff_wordlist() {
+  while read -r line; do
+    word="${line##* }"  # get last word
+    word="${word#--}"   # remove leading --
+    if ! grep -q "$word" "$WORDLIST"; then
+      echo "$word" >> "$DIFF"
+    fi
+  done < "$TAXO"
+  sort -u "$DIFF" -o "$DIFF"  # remove duplicates
+}
+
+cleanup() {
+  rm -f "$WORDLIST" "$TAXO"
+}
+
+WORDLIST=./cli-wordlist.yml
+TAXO=./tanzu_taxo_with_options.txt
+DIFF=./wordlist_diff.txt
+
+fetch_taxo && fetch_wordlist && diff_wordlist && cleanup

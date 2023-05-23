@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# @file standup_env
+# Stand up a test environment for Tanzu CLI
+# @author Alister Lewis-Bowen <bowena@vmware.com>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+cleanup() {
+  if which tanzu &> /dev/null; then
+    brew uninstall tanzu-cli -f
+    # rm /usr/local/etc/bash_completion.d/tanzu
+    rm -fR ~/.config/tanzu
+  fi
+  if which tmc &> /dev/null; then
+    rm -f /usr/local/bin/tmc
+    rm -f /usr/local/etc/bash_completion.d/tmc
+    rm -fR ~/.config/tmc
+  fi
+}
+
+install_tanzu() {
+  brew update && brew install vmware-tanzu/tanzu/tanzu-cli
+  brew link --overwrite tanzu-cli
+  tanzu completion bash > /usr/local/etc/bash_completion.d/tanzu
+  # tanzu plugin install --local cli-core
+  # tanzu plugin install --local cli-v1alpha1
+  # tanzu plugin install --local cli-v1beta1
+  # tanzu plugin install --local cli-v1beta2
+}
+
+configure_tanzu() {
+  tanzu config eula accept          # accept EULA
+  tanzu ceip-participation set true # enable CEIP
+  # point at staging plugin registry
+  export TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY=harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
+  tanzu config set env.ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
+  # Use TANZU_API_TOKEN to pass in your API token
+   # shellcheck disable=SC2155
+  export TANZU_API_TOKEN=$(cat "$HOME/.config/csp-staging-token") # change to location of your stored CSP API Token
+}
+
+create_tmc_unstable_context() {
+  tanzu context create --endpoint "https://tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com/" --name tmc-unstable --staging
+  # supplying TANZU_API_TOKEN not documentation
+}
+
+create_tmc_stable_context() {
+  tanzu context create --endpoint "https://tmc-users.stable.tmc-dev.cloud.vmware.com/clusters" --name tmc-stable --staging
+}
+
+cleanup
+install_tanzu
+configure_tanzu
+create_tmc_stable_context
+create_tmc_unstable_context
+
+tanzu version
+tanzu plugin list 
