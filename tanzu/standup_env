@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # @file standup_env
 # Stand up a test environment for Tanzu CLI
+# NOTE: Assumes this is run on macOS with Homebrew installed
 # @author Alister Lewis-Bowen <bowena@vmware.com>
 
 [[ -n $DEBUG ]] && set -x
@@ -20,6 +21,10 @@ cleanup() {
 }
 
 install_tanzu() {
+  which brew || {
+    echo "Homebrew not installed"
+    exit 1
+  }
   brew update && brew install vmware-tanzu/tanzu/tanzu-cli
   brew link --overwrite tanzu-cli
   tanzu completion bash > /usr/local/etc/bash_completion.d/tanzu
