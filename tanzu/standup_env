@@ -39,7 +39,7 @@ configure_tanzu() {
   tanzu ceip-participation set true # enable CEIP
   # point at staging plugin registry
   export TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY=harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
-  tanzu config set env.ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
+  tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
   # Use TANZU_API_TOKEN to pass in your API token
    # shellcheck disable=SC2155
   export TANZU_API_TOKEN=$(cat "$HOME/.config/csp-staging-token") # change to location of your stored CSP API Token
@@ -47,7 +47,7 @@ configure_tanzu() {
 
 create_tmc_unstable_context() {
   tanzu context create --endpoint "https://tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com/" --name tmc-unstable --staging
-  # supplying TANZU_API_TOKEN not documentation
+  # supplying TANZU_API_TOKEN not documented
 }
 
 create_tmc_stable_context() {
@@ -62,3 +62,15 @@ create_tmc_unstable_context
 
 tanzu version
 tanzu plugin list 
+
+# wish there was an easier way to show the current contexts
+curent_contexts() {
+  tanzu context list --current -o json | jq -r '.[] | .name'
+}
+
+# would like a better way to remove plugins by target
+uninstall_tmc_plugins() {
+  for i in $(tanzu plugin list -o json | jq -r '.[] | select(.target=="tmc") | .name'); do 
+    tanzu plugin delete "$i" --yes
+  done
+}
