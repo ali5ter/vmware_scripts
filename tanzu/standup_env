@@ -74,3 +74,6 @@ uninstall_tmc_plugins() {
     tanzu plugin delete "$i" --yes
   done
 }
+
+# reinitialize plugin source
+# tanzu plugin source init

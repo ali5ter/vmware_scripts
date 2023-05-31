@@ -53,7 +53,7 @@ _tanzu_build_prompt() {
         for context in $TANZU_CONTEXTS; do
             contexts="$contexts ${TANZU_PROMPT_CONTEXT_LIST_FORMAT//#CONTEXT#/$context}"
         done
-        contexts="$(echo $contexts|xargs)"
+        contexts="$(echo "$contexts"|xargs)"
         export TANZU_PROMPT="${TANZU_PROMPT_FORMAT//#CONTEXT_LIST#/$contexts}"
         [[ "$TANZU_PROMPT_ENABLED" == 'on' ]] && echo -en "$TANZU_PROMPT"
     else
@@ -61,7 +61,7 @@ _tanzu_build_prompt() {
     fi
 }
 
-# show or toggle the visibility of the TMC ptompt, `tmc_prompt on|off`
+# show or toggle the visibility of the Tanzu prompt, `tanzu_prompt on|off`
 # shellcheck disable=SC2120
 tanzu_prompt() { 
     local toggle="${1:-}"
