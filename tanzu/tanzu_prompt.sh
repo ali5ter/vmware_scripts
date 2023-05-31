@@ -34,7 +34,7 @@ _tanzu_init() {
     export TANZU_PROMPT_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     export TANZU_CONTEXTS=''
     export TANZU_PROMPT=''
-    export TANZU_PROMPT_FORMAT='[TANZU#CONTEXT_LIST#]'
+    export TANZU_PROMPT_FORMAT='〄 #CONTEXT_LIST#'
     export TANZU_PROMPT_CONTEXT_LIST_FORMAT=' #CONTEXT#'
     export TANZU_PROMPT_ENABLED='on'
 }
@@ -53,6 +53,7 @@ _tanzu_build_prompt() {
         for context in $TANZU_CONTEXTS; do
             contexts="$contexts ${TANZU_PROMPT_CONTEXT_LIST_FORMAT//#CONTEXT#/$context}"
         done
+        contexts="$(echo $contexts|xargs)"
         export TANZU_PROMPT="${TANZU_PROMPT_FORMAT//#CONTEXT_LIST#/$contexts}"
         [[ "$TANZU_PROMPT_ENABLED" == 'on' ]] && echo -en "$TANZU_PROMPT"
     else
