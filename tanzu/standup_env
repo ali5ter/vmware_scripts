@@ -40,18 +40,21 @@ configure_tanzu() {
   # point at staging plugin registry
   export TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY=harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
   tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
+  # tanzu plugin source update default -u harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
   # Use TANZU_API_TOKEN to pass in your API token
    # shellcheck disable=SC2155
   export TANZU_API_TOKEN=$(cat "$HOME/.config/csp-staging-token") # change to location of your stored CSP API Token
 }
 
 create_tmc_unstable_context() {
-  tanzu context create --endpoint "https://tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com/" --name tmc-unstable --staging
+  # NOTE: https doesn't work, you need to do http://hostname:443
+  tanzu context create --endpoint "http://tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com:443" --name tmc-unstable --staging
   # supplying TANZU_API_TOKEN not documented
 }
 
 create_tmc_stable_context() {
-  tanzu context create --endpoint "https://tmc-users.stable.tmc-dev.cloud.vmware.com/clusters" --name tmc-stable --staging
+  # NOTE: https doesn't work, you need to do http://hostname:443
+  tanzu context create --endpoint "http://tmc-users.stable.tmc-dev.cloud.vmware.com/clusters:443" --name tmc-stable --staging
 }
 
 cleanup
@@ -61,7 +64,8 @@ create_tmc_stable_context
 create_tmc_unstable_context
 
 tanzu version
-tanzu plugin list 
+tanzu plugin source list
+tanzu plugin list
 
 # wish there was an easier way to show the current contexts
 curent_contexts() {
