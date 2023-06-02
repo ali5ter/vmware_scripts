@@ -6,6 +6,9 @@
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
 
+# shellcheck disable=SC2155
+export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 cleanup() {
   if which tanzu &> /dev/null; then
     brew uninstall tanzu-cli -f
@@ -48,18 +51,18 @@ configure_tanzu() {
 
 create_tmc_unstable_context() {
   # NOTE: https doesn't work, you need to do http://hostname:443
-  tanzu context create --endpoint "https://tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com:443" --name tmc-unstable --staging
+  tanzu context create --endpoint tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com:443 --name tmc-unstable --staging
   # supplying TANZU_API_TOKEN not documented
 }
 
 create_tmc_stable_context() {
-  # NOTE: https doesn't work, you need to do http://hostname:443
-  tanzu context create --endpoint "https://tmc-users.stable.tmc-dev.cloud.vmware.com/clusters:443" --name tmc-stable --staging
+  # NOTE: Can only get this to work if https doesn't work, you need to do http://hostname:443
+  tanzu context create --endpoint tmc-users.stable.tmc-dev.cloud.vmware.com:443 --name tmc-stable --staging
   # supplying TANZU_API_TOKEN not documented
 }
 
 create_local_cluster_context() {
-  tanzufy_cluster
+  "$DIR/tanzufy_cluster" # create a local cluster
   tanzu context create --kubeconfig "$HOME/.kube/*" --kubecontext kind-kind --name default-kind-cluster
 }
 

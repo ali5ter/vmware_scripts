@@ -10,6 +10,7 @@ set -eou pipefail
 DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz
 TANZU_NET_USER="$(cut -d: -f1 "$HOME/.config/tanzu_net_creds")" # change to location of your stored Tanzu Network credentials
 TANZU_NET_PASSWORD="$(cut -d: -f2 "$HOME/.config/tanzu_net_creds")" # change to location of your stored Tanzu Network credentials
+CLUSTER_NAME="tanzu-cluster"
 
 which brew &> /dev/null || {
   echo "Homebrew not installed"
@@ -17,22 +18,21 @@ which brew &> /dev/null || {
 }
 which kubectl &> /dev/null || brew install kubernetes-cli
 which kind &> /dev/null || brew install kind
-which tanzu &> /dev/null || standup_env
 docker stats --no-stream &> /dev/null || open /Applications/Docker.app
 
 cleanup() {
-  kind delete cluster --name tanzu-cluster
+  kind delete cluster --name "$CLUSTER_NAME"
   rm -fR tanzu-cluster-essentials  
 }
 
 create_cluster() {
-  kind create cluster --name tanzu-cluster
+  kind create cluster --name "$CLUSTER_NAME"
 }
 
 install_cluster_essentials() {
   mkdir tanzu-cluster-essentials
   tar -xvf "$DOWNLOADED_CLUSTER_ESSENTIALS" -C tanzu-cluster-essentials
-  kubectl config use-context kind-kind
+  kubectl config use-context "kind-$CLUSTER_NAME"
   export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
   export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
   export INSTALL_REGISTRY_USERNAME="$TANZU_NET_USER"
