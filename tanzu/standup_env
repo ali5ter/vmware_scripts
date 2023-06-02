@@ -50,13 +50,13 @@ configure_tanzu() {
 }
 
 create_tmc_unstable_context() {
-  # NOTE: https doesn't work, you need to do http://hostname:443
+  # NOTE: Can only get this to work if by dropping the https:// and adding :443
   tanzu context create --endpoint tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com:443 --name tmc-unstable --staging
   # supplying TANZU_API_TOKEN not documented
 }
 
 create_tmc_stable_context() {
-  # NOTE: Can only get this to work if https doesn't work, you need to do http://hostname:443
+  # NOTE: Can only get this to work if by dropping the https:// and adding :443
   tanzu context create --endpoint tmc-users.stable.tmc-dev.cloud.vmware.com:443 --name tmc-stable --staging
   # supplying TANZU_API_TOKEN not documented
 }
