@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # @file standup_env
 # Stand up a test environment for Tanzu CLI
-# NOTE: Assumes this is run on macOS with Homebrew installed
 # @author Alister Lewis-Bowen <bowena@vmware.com>
 
 [[ -n $DEBUG ]] && set -x
@@ -21,7 +20,7 @@ cleanup() {
 }
 
 install_tanzu() {
-  which brew || {
+  which brew &> /dev/null || {
     echo "Homebrew not installed"
     exit 1
   }
@@ -59,11 +58,17 @@ create_tmc_stable_context() {
   # supplying TANZU_API_TOKEN not documented
 }
 
-cleanup
-install_tanzu
-configure_tanzu
-create_tmc_stable_context
-create_tmc_unstable_context
+create_local_cluster_context() {
+  tanzufy_cluster
+  tanzu context create --kubeconfig "$HOME/.kube/*" --kubecontext kind-kind --name default-kind-cluster
+}
+
+cleanup && \
+install_tanzu && \
+configure_tanzu && \
+create_tmc_stable_context && \
+create_tmc_unstable_context && \
+create_local_cluster_context
 
 tanzu version
 tanzu plugin source list
