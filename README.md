@@ -17,6 +17,8 @@ The [vke directory](vke) contains scripts to work with [vSphere Cloud PKS (forme
 
 The [tmc directory](tmc) contains scripts to work with [Tanzu Mission Control](https://tanzu.vmware.com/mission-control)
 
+The [tanzu directory](tanzu) contains scripts to work with [Tanzu](https://tanzu.vmware.com/) universal CLI
+
 ## Contribution
 If you've stumbled upon this project and wish to contribute, please
 [let me know](mailto:alister@lewis-bowen.org)
