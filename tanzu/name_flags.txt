@@ -1,5 +1,0 @@
-Commands containing --name flag:
-tanzu  context create --name
-tanzu  login --name
-tanzu  plugin clean delete describe group get search --name
-tanzu  plugin clean delete describe group get search install list search --name
