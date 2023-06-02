@@ -42,7 +42,9 @@ install_cluster_essentials() {
 }
 
 create_local_cluster_context() {
-  tanzu context create --kubeconfig "$HOME/.kube/*" --kubecontext "kind-$CLUSTER_NAME" --name local-kind-cluster
+  tanzu context create --kubeconfig "$HOME/.kube/config" --kubecontext "kind-$CLUSTER_NAME" --name "$CLUSTER_NAME"
 }
 
 cleanup && create_cluster && install_cluster_essentials && create_local_cluster_context
+
+kubectl get pods -A
