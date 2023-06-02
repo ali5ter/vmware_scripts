@@ -4,7 +4,7 @@
 # @author Alister Lewis-Bowen <bowena@vmware.com>
 #
 # REQUIREMENTS
-# - tanzu cli
+# - tanzu
 # - yq
 #
 # INSTALLATION
