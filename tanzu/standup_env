@@ -63,7 +63,6 @@ create_tmc_stable_context() {
 
 create_local_cluster_context() {
   "$DIR/tanzufy_cluster" # create a local cluster
-  tanzu context create --kubeconfig "$HOME/.kube/*" --kubecontext kind-kind --name default-kind-cluster
 }
 
 cleanup && \
