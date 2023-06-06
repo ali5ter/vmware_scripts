@@ -2,16 +2,22 @@
 # @file tanzufy_cluster
 # Install Tanzu Cluster Essentials on a Kind k8s cluster
 # @author Alister Lewis-Bowen <bowena@vmware.com>
+# @ref https://github.com/vmware-tanzu/tanzu-cli/blob/main/docs/full/context-scoped-plugins.md#when-the-context-is-of-type-kubernetes
 # @ref https://docs.vmware.com/en/Cluster-Essentials-for-VMware-Tanzu/1.5/cluster-essentials/deploy.html
 # @ref https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.5/tap/install-online-profile.html
 
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
 
-DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz
 TANZU_NET_USER="$(cut -d: -f1 "$HOME/.config/tanzu_net_creds")" # change to location of your stored Tanzu Network credentials
 TANZU_NET_PASSWORD="$(cut -d: -f2 "$HOME/.config/tanzu_net_creds")" # change to location of your stored Tanzu Network credentials
 CLUSTER_NAME="tanzu-cluster"
+
+# shellcheck disable=SC2155
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz
+CLIPLUGIN_CRD="https://raw.githubusercontent.com/vmware-tanzu/tanzu-cli/v0.90.0-beta.0/apis/config/crd/bases/cli.tanzu.vmware.com_cliplugins.yaml"
+CLIPLUGIN_SUGGESTIONS="$SCRIPT_DIR/CLIPlugin_k8s.yaml"
 
 export INSTALL_REGISTRY_HOSTNAME="registry.tanzu.vmware.com"
 export INSTALL_REGISTRY_USERNAME="$TANZU_NET_USER"
@@ -27,13 +33,24 @@ docker stats --no-stream &> /dev/null || open /Applications/Docker.app
 
 cleanup() {
   kind delete cluster --name "$CLUSTER_NAME"
-  tanzu context list | grep "$CLUSTER_NAME" &> /dev/null && tanzu context delete "$CLUSTER_NAME" --yes
-  kubectl config delete "kind-$CLUSTER_NAME"
+  kubectl config get-contexts | grep "kind-$CLUSTER_NAME" &> /dev/null && {
+    kubectl config delete-context "kind-$CLUSTER_NAME"
+  }
+  tanzu context list | grep "$CLUSTER_NAME" &> /dev/null && {
+    tanzu context delete "$CLUSTER_NAME" --yes
+  } 
   rm -fR tanzu-cluster-essentials
 }
 
 create_cluster() {
   kind create cluster --name "$CLUSTER_NAME"
+}
+
+install_plugin_suggestions() {
+  # Need to install the Tanzu CLIPlugin CRD and provide suggested Tanzu Core
+  # CLI plugins to install for a k8s context
+  kubectl apply -f "$CLIPLUGIN_CRD"
+  kubectl apply -f "$CLIPLUGIN_SUGGESTIONS"
 }
 
 install_cluster_essentials() {
@@ -43,12 +60,14 @@ install_cluster_essentials() {
   export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
   cd tanzu-cluster-essentials
   ./install.sh --yes
+  cd - || exit 1
 }
 
 uninstall_cluster_essentials() {
   if [[ ! -d tanzu-cluster-essentials ]]; then
     cd tanzu-cluster-essentials
     ./uninstall.sh --yes
+    cd - || exit 1
   fi
 }
 
@@ -77,12 +96,14 @@ add_tap_package_repo() {
 
 create_local_cluster_context() {
   tanzu context create --kubeconfig "$HOME/.kube/config" --kubecontext "kind-$CLUSTER_NAME" --name "$CLUSTER_NAME"
-  # Install plugins: They are not automatically installed when using a local cluster context!
-  tanzu plugin install secret --target k8s
-  tanzu plugin install package --target k8s
+  # CLIPlugin resource suggets plugins to install for the kubernetes context
 }
 
-cleanup && create_cluster && install_cluster_essentials && create_local_cluster_context
+cleanup
+create_cluster
+install_cluster_essentials
+install_plugin_suggestions
+create_local_cluster_context
 
 kubectl get pods -A
 

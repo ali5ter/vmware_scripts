@@ -1,0 +1,23 @@
+# 
+# @file cliplugins.yaml
+# Recommended plugins to automatically install when a user creates or activates a context of type kubernetes.
+# This relies on the CLIPlugin CRD, which has to be installed separately.
+# @author Alister Lewis-Bowen <bowena@vmware.com>
+# @ref: https://github.com/vmware-tanzu/tanzu-cli/blob/main/docs/full/context-scoped-plugins.md#when-the-context-is-of-type-kubernetes
+#
+---
+apiVersion: cli.tanzu.vmware.com/v1alpha1
+kind: CLIPlugin
+metadata:
+  name: secret
+spec:
+  recommendedVersion: v0.29.0
+  description: Tanzu secret management
+---
+apiVersion: cli.tanzu.vmware.com/v1alpha1
+kind: CLIPlugin
+metadata:
+  name: package
+spec:
+  recommendedVersion: v0.29.0
+  description: Tanzu package management
