@@ -3,6 +3,7 @@
 # Install Tanzu Cluster Essentials on a Kind k8s cluster
 # @author Alister Lewis-Bowen <bowena@vmware.com>
 # @ref https://docs.vmware.com/en/Cluster-Essentials-for-VMware-Tanzu/1.5/cluster-essentials/deploy.html
+# @ref https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.5/tap/install-online-profile.html
 
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
@@ -11,6 +12,10 @@ DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz
 TANZU_NET_USER="$(cut -d: -f1 "$HOME/.config/tanzu_net_creds")" # change to location of your stored Tanzu Network credentials
 TANZU_NET_PASSWORD="$(cut -d: -f2 "$HOME/.config/tanzu_net_creds")" # change to location of your stored Tanzu Network credentials
 CLUSTER_NAME="tanzu-cluster"
+
+export INSTALL_REGISTRY_HOSTNAME="registry.tanzu.vmware.com"
+export INSTALL_REGISTRY_USERNAME="$TANZU_NET_USER"
+export INSTALL_REGISTRY_PASSWORD="$TANZU_NET_PASSWORD"
 
 which brew &> /dev/null || {
   echo "Homebrew not installed"
@@ -22,7 +27,9 @@ docker stats --no-stream &> /dev/null || open /Applications/Docker.app
 
 cleanup() {
   kind delete cluster --name "$CLUSTER_NAME"
-  rm -fR tanzu-cluster-essentials  
+  tanzu context list | grep "$CLUSTER_NAME" &> /dev/null && tanzu context delete "$CLUSTER_NAME" --yes
+  kubectl config delete "kind-$CLUSTER_NAME"
+  rm -fR tanzu-cluster-essentials
 }
 
 create_cluster() {
@@ -34,17 +41,51 @@ install_cluster_essentials() {
   tar -xvf "$DOWNLOADED_CLUSTER_ESSENTIALS" -C tanzu-cluster-essentials
   kubectl config use-context "kind-$CLUSTER_NAME"
   export INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:79abddbc3b49b44fc368fede0dab93c266ff7c1fe305e2d555ed52d00361b446
-  export INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
-  export INSTALL_REGISTRY_USERNAME="$TANZU_NET_USER"
-  export INSTALL_REGISTRY_PASSWORD="$TANZU_NET_PASSWORD"
   cd tanzu-cluster-essentials
   ./install.sh --yes
 }
 
+uninstall_cluster_essentials() {
+  if [[ ! -d tanzu-cluster-essentials ]]; then
+    cd tanzu-cluster-essentials
+    ./uninstall.sh --yes
+  fi
+}
+
+add_tap_package_repo() {
+  export INSTALL_REPO="tanzu-application-platform"
+  export TAP_VERSION="1.5.1"
+  kubectl create ns tap-install
+  tanzu secret registry add tap-registry \
+    --server "${INSTALL_REGISTRY_HOSTNAME}" \
+    --username "${INSTALL_REGISTRY_USERNAME}" \
+    --password "${INSTALL_REGISTRY_PASSWORD}" \
+    --namespace tap-install \
+    --export-to-all-namespaces \
+    --yes 
+  tanzu secret registry add registry-credentials \
+    --server "${INSTALL_REGISTRY_HOSTNAME}" \
+    --username "${INSTALL_REGISTRY_USERNAME}" \
+    --password "${INSTALL_REGISTRY_PASSWORD}" \
+    --namespace tap-install \
+    --export-to-all-namespaces \
+    --yes 
+  tanzu package repository add tanzu-tap-repository \
+    --url ${INSTALL_REGISTRY_HOSTNAME}/${INSTALL_REPO}/tap-packages:$TAP_VERSION \
+    --namespace tap-install
+}
+
 create_local_cluster_context() {
   tanzu context create --kubeconfig "$HOME/.kube/config" --kubecontext "kind-$CLUSTER_NAME" --name "$CLUSTER_NAME"
+  # Install plugins: They are not automatically installed when using a local cluster context!
+  tanzu plugin install secret --target k8s
+  tanzu plugin install package --target k8s
 }
 
 cleanup && create_cluster && install_cluster_essentials && create_local_cluster_context
 
 kubectl get pods -A
+
+add_tap_package_repo
+
+tanzu package available list -n tap-install
