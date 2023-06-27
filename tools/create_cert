@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# @file create_cert
+# Generate a self-signed cert for testing that expires in 7 days
+# @author Alister Lewis-Bowen <bowena@vmware.com>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+which brew &> /dev/null || {
+  echo "Homebrew not installed"
+  exit 1
+}
+which openssl &> /dev/null || brew install openssl
+
+copy_cert_to_clipboad() {
+  which pbcopy &> /dev/null && {
+    # shellcheck disable=SC2002
+    cat "$CERT_FILE" | pbcopy
+    echo "Certificate copied to clipboard"
+  }
+}
+
+CERT_FILE="$HOME/.config/tanzu-cert.pem"
+CERT_KEY="$HOME/.config/tanzu-cert.key"
+COMBINED_CERT="$HOME/.config/tanzu-cert-combined.pem"
+
+# [[ -f "$CERT_FILE" ]] && {
+#   echo "Certificate already exists at $CERT_FILE"
+#   copy_cert_to_clipboad
+#   exit 0
+# }
+
+# [[ -f "$CERT_KEY" ]] && {
+#   echo "Certificate key already exists at $CERT_KEY"
+#   copy_cert_to_clipboad
+#   exit 0
+# }
+
+# [[ -f "$COMBINED_CERT" ]] && {
+#   echo "Combined certificate already exists at $COMBINED_CERT"
+#   copy_cert_to_clipboad
+#   exit 0
+# }
+
+openssl req -x509 -newkey rsa:4096 \
+    -keyout "$CERT_KEY" \
+    -out "$CERT_FILE" \
+    -sha256 -days 7 -nodes \
+    -subj "/C=US/ST=Massachusetts/L=Boston/O=VMware/OU=Org/CN=vmware.com"
+
+cat "$CERT_KEY" "$CERT_FILE" > "$COMBINED_CERT"

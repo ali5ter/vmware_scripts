@@ -17,7 +17,7 @@ CLUSTER_NAME="tanzu-cluster"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz
 CLIPLUGIN_CRD="https://raw.githubusercontent.com/vmware-tanzu/tanzu-cli/v0.90.0-beta.0/apis/config/crd/bases/cli.tanzu.vmware.com_cliplugins.yaml"
-CLIPLUGIN_SUGGESTIONS="$SCRIPT_DIR/CLIPlugin_k8s.yaml"
+CLIPLUGIN_SUGGESTIONS="$SCRIPT_DIR/cliplugins.yaml"
 
 export INSTALL_REGISTRY_HOSTNAME="registry.tanzu.vmware.com"
 export INSTALL_REGISTRY_USERNAME="$TANZU_NET_USER"
