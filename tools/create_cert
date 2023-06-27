@@ -20,9 +20,9 @@ copy_cert_to_clipboad() {
   }
 }
 
-CERT_FILE="$HOME/.config/tanzu-cert.pem"
-CERT_KEY="$HOME/.config/tanzu-cert.key"
-COMBINED_CERT="$HOME/.config/tanzu-cert-combined.pem"
+CERT_FILE="$HOME/.config/test-cert.pem"
+CERT_KEY="$HOME/.config/test-cert.key"
+COMBINED_CERT="$HOME/.config/test-cert-combined.pem"
 
 # [[ -f "$CERT_FILE" ]] && {
 #   echo "Certificate already exists at $CERT_FILE"
