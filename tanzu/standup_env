@@ -44,6 +44,8 @@ install_tanzu() {
 configure_tanzu() {
   tanzu config eula accept          # accept EULA
   tanzu ceip-participation set true # enable CEIP
+  # target staging environment for analytics
+  tanzu config set env.TANZU_CLI_SUPERCOLLIDER_ENVIRONMENT staging
   # point at staging plugin registry
   tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
   # tanzu plugin source init
