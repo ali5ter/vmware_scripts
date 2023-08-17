@@ -15,8 +15,8 @@ CLUSTER_NAME="tanzu-cluster"
 
 # shellcheck disable=SC2155
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.0.tgz
-CLIPLUGIN_CRD="https://raw.githubusercontent.com/vmware-tanzu/tanzu-cli/v0.90.0-beta.0/apis/config/crd/bases/cli.tanzu.vmware.com_cliplugins.yaml"
+DOWNLOADED_CLUSTER_ESSENTIALS=tanzu-cluster-essentials-darwin-amd64-1.5.1.tgz
+CLIPLUGIN_CRD="https://raw.githubusercontent.com/vmware-tanzu/tanzu-cli/v1.0.0/apis/config/crd/bases/cli.tanzu.vmware.com_cliplugins.yaml"
 CLIPLUGIN_SUGGESTIONS="$SCRIPT_DIR/cliplugins.yaml"
 
 export INSTALL_REGISTRY_HOSTNAME="registry.tanzu.vmware.com"
@@ -30,7 +30,7 @@ which brew &> /dev/null || {
 which kubectl &> /dev/null || brew install kubernetes-cli
 which kind &> /dev/null || brew install kind
 docker stats --no-stream &> /dev/null || open /Applications/Docker.app
-
+ 
 cleanup() {
   kind delete cluster --name "$CLUSTER_NAME"
   kubectl config get-contexts | grep "kind-$CLUSTER_NAME" &> /dev/null && {
