@@ -1,1 +1,6 @@
+tanzu_taxo_with_options.txt
+cli-wordlist.yml
+wordlist_diff.txt
+name_flags.txt
+tanzu-cluster-essentials
 templates/*
