@@ -7,7 +7,7 @@
 set -eou pipefail
 
 # shellcheck disable=SC1091
-source tmc_config.sh
+source tanzu_config.sh
 
 CLUSTER_GROUP_TMPL=templates/cluster_group.yaml
 
