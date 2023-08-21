@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# @file create_cluster_group
+# Create a TMC cluster group
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+# shellcheck disable=SC1091
+source tmc_config.sh
+
+CLUSTER_GROUP_TMPL=templates/cluster_group.yaml
+
+# START YAML DECLARATION -----------------------------------------------------
+cat<<EOF>"$CLUSTER_GROUP_TMPL"
+fullName:
+  name: $TMC_CLUSTER_GROUP
+meta:
+  annotations: null
+  description: $TMC_DESCRIPTION
+  labels: $TMC_LABELS
+type:
+  kind: ClusterGroup
+  package: vmware.tanzu.manage.v1alpha1.clustergroup
+  version: v1alpha1
+EOF
+# END YAML DECLARATION -------------------------------------------------------
+
+# Check and create cluster group
+if tanzu tmc clustergroup list | grep "$TMC_CLUSTER_GROUP" >/dev/null; then
+    echo "Cluster group '$TMC_CLUSTER_GROUP' exists"
+else
+    tanzu tmc clustergroup create -f "$CLUSTER_GROUP_TMPL"
+fi
