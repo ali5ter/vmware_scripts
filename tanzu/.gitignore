@@ -4,3 +4,4 @@ wordlist_diff.txt
 name_flags.txt
 tanzu-cluster-essentials
 templates/*
+k8s-attach-manifest.yaml

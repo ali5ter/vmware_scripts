@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # @file tanzufy_cluster
 # Install Tanzu Cluster Essentials on a Kind k8s cluster
+# Built for macOS and uses homebrew to install dependencies
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 # @ref https://github.com/vmware-tanzu/tanzu-cli/blob/main/docs/full/context-scoped-plugins.md#when-the-context-is-of-type-kubernetes
 # @ref https://docs.vmware.com/en/Cluster-Essentials-for-VMware-Tanzu/1.5/cluster-essentials/deploy.html

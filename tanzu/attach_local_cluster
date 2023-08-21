@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# @file attach_local_luster
+# Bring a local k8s cluster (a kind cluster) under TMC management by
+# attaching it
+# Built for macOS and uses homebrew to install dependencies and Docker Desktop
+# for the local k8s cluster
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+# shellcheck disable=SC1091
+source tanzu_config.sh
+
+# Instructions to understand how the template was created:
+# 1. List the available templates
+#   tanzu tmc cluster template list
+# 2. Get the template details
+#   tanzu tmc cluster template get attached
+# 3. Create a template file using the 'data' section of the template.
+#    The rest of the template describes the type of variables used.
+
+CLUSTER_TMPL=templates/cluster_local_attached.yaml
+
+# START YAML DECLARATION -----------------------------------------------------
+cat<<EOF>"$CLUSTER_TMPL"
+type:
+  kind: Cluster
+  package: vmware.tanzu.manage.v1alpha1.cluster
+  version: v1alpha1
+fullName:
+  managementClusterName: "attached"
+  provisionerName: "attached"
+  name: $TMC_CLUSTER
+spec:
+  clusterGroupName: $TMC_CLUSTER_GROUP
+  proxyName: null
+  imageRegistry: null
+meta:
+  labels: $TMC_LABELS
+  description: $TMC_DESCRIPTION
+EOF
+# END YAML DECLARATION -------------------------------------------------------
+
+# Check dependencies
+which brew &> /dev/null || {
+  echo "Homebrew not installed"
+  exit 1
+}
+which kubectl &> /dev/null || brew install kubernetes-cli
+which kind &> /dev/null || brew install kind
+which watch &> /dev/null || brew install watch
+docker stats --no-stream &> /dev/null || open /Applications/Docker.app
+
+detach_local_cluster() {
+    # Using the -f (--force) flag just remove the cluster from the
+    # TMC database and not attempt to remove the TMC agent
+    tanzu tmc cluster delete "$TMC_CLUSTER" -m attached -p attached -f
+}
+
+delete_local_cluster() {
+    kind delete cluster --name="$TMC_CLUSTER"
+}
+
+cleanup() {
+    if tanzu tmc cluster list | grep "$TMC_CLUSTER" >/dev/null; then
+        detach_local_cluster
+    fi
+    delete_local_cluster
+}
+
+create_local_cluster() {
+    if kind get clusters -q | grep -q "$TMC_CLUSTER"; then
+        delete_local_cluster
+    fi
+    kind create cluster --config kind_config.yaml --name="$TMC_CLUSTER"
+}
+
+cleanup
+create_local_cluster
+
+# Check that cluster is not already attached. If not then attach it
+if tanzu tmc cluster list | grep "$TMC_CLUSTER" >/dev/null; then
+    echo "Cluster '$TMC_CLUSTER' exists"
+else
+    tanzu tmc cluster attach -f "$CLUSTER_TMPL"
+    kubectl apply -f k8s-attach-manifest.yaml
+fi
+
+# Observe the state of the pods and services that TMC needs...
+watch kubectl get services,pods -n vmware-system-tmc

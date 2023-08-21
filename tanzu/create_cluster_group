@@ -9,20 +9,28 @@ set -eou pipefail
 # shellcheck disable=SC1091
 source tanzu_config.sh
 
+# Instructions to understand how the template was created:
+# 1. List the available templates
+#   tanzu tmc clustergroup template list
+# 2. Get the template details
+#   tanzu tmc clustergroup template get default
+# 3. Create a template file using the 'data' section of the template.
+#    The rest of the template describes the type of variables used.
+
 CLUSTER_GROUP_TMPL=templates/cluster_group.yaml
 
 # START YAML DECLARATION -----------------------------------------------------
 cat<<EOF>"$CLUSTER_GROUP_TMPL"
+type:
+  kind: ClusterGroup
+  package: vmware.tanzu.manage.v1alpha1.clustergroup
+  version: v1alpha1
 fullName:
   name: $TMC_CLUSTER_GROUP
 meta:
   annotations: null
   description: $TMC_DESCRIPTION
   labels: $TMC_LABELS
-type:
-  kind: ClusterGroup
-  package: vmware.tanzu.manage.v1alpha1.clustergroup
-  version: v1alpha1
 EOF
 # END YAML DECLARATION -------------------------------------------------------
 
