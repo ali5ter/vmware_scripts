@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # @file standup_env
 # Stand up a test environment for Tanzu CLI
-# @author Alister Lewis-Bowen <bowena@vmware.com>
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail

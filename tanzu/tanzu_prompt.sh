@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # @file tanzu_prompt.sh
 # Add current context(s) to prompt
-# @author Alister Lewis-Bowen <bowena@vmware.com>
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 #
 # REQUIREMENTS
 # - tanzu

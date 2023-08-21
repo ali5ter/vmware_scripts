@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # @file check_name_flag
 # Expose --name flag for all commands
-# @author Alister Lewis-Bowen <bowena@vmware.com>
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
