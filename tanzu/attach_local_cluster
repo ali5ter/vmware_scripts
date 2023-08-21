@@ -47,12 +47,18 @@ which brew &> /dev/null || {
   echo "Homebrew not installed"
   exit 1
 }
+# Install the typical k8s CLI tool
 which kubectl &> /dev/null || brew install kubernetes-cli
+# Install a tool to create a local k8s cluster using docker
 which kind &> /dev/null || brew install kind
+# Install a tool to sit and watch another CLI command
 which watch &> /dev/null || brew install watch
+# Install a tool to parse JSON
+which jq &> /dev/null || brew install jq
+# Start up Docker Desktop if not already running
 docker stats --no-stream &> /dev/null || open /Applications/Docker.app
 
-detach_local_cluster() {
+detach_tmc_cluster() {
     # Using the -f (--force) flag just remove the cluster from the
     # TMC database and not attempt to remove the TMC agent
     tanzu tmc cluster delete "$TMC_CLUSTER" -m attached -p attached -f
@@ -62,9 +68,14 @@ delete_local_cluster() {
     kind delete cluster --name="$TMC_CLUSTER"
 }
 
+get_tmc_cluster_phase() {
+    tanzu tmc cluster get "$TMC_CLUSTER" -m attached -p attached -o json | \
+        jq -r .status.phase
+}
+
 cleanup() {
-    if tanzu tmc cluster list | grep "$TMC_CLUSTER" >/dev/null; then
-        detach_local_cluster
+    if [[ $(get_tmc_cluster_phase) == 'READY' ]]; then
+        detach_tmc_cluster
     fi
     delete_local_cluster
 }
