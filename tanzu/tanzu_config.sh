@@ -25,6 +25,7 @@ TMC_MNGMT_CLUSTER='attached'
 TMC_PROVISIONER='attached'
 TMC_LOG_LEVEL='debug'
 TMC_PROVIDER='local'    # local|aws|eks|tkg
+TMC_MANAGEMENT_CLUSTER='alb-tkgs-test'
 TMC_CLUSTER="alb-dev-${TMC_PROVIDER}"
 TMC_CLUSTER_GROUP='alb-test'
 TMC_WORKSPACE='alb-test'

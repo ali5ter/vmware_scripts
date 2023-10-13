@@ -12,18 +12,18 @@ set -eou pipefail
 # shellcheck disable=SC1091
 source tanzu_config.sh
 
-# Instructions to understand how the template was created:
+# Instructions to understand how the declarative file was created:
 # 1. List the available templates
 #   tanzu tmc cluster template list
 # 2. Get the template details
 #   tanzu tmc cluster template get attached
-# 3. Create a template file using the 'data' section of the template.
+# 3. Create a declarative file using the 'data' section of the template.
 #    The rest of the template describes the type of variables used.
 
-CLUSTER_TMPL=templates/cluster_local_attached.yaml
+CLUSTER_YAML=templates/cluster_local_attached.yaml
 
 # START YAML DECLARATION -----------------------------------------------------
-cat<<EOF>"$CLUSTER_TMPL"
+cat<<EOF>"$CLUSTER_YAML"
 type:
   kind: Cluster
   package: vmware.tanzu.manage.v1alpha1.cluster
@@ -31,14 +31,14 @@ type:
 fullName:
   managementClusterName: "attached"
   provisionerName: "attached"
-  name: $TMC_CLUSTER
+  name: "$TMC_CLUSTER"
 spec:
-  clusterGroupName: $TMC_CLUSTER_GROUP
+  clusterGroupName: "$TMC_CLUSTER_GROUP"
   proxyName: null
   imageRegistry: null
 meta:
-  labels: $TMC_LABELS
-  description: $TMC_DESCRIPTION
+  labels: "$TMC_LABELS"
+  description: "$TMC_DESCRIPTION"
 EOF
 # END YAML DECLARATION -------------------------------------------------------
 
@@ -94,7 +94,7 @@ create_local_cluster
 if tanzu tmc cluster list | grep "$TMC_CLUSTER" >/dev/null; then
     echo "Cluster '$TMC_CLUSTER' exists"
 else
-    tanzu tmc cluster attach -f "$CLUSTER_TMPL"
+    tanzu tmc cluster attach -f "$CLUSTER_YAML"
     kubectl apply -f k8s-attach-manifest.yaml
 fi
 

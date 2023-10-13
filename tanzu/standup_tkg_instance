@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# @file standup_tkg_instance
+# 1. Use shepherd testbed to stand up a TKG instance.
+# 2. Register the TKG instance with TMC
+# Assumes this is run on macOS with Homebrew installed
+# @author Alister Lewis-Bowen <bowena@vmware.com>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+if ! which brew &> /dev/null; then
+    echo "Homebrew not installed"
+    exit 1
+fi
+
+# Use sheepctl to talk to shepherd testbed system
+if ! which sheepctl &> /dev/null; then
+    brew tap vmware/internal git@gitlab.eng.vmware.com:homebrew/internal.git
+    brew install sheepctl
+fi
+
+# Use jq to parse json data
+if ! which jq &> /dev/null; then
+    brew install jq
+fi
+
+# shellcheck disable=SC1091
+source tanzu_config.sh
+
+# Instructions to understand how the declarative file was created:
+# 1. List the available templates
+#   tanzu tmc clustergroup template list
+# 2. Get the template details
+#   tanzu tmc clustergroup template get default
+# 3. Create a declarative file using the 'data' section of the template.
+#    The rest of the template describes the type of variables used.
+
+MANAGEMENT_CLUSTER_YAML=templates/cluster_management_tkgs.yaml
+
+# START YAML DECLARATION -----------------------------------------------------
+cat<<EOF>"$MANAGEMENT_CLUSTER_YAML"
+type:
+  kind: ManagementCluster
+  package: vmware.tanzu.manage.v1alpha1.managementcluster
+  version: v1alpha1
+fullName:
+  name: "$TMC_MANAGEMENT_CLUSTER"
+meta:
+  description: "$TMC_DESCRIPTION"
+  labels: $TMC_LABELS
+spec:
+  defaultClusterGroup: "$TMC_CLUSTER_GROUP"
+  kubernetesProviderType: "VMWARE_TANZU_KUBERNETES_GRID_SERVICE"
+  proxyName: null
+  defaultWorkloadClusterProxyName: null
+  imageRegistry: null
+  defaultWorkloadClusterImageRegistry: null
+EOF
+# END YAML DECLARATION -------------------------------------------------------
+
+SHEPHERD_NS='tmc-crow'      ## Namespace of testbed to be used
+# Pool name format: TKG type, version, and the supporting data center where
+# the TKG instance is installed
+SHEPHERD_POOL='tkg231-vc70' ## Pool of TKGs environments to use
+# SHEPHERD_TTL='5d'         ## 5 days
+SHEPHERD_TTL='3600s'        ## 1 hour
+
+SHEPHERD_ACCESS_DATA="$HOME/.config/shepherd.lock.json"
+SHEPHERD_LOCK_FILE="$HOME/.config/shepherd.lock"
+SHEPHERD_LOCK_ID=''
+
+TKG_MANAGEMENT_CLUSTER_KUBECONFIG=''
+
+set_pool() {
+    ## Set the namespace context so we don't have to declare it for
+    ## every command
+    sheepctl target set -n "$SHEPHERD_NS"
+}
+
+set_lock() {
+    ## Reserve a testbed environment from the type of testbed pool we want
+    ## to use
+    sheepctl pool lock "$SHEPHERD_POOL" \
+        --lifetime "$SHEPHERD_TTL" \
+        -o "$SHEPHERD_ACCESS_DATA"
+    ## Save the lock ID
+    jq -r '.id' "$SHEPHERD_ACCESS_DATA" > "$SHEPHERD_LOCK_FILE"
+} 
+
+get_lock_status() {
+    ## Check the status of the lock
+    SHEPHERD_LOCK_ID=$(cat "$SHEPHERD_LOCK_FILE")
+    sheepctl lock get "$SHEPHERD_LOCK_ID" --json | jq -r '.status'
+}
+
+get_kubeconfig() {
+    ## Get the kubeconfig for the management cluster
+    SHEPHERD_LOCK_ID=$(cat "$SHEPHERD_LOCK_FILE")
+    TKG_MANAGEMENT_CLUSTER_KUBECONFIG="$HOME/.kube/${SHEPHERD_LOCK_ID}.yaml"
+    sheepctl lock kubeconfig "$SHEPHERD_LOCK_ID" \
+        > "$TKG_MANAGEMENT_CLUSTER_KUBECONFIG"
+}
+
+cluster_exists() {
+    ## Check that the management cluster is up and running
+    if kubectl --kubeconfig="$TKG_MANAGEMENT_CLUSTER_KUBECONFIG" get nodes >/dev/null; then
+        echo "Management cluster '$TMC_MANAGEMENT_CLUSTER' exists"
+    else
+        echo "Management cluster '$TMC_MANAGEMENT_CLUSTER' does not exist"
+        exit 1
+    fi
+}
+
+register_management_cluster() {
+    ## Register the management cluster with TMC
+    tanzu tmc management-cluster register "$TMC_MANAGEMENT_CLUSTER" \
+        -n "$TMC_MANAGEMENT_CLUSTER" \
+        -f "$MANAGEMENT_CLUSTER_YAML" \
+        -k "$TKG_MANAGEMENT_CLUSTER_KUBECONFIG" \
+        --continue-bootstrap
+}
+
+deregister_management_cluster() {
+    ## Deregister the management cluster from TMC
+    tanzu tmc management-cluster deregister "$TMC_MANAGEMENT_CLUSTER" \
+        -k "$TKG_MANAGEMENT_CLUSTER_KUBECONFIG" \
+        --force
+}
+
+set_pool
+[ "$(get_lock_status)" == "locked" ] || set_lock
+get_kubeconfig
+cluster_exists
+register_management_cluster

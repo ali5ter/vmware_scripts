@@ -48,7 +48,10 @@ configure_tanzu() {
   tanzu config set env.TANZU_CLI_SUPERCOLLIDER_ENVIRONMENT staging
   # point at staging plugin registry
   tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
-  # tanzu plugin source init
+  # point at sandbox plugin registry
+  tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli/plugins/sandbox/900e7f/plugin-inventory:latest
+  # set up sig verfication
+  tanzu config set env.TANZU_CLI_PLUGIN_DISCOVERY_IMAGE_SIGNATURE_VERIFICATION_SKIP_LIST harbor-repo.vmware.com/tanzu_cli/plugins/sandbox/900e7f/plugin-inventory:latest
 }
 
 create_tmc_unstable_context() {
