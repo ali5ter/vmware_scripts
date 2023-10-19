@@ -3,7 +3,10 @@
 # Create a TMC cluster group
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-[[ -n $DEBUG ]] && set -x
+[[ -n $DEBUG ]] && {
+    export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -x
+}
 set -eou pipefail
 
 # shellcheck disable=SC1091

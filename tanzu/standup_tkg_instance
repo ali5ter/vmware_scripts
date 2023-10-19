@@ -5,7 +5,10 @@
 # Assumes this is run on macOS with Homebrew installed
 # @author Alister Lewis-Bowen <bowena@vmware.com>
 
-[[ -n $DEBUG ]] && set -x
+[[ -n $DEBUG ]] && {
+    export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -x
+}
 set -eou pipefail
 
 if ! which brew &> /dev/null; then
@@ -29,9 +32,9 @@ source tanzu_config.sh
 
 # Instructions to understand how the declarative file was created:
 # 1. List the available templates
-#   tanzu tmc clustergroup template list
+#   tanzu tmc management-cluster template list
 # 2. Get the template details
-#   tanzu tmc clustergroup template get default
+#   tanzu tmc management-cluster template get default
 # 3. Create a declarative file using the 'data' section of the template.
 #    The rest of the template describes the type of variables used.
 
@@ -61,9 +64,10 @@ EOF
 SHEPHERD_NS='tmc-crow'      ## Namespace of testbed to be used
 # Pool name format: TKG type, version, and the supporting data center where
 # the TKG instance is installed
-SHEPHERD_POOL='tkg231-vc70' ## Pool of TKGs environments to use
+SHEPHERD_POOL='tkgs-vc703' ## Pool of TKGs environments to use
+# SHEPHERD_TTL='3600s'        ## 1 hour
+SHEPHERD_TTL='1d'         ## 1 day
 # SHEPHERD_TTL='5d'         ## 5 days
-SHEPHERD_TTL='3600s'        ## 1 hour
 
 SHEPHERD_ACCESS_DATA="$HOME/.config/shepherd.lock.json"
 SHEPHERD_LOCK_FILE="$HOME/.config/shepherd.lock"
@@ -71,9 +75,15 @@ SHEPHERD_LOCK_ID=''
 
 TKG_MANAGEMENT_CLUSTER_KUBECONFIG=''
 
+cleanup () {
+    rm "$SHEPHERD_ACCESS_DATA"
+    rm "$SHEPHERD_LOCK_FILE"
+    rm "$HOME/.kube/*.yaml"
+}
+
 set_pool() {
     ## Set the namespace context so we don't have to declare it for
-    ## every command
+    ## every command to set up the testbed
     sheepctl target set -n "$SHEPHERD_NS"
 }
 
@@ -87,24 +97,41 @@ set_lock() {
     jq -r '.id' "$SHEPHERD_ACCESS_DATA" > "$SHEPHERD_LOCK_FILE"
 } 
 
+get_lock() {
+    # Get the lock ID if it exists
+    if [[ -f "$SHEPHERD_LOCK_FILE" ]]; then
+        SHEPHERD_LOCK_ID=$(cat "$SHEPHERD_LOCK_FILE")
+    else
+        SHEPHERD_LOCK_ID=''
+        exit 1
+    fi
+}
+
 get_lock_status() {
-    ## Check the status of the lock
-    SHEPHERD_LOCK_ID=$(cat "$SHEPHERD_LOCK_FILE")
-    sheepctl lock get "$SHEPHERD_LOCK_ID" --json | jq -r '.status'
+    ## Check the status of the lock on the testbed environment
+    if get_lock; then
+        sheepctl lock get "$SHEPHERD_LOCK_ID" --json | jq -r '.status'
+    else
+        exit 1
+    fi
 }
 
 get_kubeconfig() {
     ## Get the kubeconfig for the management cluster
-    SHEPHERD_LOCK_ID=$(cat "$SHEPHERD_LOCK_FILE")
-    TKG_MANAGEMENT_CLUSTER_KUBECONFIG="$HOME/.kube/${SHEPHERD_LOCK_ID}.yaml"
-    sheepctl lock kubeconfig "$SHEPHERD_LOCK_ID" \
-        > "$TKG_MANAGEMENT_CLUSTER_KUBECONFIG"
+    if get_lock; then
+        TKG_MANAGEMENT_CLUSTER_KUBECONFIG="$HOME/.kube/${SHEPHERD_LOCK_ID}.yaml"
+        sheepctl lock kubeconfig "$SHEPHERD_LOCK_ID" \
+            > "$TKG_MANAGEMENT_CLUSTER_KUBECONFIG"
+    else
+        exit 1
+    fi
 }
 
 cluster_exists() {
-    ## Check that the management cluster is up and running
+    ## Check that the management cluster is up and running in the testbed
     if kubectl --kubeconfig="$TKG_MANAGEMENT_CLUSTER_KUBECONFIG" get nodes >/dev/null; then
         echo "Management cluster '$TMC_MANAGEMENT_CLUSTER' exists"
+        deregister_management_cluster
     else
         echo "Management cluster '$TMC_MANAGEMENT_CLUSTER' does not exist"
         exit 1

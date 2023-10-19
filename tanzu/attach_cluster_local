@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @file attach_local_luster
+# @file attach_cluster_local
 # Bring a local k8s cluster (a kind cluster) under TMC management by
 # attaching it
 # Built for macOS and uses homebrew to install dependencies and Docker Desktop
