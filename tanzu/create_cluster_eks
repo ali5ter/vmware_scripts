@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# @file create_cluster_eks
+# Create a new EKS cluster using TMC
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && {
+    export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -x
+}
+set -eou pipefail
+
+# shellcheck disable=SC1091
+source tanzu_config.sh
+
+[ -z "$AWS_ACCESS_KEY_ID" ] && { echo "AWS_ACCESS_KEY_ID is not set"; exit 1; }
+[ -z "$AWS_SECRET_ACCESS_KEY" ] && { echo "AWS_SECRET_ACCESS_KEY is not set"; exit 1; }
+#  export AWS_SESSION_TOKEN=<SESSION_TOKEN> # Optional
+export AWS_DEFAULT_REGION='us-west-2'   # Oregon region so Lambda functions work
+
+TMC_PROVIDER='eks'
+TMC_CLUSTER="alb-dev-${TMC_PROVIDER}"
+
+AWS_STACK_NAME='tmc-networking-for-eks-lcm'
+AWS_VPC_NAME="${AWS_STACK_NAME}-VPC"
+
+EKS_LCM_CREDENTIAL='alb-test-eks-credential'
+EKS_K8S_VERSION='1.27'
+
+get_vpc_id() {
+  # Get the VPC data for the suggested VPC config for EKS
+  # @ref https://docs.aws.amazon.com/eks/latest/userguide/creating-a-vpc.html
+  aws ec2 describe-vpcs --filters Name=tag:Name,Values=$AWS_VPC_NAME \
+    --output=json | jq -r '.Vpcs[].VpcId'
+}
+AWS_VPC_ID="$(get_vpc_id)"
+
+# get_vpc_cidr() {
+#   # Get the VPC data for the suggested VPC config for EKS
+#   aws ec2 describe-vpcs --filters Name=tag:Name,Values=$AWS_VPC_NAME \
+#     --output=json | jq -r '.Vpcs[].CidrBlockAssociationSet[].CidrBlock'
+# }
+# AWS_VPC_CIDR="$(get_vpc_cidr)"
+
+# get_security_group() {
+#   # Get the security group ID for the suggested VPC config for EKS
+#   aws ec2 describe-security-groups --filters Name=vpc-id,Values="$AWS_VPC_ID" \
+#     Name=tag:aws:cloudformation:stack-name,Values="$AWS_STACK_NAME" \
+#     --output=json | jq -r '.SecurityGroups[].GroupId'
+# }
+# AWS_SECURITY_GROUP="$(get_security_group)"
+
+get_vpc_subnets() {
+  aws ec2 describe-subnets --filters Name=vpc-id,Values="$AWS_VPC_ID" \
+    --output=json | jq -r '.Subnets[].SubnetId'
+}
+AWS_VPC_SUBNETS="$(get_vpc_subnets)"
+# Massage the subnets into a YAML list
+for subnet in $AWS_VPC_SUBNETS; do
+  subnets+="
+      - $subnet"
+done
+AWS_VPC_SUBNETS="$subnets"
+
+get_credential_arn() {
+  # Get the ARN of the IAM role created by the EKS LCM credential
+  tanzu tmc account credential get "$EKS_LCM_CREDENTIAL" -o json | \
+    jq -r '.spec.data.awsCredential.iamRole.arn'
+}
+EKS_LCM_ARN=$(get_credential_arn)
+
+# Instructions to understand how the declarative file was created:
+# 1. List the available templates
+#   tanzu tmc clustergroup template list
+# 2. Get the template details
+#   tanzu tmc clustergroup template get default
+# 3. Create a declarative file using the 'data' section of the template.
+#    The rest of the template describes the type of variables used.
+
+CLUSTER_EKS_YAML=templates/cluster_eks.yaml
+
+# START YAML DECLARATION -----------------------------------------------------
+cat<<EOF>"$CLUSTER_EKS_YAML"
+type:
+  kind: EksCluster
+  package: vmware.tanzu.manage.v1alpha1.ekscluster
+  version: v1alpha1
+fullName:
+  credentialName: $EKS_LCM_CREDENTIAL
+  region: $AWS_REGION
+  name: $TMC_CLUSTER
+meta:
+  description: "$TMC_DESCRIPTION"
+  labels: $TMC_LABELS
+spec:
+  clusterGroupName: $TMC_CLUSTER_GROUP
+  config:
+    logging:
+      apiServer: true
+      authenticator: true
+    roleArn: $EKS_LCM_ARN
+    version: "$EKS_K8S_VERSION"
+    vpc:
+      enablePrivateAccess: true
+      subnetIds: $AWS_VPC_SUBNETS
+EOF
+# END YAML DECLARATION -------------------------------------------------------
+
+# Check and create cluster group
+if tanzu tmc ekscluster list -c "$EKS_LCM_CREDENTIAL" | grep "$TMC_CLUSTER" >/dev/null; then
+    echo "Cluster '$TMC_CLUSTER' exists"
+else
+    tanzu tmc ekscluster create -f "$CLUSTER_EKS_YAML"
+fi
+
+# tanzu tmc ekscluster delete "$TMC_CLUSTER" -c "$EKS_LCM_CREDENTIAL" -r "$AWS_DEFAULT_REGION" --force
