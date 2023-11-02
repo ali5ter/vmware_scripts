@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# @file eks_configmap_update
+# Prep and existing EKS cluster to bring under Tanzu Mission Control management
+# STATUS: In development
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && {
+    export PS4='+($(basename ${BASH_SOURCE[0]}):${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -x
+}
+set -eou pipefail
+
+[ -z "$AWS_ACCESS_KEY_ID" ] && { echo "AWS_ACCESS_KEY_ID is not set"; exit 1; }
+[ -z "$AWS_SECRET_ACCESS_KEY" ] && { echo "AWS_SECRET_ACCESS_KEY is not set"; exit 1; }
+#  export AWS_SESSION_TOKEN=<SESSION_TOKEN> # Optional
+export AWS_DEFAULT_REGION='us-west-2'   # Oregon region so Lambda functions work
+
+CLUSTER_NAME="${1:-$(get_cluster_name)}"
+KUBECONFIG="$HOME/.kube/$CLUSTER_NAME.yaml"
+
+get_cluster_name() {
+    aws eks list-clusters| jq -r .clusters[] \
+        | fzf --height=40% --layout=reverse --info=inline --border
+}
+
+get_kubeconfig() {
+    aws eks update-kubeconfig\
+        --name "$CLUSTER_NAME" --kubeconfig "$KUBECONFIG"
+}
+
+get_aws-auth_configmap() {
+    # Note: The aws-auth configmap is not created until there is at least one 
+    # node group associated with the cluster
+    kubectl --kubeconfig "$KUBECONFIG" get configmap aws-auth\
+        -n kube-system -o yaml
+}
+
+create_cluster_role_binding() {
+    # Note: The TMC EKS credential ARN is not available until the cluster is 
+    # attached to TMC
+    kubectl --kubeconfig "$KUBECONFIG" create clusterrolebinding \
+        "tmc-cluster-access" \
+        --clusterrole=cluster-admin \
+        --group=tmc-cluster-access
+}
+
+edit_aws-auth_configmap() {
+    # Note: The aws-auth configmap is not created until there is at least one 
+    # node group associated with the cluster
+    #
+    # Add the following code block to mapRoles section of the aws-auth configmap:
+    # - groups:
+    #     - tmc-cluster-access
+    #         rolearn: <TMC EKS credential CF Stack ARN>
+    #
+    # To gather the credential CF Stack ARN:
+    # - From the AWS Console, navigate to CloudFormation > Stacks
+    # - Select the stack which corresponds to the appropriate credential 
+    # - Note that TMC adds a label key to help map your EKS credential to the appropriate CF stack (ex: eks-tmc-cloud-vmware-com-3445757028075816165)
+    kubectl --kubeconfig "$KUBECONFIG" edit configmaps aws-auth \
+        -n kube-system -o yaml
+}
+
+get_kubeconfig
+create_cluster_role_binding
+edit_aws-auth_configmap
+get_aws-auth_configmap
