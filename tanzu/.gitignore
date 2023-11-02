@@ -5,5 +5,6 @@ name_flags.txt
 tanzu-cluster-essentials
 templates/*
 k8s-attach-manifest.yaml
-eks_lcm_data_values.txt
-eks_lcm_setup_instructions.txt
+*_lcm_data_values.txt
+*_lcm_setup_instructions.txt
+collector_install.sh
