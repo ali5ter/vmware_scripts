@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# @file life
+# Conway's Game of Life in Bash
+# Inspired by https://medium.com/@starfish99/conways-game-of-life-learn-bash-by-creating-a-small-game-fdfb18cdada5
+# @auther Alister Lewis-Bowen
+
+[[ -n $DEBUG ]] && set -x
+# set -eou pipefail
+
+HEIGHT=$(tput lines)
+WIDTH=$(tput cols)
+NUMBER_CELLS=$(( (HEIGHT * WIDTH) / 4 ))
+
+declare -A board
+declare -A regen
+declare -A alive
+
+echo "$HEIGHT x $WIDTH and starting with $NUMBER_CELLS cells"
+sleep 2
+
+function initBoard {
+    for (( i=-1; i<$(( HEIGHT+1 )); i++ )) do
+        for (( j=-1; j<$(( WIDTH+1 )); j++ )) do
+            board[$i,$j]=0
+        done
+    done
+    for (( c=0; c<NUMBER_CELLS; c++  )) do
+        s1=$(( RANDOM % HEIGHT ))
+        s2=$(( RANDOM % WIDTH ))
+        board[$s1,$s2]=1
+    done
+    board[1,1]=1
+}
+
+function echoBoard {
+    local line=''
+	for (( i=0; i<HEIGHT; i++ )) do
+		line=""
+		for (( j=0; j<WIDTH; j++ )) do
+			if [ "${board[$i,$j]}" -eq 1 ]; then
+				line+="⬢"
+                # line+="🍄"
+			else 
+				line+="⬡"
+                # line+="🌱"
+			fi		
+		done
+        echo $line 
+	done
+}
+
+function countNeighbors {
+	local count=0
+    local i=$1
+    local j=$2
+	[ "${board[$((i-1)),$j]}" -eq 1 ] && count=$(( count+1 ))  # top
+	[ "${board[$((i+1)),$j]}" -eq 1 ] && count=$(( count+1 ))  # bottom
+    [ "${board[$i,$((j-1))]}" -eq 1 ] && count=$(( count+1 ))  # left
+    [ "${board[$i,$((j+1))]}" -eq 1 ] && count=$(( count+1 ))  # right
+    [ "${board[$((i-1)),$((j-1))]}" -eq 1 ] && count=$(( count+1 ))    # top left
+    [ "${board[$((i-1)),$((j+1))]}" -eq 1 ] && count=$(( count+1 ))    # top right
+    [ "${board[$((i+1)),$((j-1))]}" -eq 1 ] && count=$(( count+1 ))    # bottom left
+    [ "${board[$((i+1)),$((j+1))]}" -eq 1 ] && count=$(( count+1 ))    # bottom right
+	return $count
+}
+
+function applyRules() {
+    local i=$1
+    local j=$2
+    local neighbors=$3
+
+    if [ "$neighbors" -eq 2 ] || [ "$neighbors" -eq 3 ] && [ "${board[$i,$j]}" -eq 1 ] ; then
+        alive[$i,$j]=1
+    else 
+        alive[$i,$j]=0
+    fi
+
+    if [ "$neighbors" -eq 3 ] && [ "${board[$i,$j]}" -eq 0 ]; then
+        regen[$i,$j]=1
+    else 
+        regen[$i,$j]=0
+    fi
+}
+
+updateBoard() {
+    for (( i=0; i<HEIGHT; i++ )) do
+        for (( j=0; j<WIDTH; j++ )) do
+            if [ "${alive[$i,$j]}" -eq 1 ] || [ "${regen[$i,$j]}" -eq 1 ]; then
+                board[$i,$j]=1
+            else 
+                board[$i,$j]=0
+            fi
+        done
+    done
+}
+
+initBoard
+while true; do
+	echoBoard	
+	for (( i=0; i<HEIGHT; i++ )) do
+		for (( j=0; j<WIDTH; j++ )) do
+            countNeighbors $i $j
+            applyRules $i $j "$?"
+		done
+	done
+    updateBoard
+	clear
+done
