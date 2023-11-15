@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# @file bashrc.vcp_api
+# Set up environment to perform API calls to VCP
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source "vcp_config.sh"
+
+VCP_API_ENDPOINT=https://api.vcp.cloud.vmware.com
+
+# Find the CSP endpoint
+CSP_ENDPOINT=$(curl -sSX GET "${VCP_API_ENDPOINT}/v1/system/auth" | \
+    jq -r .CSPHost)
+
+# Aquire access token from CSP
+CSP_ACCESS_TOKEN=$(curl -sSX POST "https://${CSP_ENDPOINT}/csp/gateway/am/api/auth/api-tokens/authorize\?refresh_token\=${VCP_TOKEN}" | \
+    jq -r .access_token)
+
+# Find the VCP auth endpoint
+VCP_AUTH_ENDPOINT=$(curl -sSX GET "${VCP_API_ENDPOINT}/v1/system/auth" | \
+    jq -r .endpoint)
+
+# Find the VCP token endpoint
+VCP_TOKEN_ENDPOINT=$(curl -sSX GET "${VCP_AUTH_ENDPOINT}/openidconnect/${VCP_CSP_ORG_ID}/.well-known/openid-configuration" | \
+    jq -r .token_endpoint)
+
+# Exchange CSP_ACCESS_TOKEN for API_TOKEN
+VCP_API_TOKEN=$(curl -sSX POST -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "grant_type=urn:vmware:grant_type:federation_token&access_token=${CSP_ACCESS_TOKEN}&scope=openid offline_access rs_admin_server at_groups id_groups rs_vmdir" \
+    "${VCP_TOKEN_ENDPOINT}" | jq -r .access_token)
+
+function vcp_api_get() {
+    curl -sSX GET -H "Authorization: Bearer ${VCP_API_TOKEN}" "${VCP_API_ENDPOINT}/v1/$1"
+}
+
+# verify the token is working by listing all available regions
+# vcp_api_get system/regions | jq .

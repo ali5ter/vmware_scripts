@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# @file vcp_deploy_guestbook
+# Deploy a example app onto kubernetes backing a VCP Smart Cluster
+# @see https://kubernetes.io/docs/tutorials/stateless-application/guestbook/
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source vcp_env.sh
+
+# helper functions -----------------------------------------------------------
+
+_pod_status_of_name() {
+    kubectl get pod "$1" -o json | jq -r '.status.phase'
+}
+
+_pod_names_starting_with() {
+    obj="$1"
+    kubectl get pods -o json | jq -r --arg obj "$obj" '.items[] | select(.metadata.name | startswith($obj)) | .metadata.name'
+}
+
+_number_pods_running_filterd_by() {
+    # TODO: Check for requested containers = actual containers
+    # shellcheck disable=SC2068
+    kubectl get pods $@ | grep -Ec '1/1.*Running'
+}
+
+_number_frontend_pods_running() {
+    _number_pods_running_filterd_by -l app=guestbook -l tier=frontend
+}
+
+_frontend_hostname() { 
+    kubectl get service frontend -o json | jq -r 'select(.status.loadBalancer.ingress != null) | .status.loadBalancer.ingress[].hostname'
+}
+
+CLUSTER_NAME=$(kubectl config current-context | sed 's/\(.*\)-context/\1/')
+
+_max_allocated_compute() {
+    # shellcheck disable=SC2207
+    _metrics=($(vcp -o json cluster show "$CLUSTER_NAME" | jq -r '.details.actualSize.MemoryMB, .maxSize.MemoryMB, .details.actualSize.vCPU, .maxSize.vCPU' | tr "\\n" " "))
+    [[ "${_metrics[0]}" == "${_metrics[1]}" ]] && echo "!!! Memory is maxed out: Requested ${_metrics[0]} out of ${_metrics[1]} MB allocated"
+    [[ "${_metrics[2]}" == "${_metrics[3]}" ]] && echo "!!! vCPU is maxed out: Requested ${_metrics[2]} out of ${_metrics[3]} vCPUs allocated"
+}
+
+_clean_up() {
+    heading 'Remove guestbook app'
+
+    read -p "Shall I remove the guestbook application from the cluster? [y/N] " -n 1 -r
+    echo
+    [[ $REPLY =~ ^[Yy]$ ]] && {
+        erun kubectl delete deployment redis-master redis-slave frontend
+        erun kubectl delete service -l app=redis
+        erun kubectl delete service -l app=guestbook
+    }
+}
+trap _clean_up EXIT
+
+# select a smart cluster and generate kube-config file or create from scratch
+
+read -p "Do you want use an existing smart cluster? [Y/n] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+
+    vcp_auth
+
+    ## Construct the name and display name just to test the two
+    _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/tools/generate_word_string | bash -s 2)
+    _dname="alb-🦊-guestbook-${_name}"
+    _name="alb-guestbook-${_name}"
+    _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+
+    erun vcp cluster create \
+        --name "$_name" --display-name "$_dname" \
+        --privilegedMode --force \
+        --region "$VCP_DEFAULT_REGION" \
+        --folder "$VCP_DEFAULT_FOLDER" \
+        --project "$VCP_DEFAULT_PROJECT"
+
+    ## Monitor the state of the cluster before it becomes 'READY'
+    get_cluster_state() { vcp --output json cluster show "$_name" | jq -r '.details.state'; }
+
+    echo -en "\\nWaiting for Smart Cluster to be ready..."
+    until [ "$(get_cluster_state)" == "READY" ]; do
+        sleep 10
+        echo '.'
+    done
+    echo ' done'
+
+    vcp cluster auth setup "$_name"
+
+else
+    vcp_cluster_auth
+fi
+
+# download config files ------------------------------------------------------
+
+heading 'Download YAML config files'
+
+cd ~/tmp || exit 1
+mkdir -p guestbook && cd guestbook || exit 1
+YAML_URL='https://raw.githubusercontent.com/kubernetes/website/master/content/en/examples/application/guestbook/'
+YAML_FILES='redis-master-deployment redis-master-service redis-slave-deployment redis-slave-service frontend-deployment frontend-service'
+for _file in $YAML_FILES; do
+    curl -O "${YAML_URL}${_file}.yaml"
+done
+
+# Start up redis master ------------------------------------------------------
+
+heading 'Start up Redis master'
+
+erun kubectl apply -f redis-master-deployment.yaml
+
+REDIS_MASTER_NAME="$(_pod_names_starting_with redis-master)"
+
+echo -n "Waiting for $REDIS_MASTER_NAME to start..."
+until [[ "$(_pod_status_of_name $REDIS_MASTER_NAME)" == "Running" ]]; do
+    echo -n '.'
+    sleep 5
+done
+echo 'done'
+
+erun kubectl get pod
+erun kubectl logs --tail=100 "$REDIS_MASTER_NAME"
+
+# Start up redis master service ----------------------------------------------
+
+heading 'Start up Redis master service'
+
+erun kubectl apply -f redis-master-service.yaml
+
+erun kubectl get service 
+
+# Start up redis master slaves -----------------------------------------------
+
+heading 'Start up Redis slaves'
+
+erun kubectl apply -f redis-slave-deployment.yaml
+
+REDIS_SLAVE_NAMES="$(_pod_names_starting_with redis-master)"
+
+for _slave in $REDIS_SLAVE_NAMES; do
+    echo -n "Waiting for $_slave to start..."
+    until [[ "$(_pod_status_of_name $_slave)" == "Running" ]]; do
+        echo -n '.'
+        sleep 5
+    done
+    echo 'done'
+done
+
+erun kubectl get pod
+
+# Start up redis master service ----------------------------------------------
+
+heading 'Start up Redis slave service'
+
+erun kubectl apply -f redis-slave-service.yaml
+
+erun kubectl get service 
+
+# Start frontend -------------------------------------------------------------
+
+heading 'Start up frontend'
+
+erun kubectl apply -f frontend-deployment.yaml
+
+echo -n "Waiting for frontend to start..."
+until [[ "$(_number_frontend_pods_running)" == "3" ]]; do
+    echo -n '.'
+    sleep 5
+done
+echo 'done'
+
+erun kubectl get pods
+
+# Start up frontend service ----------------------------------------------
+
+heading 'Start up frontend service'
+
+sed -i '' 's/type: NodePort/# type: NodePort/g' frontend-service.yaml
+sed -i '' 's/# type: LoadBalancer/type: LoadBalancer/g' frontend-service.yaml
+
+erun kubectl apply -f frontend-service.yaml
+
+erun kubectl get service 
+
+echo -n "Waiting for hostname to be assigned..."
+_hostname="$(_frontend_hostname)"
+until [[ "$_hostname" != '' ]]; do
+    echo -n '.'
+    sleep 10
+    _hostname="$(_frontend_hostname)"
+done
+echo -e "\\n\\t$_hostname"
+
+# scale number of frontend pods ----------------------------------------------
+
+show_pods() {
+    _output=$(clear; heading 'Scale the frontend')
+    _output=${_output}$(erun kubectl get pods)
+    _output=${_output}$(_max_allocated_compute)
+    echo "$_output"
+}
+
+while true; do
+
+    show_pods
+
+    unset REPLY
+    echo
+    until [[ $REPLY =~ ^[0-9]+$ ]]; do
+        read -pr "How many frontend pod replicas do you want? [Cntl-C to quit] "
+    done
+
+    erun kubectl scale deployment frontend --replicas="$REPLY"
+
+    until [[ "$(_number_frontend_pods_running)" == "$REPLY" ]]; do
+        show_pods
+    done
+    
+done

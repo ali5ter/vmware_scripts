@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# @file vcp_cluster_auth
+# Create a kube configuration file for a selected VCP Smart Cluster.
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source vcp_env.sh
+
+vcp_auth
+
+erun vcp folder set "$VCP_DEFAULT_FOLDER"
+erun vcp project set "$VCP_DEFAULT_PROJECT"
+
+# select a cluster -----------------------------------------------------------
+
+_clusters="$(vcp -o json cluster list | jq -r '.items[] | .name' | grep "$VCP_CLUSTER_PREFIX")"
+_clusters_num=$(echo "$_clusters" | wc -l)
+if [[ -z "$_clusters" ]]; then
+    echo "Unable to find any clusters"
+    exit 0
+elif [[ "$_clusters_num" -eq 1 ]]; then
+    _name="$_clusters"
+else
+    heading "Select from smart clusters starting with $VCP_CLUSTER_PREFIX"
+    _cluster_index=1
+    _current=''
+    kubectl config current-context >/dev/null && {
+        _current="$(kubectl config current-context 2>/dev/null | sed 's/-context//')"
+    }
+    for cluster in $_clusters; do
+        _aclusters[$_cluster_index]="$cluster"
+        if [[ "$_current" == "$cluster" ]]; then
+            printf "${VCP_BOLD}    %3d ... %s (current)${VCP_RESET}\\n" "$_cluster_index" "$cluster"
+        else
+            printf "    %3d ... %s\\n" "$_cluster_index" "$cluster"
+        fi
+        ((_cluster_index++))
+    done
+    REPLY=''
+    until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_aclusters[@]} + 1 ))" ]]; do
+        read -pr "Select one of these smart clusters [1-${#_aclusters[@]}]: " -n 1
+        echo
+    done
+    _name=${_aclusters[$REPLY]}
+fi
+
+# set the kube context -------------------------------------------------------
+
+heading "Set kube context for smart cluster, $_name"
+erun vcp cluster auth setup "$_name"
+
+# check kubectl version compatibility ----------------------------------------
+
+_kubeVersion=$(kubectl -o json version)
+_platform=$(echo "$_kubeVersion" | jq -r '.clientVersion.platform' | sed 's#/#_#' )
+_clientVersion=$(echo "$_kubeVersion" | jq -r '.clientVersion.major').$(echo "$_kubeVersion" | jq -r '.clientVersion.minor')
+_serverVersion=$(echo "$_kubeVersion" | jq -r '.serverVersion.major').$(echo "$_kubeVersion" | jq -r '.serverVersion.minor')
+
+[[ "$_clientVersion" != "$_serverVersion" ]] && {
+    echo -e "\\nThe kubectl client ($_clientVersion) and server ($_serverVersion) versions are different."
+    echo -e "\\tIf you encounter any compatibility problems because of this, download kubectl from:"
+    echo -e -n "\\t"
+    vcp -o json cluster show "$_name" | jq -r ".details.kubectlUrls.$_platform"
+}
+
+# dump some info about the cluster -------------------------------------------
+
+heading "Information about smart cluster, $_name"
+
+erun vcp cluster show "$_name"
+erun vcp cluster show-health "$_name"
+erun kubectl get namespace
+erun kubectl cluster-info
+
+_admin=$(vcp_get_admin_for_object "$_name")
+echo -e "\\nAdministrator(s) identities for $_name are:\\n$_admin"

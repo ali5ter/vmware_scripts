@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# @file install_rancher
+# Script to install rancher on desktop
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+# @ref https://rancher.com/blog/2018/2018-05-18-how-to-run-rancher-2-0-on-your-desktop/
+
+# TODO: Check latest versions of minikube, kubectl and helm are installed
+# NOTE: Unable to get ingress working on kind cluster, so using minikube
+
+# NOTE: Unable to get rancher to come up so reverted to using container...
+# docker run -p 8080:80 -p 8443:443 --name rancher-server rancher/server:preview
+# then open https://localhost:8443/
+
+ING_NS=ingress-nginx
+CTM_NS=kube-system
+RCR_NS=cattle-system
+HOSTNAME=rancher.info
+
+function pods_in_namespace() {
+    local namespace label
+    namespace="$1"
+    label="${2-}"
+    kubectl get pods -n "$namespace" \
+        -l "$label" \
+        #--field-selector=status.phase=Running \
+        # shellcheck disable=SC2215
+        -o jsonpath='{.items[0].metadata.name}'
+}
+
+# enable ingress on minikube
+# minikube start
+minikube addons enable ingress
+
+# install ingress
+# kubectl create namespace "$ING_NS"
+# helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+# helm repo update
+# helm install \
+#     ingress-nginx ingress-nginx/ingress-nginx \
+#     --namespace "$ING_NS" \
+#     #--wait
+# kubectl exec -it "$(pods_in_namespace $ING_NS app.kubernetes.io/name=ingress-nginx)" \
+#     -n "$ING_NS" \
+#     -- /nginx-ingress-controller --version
+
+# install cert-manager
+kubectl create namespace "$CTM_NS"
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install \
+    cert-manager jetstack/cert-manager \
+    --namespace "$CTM_NS" \
+    --set installCRDs=true \
+    --wait
+
+# install rancher
+kubectl create namespace "$RCR_NS"
+helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+helm repo update
+helm install \
+    rancher rancher-latest/rancher \
+    --namespace "$RCR_NS" \
+    --set hostname="$HOSTNAME" \
+    --wait
+
+# update hosts file
+[[ -n "$(grep $HOSTNAME /etc/hosts)" ]] || {
+    HOSTS_LINE="127.0.0.1\t$HOSTNAME"
+    sudo -- sh -c -e "echo '$HOSTS_LINE' >> /etc/hosts";
+}
+
+open "https://$HOSTNAME"

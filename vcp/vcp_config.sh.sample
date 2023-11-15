@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# @file vcp_config.sh
+# VMware Cloud PKS account settings and preferences
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC2034
+VCP_TARGET='https://api.vcp.cloud.vmware.com'
+VCP_TOKEN='your_refresh_token'
+VCP_CSP_ORG_ID='your_organization_id'
+VCP_DEFAULT_FOLDER='SharedFolder'
+VCP_DEFAULT_PROJECT='SharedProject'
+VCP_DEFAULT_REGION='us-west-2'
+VCP_CLUSTER_PREFIX='mycluster-'
+VCP_CLUSTER_DNAME_PREFIX='My Cluster - '
+VCP_DEPLOYMENT_PREFIX='mydeployment-'

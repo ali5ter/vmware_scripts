@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# @file vault_access
+# Setup access to Hashicorp Vault
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source tmc_env.sh
+
+# VAULT_ADDR may be better set up in config eventually
+# shellcheck disable=SC2034
+export VAULT_ADDR='https://runway-vault.eng.vmware.com'
+
+# Download from https://www.vaultproject.io/downloads
+export VAULT_DOWNLOAD_URL='https://releases.hashicorp.com/vault/1.9.2/vault_1.9.2_darwin_amd64.zip'
+
+# Using HashiCorp's Cubbyhole secrets engine which come with Vault
+# @ref https://www.vaultproject.io/docs/secrets/cubbyhole
+export VAULT_PATH="cubbyhole/$USER"
+
+command -v vault 1>/dev/null 2>&1 || {
+    curl -LSs "$VAULT_DOWNLOAD_URL" > vault.zip
+    unzip vault.zip
+    chmod 755 vault
+    mv vault /usr/local/bin
+    rm -f vault.zip
+}
+
+# vault status
+# @ref https://www.vaultproject.io/docs/commands/login
+pfb heading "Authenticate with Vault at $VAULT_ADDR"
+erun vault login -method=ldap -no-print
+
+# List the secrets engines that come with the remote Vault we connected to
+# Get a 403...
+# vault secrets list
+
+# Better to use a file that the raw k/v so that Bash history doesn't store
+# your secret!
+pfb heading "LCM of my CSP token"
+pfb subheading "Store my CSP token"
+erun vault write "$VAULT_PATH" csp-staging-token="$CSP_API_TOKEN"
+pfb subheading "List my CSP token"
+erun vault list  -format=json "$VAULT_PATH"
+pfb subheading "Read my CSP token"
+erun vault read "$VAULT_PATH"
+pfb subheading "Delete my CSP token"
+erun vault delete "$VAULT_PATH"
