@@ -1,0 +1,369 @@
+15:09:30,861 [asyncio          ][DEBUG   ] Using selector: KqueueSelector
+15:09:30,862 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Reading profiles from acct
+15:09:30,894 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.boto
+15:09:30,894 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.iam
+15:09:30,895 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Starting event bus
+15:09:30,896 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.iam
+15:09:30,897 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.boto
+15:09:30,900 [botocore.hooks   ][DEBUG   ] Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+15:09:30,902 [botocore.hooks   ][DEBUG   ] Changing event name from before-call.apigateway to before-call.api-gateway
+15:09:30,903 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+15:09:30,904 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+15:09:30,904 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+15:09:30,905 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+15:09:30,905 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+15:09:30,908 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+15:09:30,908 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+15:09:30,908 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+15:09:30,908 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+15:09:30,911 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/endpoints.json
+15:09:30,921 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+15:09:30,921 [botocore.hooks   ][DEBUG   ] Event choose-service-name: calling handler <function handle_service_name_alias at 0x10c7cedd0>
+15:09:30,955 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/service-2.json
+15:09:30,991 [botocore.hooks   ][DEBUG   ] Event creating-client-class.ec2: calling handler <function add_generate_presigned_url at 0x10c7379a0>
+15:09:30,999 [botocore.endpoint][DEBUG   ] Setting ec2 timeout as (60, 60)
+15:09:31,001 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/_retry.json
+15:09:31,001 [botocore.client  ][DEBUG   ] Registering retry handlers for service: ec2
+15:09:31,028 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/paginators-1.json
+15:09:31,029 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Paginating results for ec2.describe_vpcs
+15:09:31,030 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <bound method ParameterAlias.alias_parameter_in_call of <botocore.handlers.ParameterAlias object at 0x10c7a7880>>
+15:09:31,030 [botocore.hooks   ][DEBUG   ] Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+15:09:31,031 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <function generate_idempotent_uuid at 0x10c7e0550>
+15:09:31,032 [botocore.hooks   ][DEBUG   ] Changing event name from before-call.apigateway to before-call.api-gateway
+15:09:31,033 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function add_recursion_detection_header at 0x10c7e01f0>
+15:09:31,033 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+15:09:31,034 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function inject_api_version_header_if_needed at 0x10c7e1d80>
+15:09:31,035 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+15:09:31,035 [botocore.endpoint][DEBUG   ] Making request for OperationModel(name=DescribeVpcs) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': 'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26'}, 'body': {'Action': 'DescribeVpcs', 'Version': '2016-11-15'}, 'url': 'https://ec2.us-east-2.amazonaws.com/', 'context': {'client_region': 'us-east-2', 'client_config': <botocore.config.Config object at 0x10de9d7b0>, 'has_streaming_input': False, 'auth_type': None}}
+15:09:31,035 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+15:09:31,035 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x10de9d660>>
+15:09:31,036 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+15:09:31,036 [botocore.hooks   ][DEBUG   ] Event choose-signer.ec2.DescribeVpcs: calling handler <function set_operation_specific_signer at 0x10c7e0430>
+15:09:31,037 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+15:09:31,037 [botocore.auth    ][DEBUG   ] Calculating signature using v4 auth.
+15:09:31,040 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+15:09:31,040 [botocore.auth    ][DEBUG   ] CanonicalRequest:
+POST
+/
+
+content-type:application/x-www-form-urlencoded; charset=utf-8
+host:ec2.us-east-2.amazonaws.com
+x-amz-date:20220325T190931Z
+
+content-type;host;x-amz-date
+d821ac2c2958664a08eb0f0b183ebf80201e8a50da5d9e98eca9bc36ef648656
+15:09:31,040 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+15:09:31,040 [botocore.auth    ][DEBUG   ] StringToSign:
+AWS4-HMAC-SHA256
+20220325T190931Z
+20220325/us-east-2/ec2/aws4_request
+89e2db9195f83d8ed4f0eca7b002ad2b2a6e3b17153948792673e279d298c9da
+15:09:31,040 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+15:09:31,040 [botocore.auth    ][DEBUG   ] Signature:
+d119405f192a7b095ac695801f4c2c93f5cb596947e3bbe60f9311dc52db0553
+15:09:31,041 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+15:09:31,041 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <function add_retry_headers at 0x10c7e2440>
+15:09:31,041 [botocore.endpoint][DEBUG   ] Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://ec2.us-east-2.amazonaws.com/, headers={'Content-Type': b'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': b'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26', 'X-Amz-Date': b'20220325T190931Z', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA363SBJH62L46IL34/20220325/us-east-2/ec2/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=d119405f192a7b095ac695801f4c2c93f5cb596947e3bbe60f9311dc52db0553', 'amz-sdk-invocation-id': b'3d68f46c-acce-41b8-a88c-bdd978f0500b', 'amz-sdk-request': b'attempt=1', 'Content-Length': '38'}>
+15:09:31,042 [botocore.httpsession][DEBUG   ] Certificate path: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/cacert.pem
+15:09:31,042 [urllib3.connectionpool][DEBUG   ] Starting new HTTPS connection (1): ec2.us-east-2.amazonaws.com:443
+15:09:31,044 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/endpoints.json
+15:09:31,055 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+15:09:31,055 [botocore.hooks   ][DEBUG   ] Event choose-service-name: calling handler <function handle_service_name_alias at 0x10c7cedd0>
+15:09:31,086 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/service-2.json
+15:09:31,116 [botocore.hooks   ][DEBUG   ] Event creating-client-class.ec2: calling handler <function add_generate_presigned_url at 0x10c7379a0>
+15:09:31,118 [botocore.endpoint][DEBUG   ] Setting ec2 timeout as (60, 60)
+15:09:31,119 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/_retry.json
+15:09:31,119 [botocore.client  ][DEBUG   ] Registering retry handlers for service: ec2
+15:09:31,146 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/paginators-1.json
+15:09:31,147 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Paginating results for ec2.describe_vpcs
+15:09:31,147 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <bound method ParameterAlias.alias_parameter_in_call of <botocore.handlers.ParameterAlias object at 0x10c7a7880>>
+15:09:31,148 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <function generate_idempotent_uuid at 0x10c7e0550>
+15:09:31,148 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function add_recursion_detection_header at 0x10c7e01f0>
+15:09:31,148 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function inject_api_version_header_if_needed at 0x10c7e1d80>
+15:09:31,148 [botocore.endpoint][DEBUG   ] Making request for OperationModel(name=DescribeVpcs) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': 'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26'}, 'body': {'Action': 'DescribeVpcs', 'Version': '2016-11-15'}, 'url': 'https://ec2.us-east-2.amazonaws.com/', 'context': {'client_region': 'us-east-2', 'client_config': <botocore.config.Config object at 0x10ebbe800>, 'has_streaming_input': False, 'auth_type': None}}
+15:09:31,148 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x10ebbe770>>
+15:09:31,148 [botocore.hooks   ][DEBUG   ] Event choose-signer.ec2.DescribeVpcs: calling handler <function set_operation_specific_signer at 0x10c7e0430>
+15:09:31,149 [botocore.auth    ][DEBUG   ] Calculating signature using v4 auth.
+15:09:31,149 [botocore.auth    ][DEBUG   ] CanonicalRequest:
+POST
+/
+
+content-type:application/x-www-form-urlencoded; charset=utf-8
+host:ec2.us-east-2.amazonaws.com
+x-amz-date:20220325T190931Z
+
+content-type;host;x-amz-date
+d821ac2c2958664a08eb0f0b183ebf80201e8a50da5d9e98eca9bc36ef648656
+15:09:31,149 [botocore.auth    ][DEBUG   ] StringToSign:
+AWS4-HMAC-SHA256
+20220325T190931Z
+20220325/us-east-2/ec2/aws4_request
+89e2db9195f83d8ed4f0eca7b002ad2b2a6e3b17153948792673e279d298c9da
+15:09:31,149 [botocore.auth    ][DEBUG   ] Signature:
+d119405f192a7b095ac695801f4c2c93f5cb596947e3bbe60f9311dc52db0553
+15:09:31,149 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <function add_retry_headers at 0x10c7e2440>
+15:09:31,149 [botocore.endpoint][DEBUG   ] Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://ec2.us-east-2.amazonaws.com/, headers={'Content-Type': b'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': b'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26', 'X-Amz-Date': b'20220325T190931Z', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA363SBJH62L46IL34/20220325/us-east-2/ec2/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=d119405f192a7b095ac695801f4c2c93f5cb596947e3bbe60f9311dc52db0553', 'amz-sdk-invocation-id': b'd691673c-4b70-4d07-9343-e3c4d5fd99f4', 'amz-sdk-request': b'attempt=1', 'Content-Length': '38'}>
+15:09:31,149 [botocore.httpsession][DEBUG   ] Certificate path: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/cacert.pem
+15:09:31,150 [urllib3.connectionpool][DEBUG   ] Starting new HTTPS connection (1): ec2.us-east-2.amazonaws.com:443
+15:09:31,254 [urllib3.connectionpool][DEBUG   ] https://ec2.us-east-2.amazonaws.com:443 "POST / HTTP/1.1" 401 None
+15:09:31,254 [botocore.parsers ][DEBUG   ] Response headers: {'x-amzn-RequestId': '75cf68cf-60d5-44bf-9d5b-cd946b525803', 'Cache-Control': 'no-cache, no-store', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'Content-Type': 'text/xml;charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Date': 'Fri, 25 Mar 2022 19:09:31 GMT', 'Server': 'AmazonEC2'}
+15:09:31,254 [botocore.parsers ][DEBUG   ] Response body:
+b'<?xml version="1.0" encoding="UTF-8"?>\n<Response><Errors><Error><Code>AuthFailure</Code><Message>AWS was not able to validate the provided access credentials</Message></Error></Errors><RequestID>75cf68cf-60d5-44bf-9d5b-cd946b525803</RequestID></Response>'
+15:09:31,265 [botocore.hooks   ][DEBUG   ] Event needs-retry.ec2.DescribeVpcs: calling handler <botocore.retryhandler.RetryHandler object at 0x10de9e140>
+15:09:31,265 [botocore.retryhandler][DEBUG   ] No retry needed.
+15:09:31,266 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)
+15:09:31,324 [urllib3.connectionpool][DEBUG   ] https://ec2.us-east-2.amazonaws.com:443 "POST / HTTP/1.1" 401 None
+15:09:31,324 [botocore.parsers ][DEBUG   ] Response headers: {'x-amzn-RequestId': '09cd2fc0-9fd7-40a6-8085-3fca464e7983', 'Cache-Control': 'no-cache, no-store', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'Content-Type': 'text/xml;charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Date': 'Fri, 25 Mar 2022 19:09:31 GMT', 'Server': 'AmazonEC2'}
+15:09:31,324 [botocore.parsers ][DEBUG   ] Response body:
+b'<?xml version="1.0" encoding="UTF-8"?>\n<Response><Errors><Error><Code>AuthFailure</Code><Message>AWS was not able to validate the provided access credentials</Message></Error></Errors><RequestID>09cd2fc0-9fd7-40a6-8085-3fca464e7983</RequestID></Response>'
+15:09:31,334 [botocore.hooks   ][DEBUG   ] Event needs-retry.ec2.DescribeVpcs: calling handler <botocore.retryhandler.RetryHandler object at 0x10ebbf190>
+15:09:31,334 [botocore.retryhandler][DEBUG   ] No retry needed.
+15:09:31,335 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)
+15:09:31,336 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Stopping the event bus
+15:09:31,336 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Event bus was forced to stop
+15:13:03,433 [asyncio          ][DEBUG   ] Using selector: KqueueSelector
+15:13:03,434 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Reading profiles from acct
+15:13:03,469 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.boto
+15:13:03,469 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.iam
+15:13:03,470 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Starting event bus
+15:13:03,472 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.iam
+15:13:03,472 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.boto
+15:13:03,476 [botocore.hooks   ][DEBUG   ] Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+15:13:03,478 [botocore.hooks   ][DEBUG   ] Changing event name from before-call.apigateway to before-call.api-gateway
+15:13:03,478 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+15:13:03,480 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+15:13:03,480 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+15:13:03,480 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+15:13:03,481 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+15:13:03,483 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+15:13:03,484 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+15:13:03,484 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+15:13:03,484 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+15:13:03,487 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/endpoints.json
+15:13:03,496 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+15:13:03,497 [botocore.hooks   ][DEBUG   ] Event choose-service-name: calling handler <function handle_service_name_alias at 0x10b952dd0>
+15:13:03,529 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/service-2.json
+15:13:03,566 [botocore.hooks   ][DEBUG   ] Event creating-client-class.ec2: calling handler <function add_generate_presigned_url at 0x10b8bb9a0>
+15:13:03,575 [botocore.endpoint][DEBUG   ] Setting ec2 timeout as (60, 60)
+15:13:03,578 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/_retry.json
+15:13:03,578 [botocore.client  ][DEBUG   ] Registering retry handlers for service: ec2
+15:13:03,604 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/paginators-1.json
+15:13:03,605 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Paginating results for ec2.describe_vpcs
+15:13:03,605 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <bound method ParameterAlias.alias_parameter_in_call of <botocore.handlers.ParameterAlias object at 0x10b92b880>>
+15:13:03,606 [botocore.hooks   ][DEBUG   ] Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+15:13:03,606 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <function generate_idempotent_uuid at 0x10b964550>
+15:13:03,608 [botocore.hooks   ][DEBUG   ] Changing event name from before-call.apigateway to before-call.api-gateway
+15:13:03,608 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function add_recursion_detection_header at 0x10b9641f0>
+15:13:03,609 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+15:13:03,610 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function inject_api_version_header_if_needed at 0x10b965d80>
+15:13:03,611 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+15:13:03,611 [botocore.endpoint][DEBUG   ] Making request for OperationModel(name=DescribeVpcs) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': 'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26'}, 'body': {'Action': 'DescribeVpcs', 'Version': '2016-11-15'}, 'url': 'https://ec2.us-east-2.amazonaws.com/', 'context': {'client_region': 'us-east-2', 'client_config': <botocore.config.Config object at 0x10d0457b0>, 'has_streaming_input': False, 'auth_type': None}}
+15:13:03,611 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+15:13:03,612 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+15:13:03,612 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+15:13:03,613 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x10d045660>>
+15:13:03,615 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+15:13:03,615 [botocore.hooks   ][DEBUG   ] Event choose-signer.ec2.DescribeVpcs: calling handler <function set_operation_specific_signer at 0x10b964430>
+15:13:03,616 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+15:13:03,616 [botocore.auth    ][DEBUG   ] Calculating signature using v4 auth.
+15:13:03,616 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+15:13:03,616 [botocore.auth    ][DEBUG   ] CanonicalRequest:
+POST
+/
+
+content-type:application/x-www-form-urlencoded; charset=utf-8
+host:ec2.us-east-2.amazonaws.com
+x-amz-date:20220325T191303Z
+
+content-type;host;x-amz-date
+d821ac2c2958664a08eb0f0b183ebf80201e8a50da5d9e98eca9bc36ef648656
+15:13:03,616 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+15:13:03,617 [botocore.auth    ][DEBUG   ] StringToSign:
+AWS4-HMAC-SHA256
+20220325T191303Z
+20220325/us-east-2/ec2/aws4_request
+11cfc9f57d36e156218d305c3bf3c7870bbdd1c479769bcdb4a33312ae6e0060
+15:13:03,617 [botocore.auth    ][DEBUG   ] Signature:
+26f5d5652ff143bee458cb8e8a428d45bea354ff823031302cba09ce393134a2
+15:13:03,617 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <function add_retry_headers at 0x10b966440>
+15:13:03,618 [botocore.endpoint][DEBUG   ] Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://ec2.us-east-2.amazonaws.com/, headers={'Content-Type': b'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': b'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26', 'X-Amz-Date': b'20220325T191303Z', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA363SBJH6VSPRWRGV/20220325/us-east-2/ec2/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=26f5d5652ff143bee458cb8e8a428d45bea354ff823031302cba09ce393134a2', 'amz-sdk-invocation-id': b'0ddceb38-02c9-4d17-bef0-fdf499ffefeb', 'amz-sdk-request': b'attempt=1', 'Content-Length': '38'}>
+15:13:03,618 [botocore.httpsession][DEBUG   ] Certificate path: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/cacert.pem
+15:13:03,619 [urllib3.connectionpool][DEBUG   ] Starting new HTTPS connection (1): ec2.us-east-2.amazonaws.com:443
+15:13:03,620 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/endpoints.json
+15:13:03,631 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+15:13:03,632 [botocore.hooks   ][DEBUG   ] Event choose-service-name: calling handler <function handle_service_name_alias at 0x10b952dd0>
+15:13:03,663 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/service-2.json
+15:13:03,694 [botocore.hooks   ][DEBUG   ] Event creating-client-class.ec2: calling handler <function add_generate_presigned_url at 0x10b8bb9a0>
+15:13:03,696 [botocore.endpoint][DEBUG   ] Setting ec2 timeout as (60, 60)
+15:13:03,697 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/_retry.json
+15:13:03,697 [botocore.client  ][DEBUG   ] Registering retry handlers for service: ec2
+15:13:03,736 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/paginators-1.json
+15:13:03,736 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Paginating results for ec2.describe_vpcs
+15:13:03,737 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <bound method ParameterAlias.alias_parameter_in_call of <botocore.handlers.ParameterAlias object at 0x10b92b880>>
+15:13:03,737 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <function generate_idempotent_uuid at 0x10b964550>
+15:13:03,738 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function add_recursion_detection_header at 0x10b9641f0>
+15:13:03,738 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function inject_api_version_header_if_needed at 0x10b965d80>
+15:13:03,738 [botocore.endpoint][DEBUG   ] Making request for OperationModel(name=DescribeVpcs) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': 'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26'}, 'body': {'Action': 'DescribeVpcs', 'Version': '2016-11-15'}, 'url': 'https://ec2.us-east-2.amazonaws.com/', 'context': {'client_region': 'us-east-2', 'client_config': <botocore.config.Config object at 0x10dd9e800>, 'has_streaming_input': False, 'auth_type': None}}
+15:13:03,738 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x10dd9e770>>
+15:13:03,738 [botocore.hooks   ][DEBUG   ] Event choose-signer.ec2.DescribeVpcs: calling handler <function set_operation_specific_signer at 0x10b964430>
+15:13:03,739 [botocore.auth    ][DEBUG   ] Calculating signature using v4 auth.
+15:13:03,739 [botocore.auth    ][DEBUG   ] CanonicalRequest:
+POST
+/
+
+content-type:application/x-www-form-urlencoded; charset=utf-8
+host:ec2.us-east-2.amazonaws.com
+x-amz-date:20220325T191303Z
+
+content-type;host;x-amz-date
+d821ac2c2958664a08eb0f0b183ebf80201e8a50da5d9e98eca9bc36ef648656
+15:13:03,739 [botocore.auth    ][DEBUG   ] StringToSign:
+AWS4-HMAC-SHA256
+20220325T191303Z
+20220325/us-east-2/ec2/aws4_request
+11cfc9f57d36e156218d305c3bf3c7870bbdd1c479769bcdb4a33312ae6e0060
+15:13:03,739 [botocore.auth    ][DEBUG   ] Signature:
+26f5d5652ff143bee458cb8e8a428d45bea354ff823031302cba09ce393134a2
+15:13:03,739 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <function add_retry_headers at 0x10b966440>
+15:13:03,739 [botocore.endpoint][DEBUG   ] Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://ec2.us-east-2.amazonaws.com/, headers={'Content-Type': b'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': b'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26', 'X-Amz-Date': b'20220325T191303Z', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA363SBJH6VSPRWRGV/20220325/us-east-2/ec2/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=26f5d5652ff143bee458cb8e8a428d45bea354ff823031302cba09ce393134a2', 'amz-sdk-invocation-id': b'717276ac-e973-4689-bc06-259087077558', 'amz-sdk-request': b'attempt=1', 'Content-Length': '38'}>
+15:13:03,743 [botocore.httpsession][DEBUG   ] Certificate path: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/cacert.pem
+15:13:03,743 [urllib3.connectionpool][DEBUG   ] Starting new HTTPS connection (1): ec2.us-east-2.amazonaws.com:443
+15:13:03,821 [urllib3.connectionpool][DEBUG   ] https://ec2.us-east-2.amazonaws.com:443 "POST / HTTP/1.1" 401 None
+15:13:03,822 [botocore.parsers ][DEBUG   ] Response headers: {'x-amzn-RequestId': 'bd30d0ce-7725-4d6b-afe1-8c3a982d5b41', 'Cache-Control': 'no-cache, no-store', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'Content-Type': 'text/xml;charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Date': 'Fri, 25 Mar 2022 19:13:03 GMT', 'Server': 'AmazonEC2'}
+15:13:03,822 [botocore.parsers ][DEBUG   ] Response body:
+b'<?xml version="1.0" encoding="UTF-8"?>\n<Response><Errors><Error><Code>AuthFailure</Code><Message>AWS was not able to validate the provided access credentials</Message></Error></Errors><RequestID>bd30d0ce-7725-4d6b-afe1-8c3a982d5b41</RequestID></Response>'
+15:13:03,832 [botocore.hooks   ][DEBUG   ] Event needs-retry.ec2.DescribeVpcs: calling handler <botocore.retryhandler.RetryHandler object at 0x10d046140>
+15:13:03,832 [botocore.retryhandler][DEBUG   ] No retry needed.
+15:13:03,833 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)
+15:13:03,920 [urllib3.connectionpool][DEBUG   ] https://ec2.us-east-2.amazonaws.com:443 "POST / HTTP/1.1" 401 None
+15:13:03,920 [botocore.parsers ][DEBUG   ] Response headers: {'x-amzn-RequestId': '01170cd3-cc61-48a5-ac2d-83a688f281c7', 'Cache-Control': 'no-cache, no-store', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'Content-Type': 'text/xml;charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Date': 'Fri, 25 Mar 2022 19:13:03 GMT', 'Server': 'AmazonEC2'}
+15:13:03,921 [botocore.parsers ][DEBUG   ] Response body:
+b'<?xml version="1.0" encoding="UTF-8"?>\n<Response><Errors><Error><Code>AuthFailure</Code><Message>AWS was not able to validate the provided access credentials</Message></Error></Errors><RequestID>01170cd3-cc61-48a5-ac2d-83a688f281c7</RequestID></Response>'
+15:13:03,931 [botocore.hooks   ][DEBUG   ] Event needs-retry.ec2.DescribeVpcs: calling handler <botocore.retryhandler.RetryHandler object at 0x10dd9f190>
+15:13:03,931 [botocore.retryhandler][DEBUG   ] No retry needed.
+15:13:03,932 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)
+15:13:03,934 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Stopping the event bus
+15:13:03,934 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Event bus was forced to stop
+15:13:48,592 [asyncio          ][DEBUG   ] Using selector: KqueueSelector
+15:13:48,593 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Reading profiles from acct
+15:13:48,627 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.boto
+15:13:48,628 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.iam
+15:13:48,628 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Starting event bus
+15:13:48,630 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.iam
+15:13:48,630 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Read 0 profiles from acct.aws.boto
+15:13:48,634 [botocore.hooks   ][DEBUG   ] Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+15:13:48,636 [botocore.hooks   ][DEBUG   ] Changing event name from before-call.apigateway to before-call.api-gateway
+15:13:48,636 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+15:13:48,638 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+15:13:48,638 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+15:13:48,638 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+15:13:48,639 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+15:13:48,642 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+15:13:48,642 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+15:13:48,642 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+15:13:48,642 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+15:13:48,645 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/endpoints.json
+15:13:48,655 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+15:13:48,655 [botocore.hooks   ][DEBUG   ] Event choose-service-name: calling handler <function handle_service_name_alias at 0x10d78edd0>
+15:13:48,695 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/service-2.json
+15:13:48,733 [botocore.hooks   ][DEBUG   ] Event creating-client-class.ec2: calling handler <function add_generate_presigned_url at 0x10d6fb9a0>
+15:13:48,740 [botocore.endpoint][DEBUG   ] Setting ec2 timeout as (60, 60)
+15:13:48,742 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/_retry.json
+15:13:48,743 [botocore.client  ][DEBUG   ] Registering retry handlers for service: ec2
+15:13:48,770 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/paginators-1.json
+15:13:48,771 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Paginating results for ec2.describe_vpcs
+15:13:48,771 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <bound method ParameterAlias.alias_parameter_in_call of <botocore.handlers.ParameterAlias object at 0x10d767880>>
+15:13:48,772 [botocore.hooks   ][DEBUG   ] Changing event name from creating-client-class.iot-data to creating-client-class.iot-data-plane
+15:13:48,772 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <function generate_idempotent_uuid at 0x10d7a0550>
+15:13:48,774 [botocore.hooks   ][DEBUG   ] Changing event name from before-call.apigateway to before-call.api-gateway
+15:13:48,774 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function add_recursion_detection_header at 0x10d7a01f0>
+15:13:48,775 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.machinelearning.Predict to request-created.machine-learning.Predict
+15:13:48,775 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function inject_api_version_header_if_needed at 0x10d7a1d80>
+15:13:48,776 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.autoscaling.CreateLaunchConfiguration to before-parameter-build.auto-scaling.CreateLaunchConfiguration
+15:13:48,777 [botocore.endpoint][DEBUG   ] Making request for OperationModel(name=DescribeVpcs) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': 'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26'}, 'body': {'Action': 'DescribeVpcs', 'Version': '2016-11-15'}, 'url': 'https://ec2.us-east-2.amazonaws.com/', 'context': {'client_region': 'us-east-2', 'client_config': <botocore.config.Config object at 0x10ee5d7b0>, 'has_streaming_input': False, 'auth_type': None}}
+15:13:48,777 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.route53 to before-parameter-build.route-53
+15:13:48,777 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x10ee5d660>>
+15:13:48,778 [botocore.hooks   ][DEBUG   ] Changing event name from request-created.cloudsearchdomain.Search to request-created.cloudsearch-domain.Search
+15:13:48,778 [botocore.hooks   ][DEBUG   ] Event choose-signer.ec2.DescribeVpcs: calling handler <function set_operation_specific_signer at 0x10d7a0430>
+15:13:48,778 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.autoscaling.CreateLaunchConfiguration.complete-section to docs.*.auto-scaling.CreateLaunchConfiguration.complete-section
+15:13:48,779 [botocore.auth    ][DEBUG   ] Calculating signature using v4 auth.
+15:13:48,781 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.logs.CreateExportTask to before-parameter-build.cloudwatch-logs.CreateExportTask
+15:13:48,781 [botocore.auth    ][DEBUG   ] CanonicalRequest:
+POST
+/
+
+content-type:application/x-www-form-urlencoded; charset=utf-8
+host:ec2.us-east-2.amazonaws.com
+x-amz-date:20220325T191348Z
+
+content-type;host;x-amz-date
+d821ac2c2958664a08eb0f0b183ebf80201e8a50da5d9e98eca9bc36ef648656
+15:13:48,782 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.logs.CreateExportTask.complete-section to docs.*.cloudwatch-logs.CreateExportTask.complete-section
+15:13:48,782 [botocore.auth    ][DEBUG   ] StringToSign:
+AWS4-HMAC-SHA256
+20220325T191348Z
+20220325/us-east-2/ec2/aws4_request
+004ad5b163b1b7b6c5a2f530a6702188360c4ec6263f6364d51740a64e667922
+15:13:48,782 [botocore.hooks   ][DEBUG   ] Changing event name from before-parameter-build.cloudsearchdomain.Search to before-parameter-build.cloudsearch-domain.Search
+15:13:48,782 [botocore.auth    ][DEBUG   ] Signature:
+123a2e297ca7cec281d67e9d48fd990b6326f009c400035698fb39dda5700981
+15:13:48,782 [botocore.hooks   ][DEBUG   ] Changing event name from docs.*.cloudsearchdomain.Search.complete-section to docs.*.cloudsearch-domain.Search.complete-section
+15:13:48,782 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <function add_retry_headers at 0x10d7a2440>
+15:13:48,783 [botocore.endpoint][DEBUG   ] Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://ec2.us-east-2.amazonaws.com/, headers={'Content-Type': b'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': b'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26', 'X-Amz-Date': b'20220325T191348Z', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA363SBJH6VSPRWRGV/20220325/us-east-2/ec2/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=123a2e297ca7cec281d67e9d48fd990b6326f009c400035698fb39dda5700981', 'amz-sdk-invocation-id': b'c68282c5-acae-48dc-9f05-778aa58a250e', 'amz-sdk-request': b'attempt=1', 'Content-Length': '38'}>
+15:13:48,783 [botocore.httpsession][DEBUG   ] Certificate path: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/cacert.pem
+15:13:48,784 [urllib3.connectionpool][DEBUG   ] Starting new HTTPS connection (1): ec2.us-east-2.amazonaws.com:443
+15:13:48,786 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/endpoints.json
+15:13:48,797 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/sdk-default-configuration.json
+15:13:48,797 [botocore.hooks   ][DEBUG   ] Event choose-service-name: calling handler <function handle_service_name_alias at 0x10d78edd0>
+15:13:48,828 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/service-2.json
+15:13:48,860 [botocore.hooks   ][DEBUG   ] Event creating-client-class.ec2: calling handler <function add_generate_presigned_url at 0x10d6fb9a0>
+15:13:48,861 [botocore.endpoint][DEBUG   ] Setting ec2 timeout as (60, 60)
+15:13:48,862 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/_retry.json
+15:13:48,863 [botocore.client  ][DEBUG   ] Registering retry handlers for service: ec2
+15:13:48,889 [botocore.loaders ][DEBUG   ] Loading JSON file: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/data/ec2/2016-11-15/paginators-1.json
+15:13:48,890 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Paginating results for ec2.describe_vpcs
+15:13:48,891 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <bound method ParameterAlias.alias_parameter_in_call of <botocore.handlers.ParameterAlias object at 0x10d767880>>
+15:13:48,891 [botocore.hooks   ][DEBUG   ] Event before-parameter-build.ec2.DescribeVpcs: calling handler <function generate_idempotent_uuid at 0x10d7a0550>
+15:13:48,891 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function add_recursion_detection_header at 0x10d7a01f0>
+15:13:48,891 [botocore.hooks   ][DEBUG   ] Event before-call.ec2.DescribeVpcs: calling handler <function inject_api_version_header_if_needed at 0x10d7a1d80>
+15:13:48,891 [botocore.endpoint][DEBUG   ] Making request for OperationModel(name=DescribeVpcs) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': 'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26'}, 'body': {'Action': 'DescribeVpcs', 'Version': '2016-11-15'}, 'url': 'https://ec2.us-east-2.amazonaws.com/', 'context': {'client_region': 'us-east-2', 'client_config': <botocore.config.Config object at 0x10fbae800>, 'has_streaming_input': False, 'auth_type': None}}
+15:13:48,891 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x10fbae770>>
+15:13:48,892 [botocore.hooks   ][DEBUG   ] Event choose-signer.ec2.DescribeVpcs: calling handler <function set_operation_specific_signer at 0x10d7a0430>
+15:13:48,892 [botocore.auth    ][DEBUG   ] Calculating signature using v4 auth.
+15:13:48,892 [botocore.auth    ][DEBUG   ] CanonicalRequest:
+POST
+/
+
+content-type:application/x-www-form-urlencoded; charset=utf-8
+host:ec2.us-east-2.amazonaws.com
+x-amz-date:20220325T191348Z
+
+content-type;host;x-amz-date
+d821ac2c2958664a08eb0f0b183ebf80201e8a50da5d9e98eca9bc36ef648656
+15:13:48,892 [botocore.auth    ][DEBUG   ] StringToSign:
+AWS4-HMAC-SHA256
+20220325T191348Z
+20220325/us-east-2/ec2/aws4_request
+004ad5b163b1b7b6c5a2f530a6702188360c4ec6263f6364d51740a64e667922
+15:13:48,892 [botocore.auth    ][DEBUG   ] Signature:
+123a2e297ca7cec281d67e9d48fd990b6326f009c400035698fb39dda5700981
+15:13:48,892 [botocore.hooks   ][DEBUG   ] Event request-created.ec2.DescribeVpcs: calling handler <function add_retry_headers at 0x10d7a2440>
+15:13:48,892 [botocore.endpoint][DEBUG   ] Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://ec2.us-east-2.amazonaws.com/, headers={'Content-Type': b'application/x-www-form-urlencoded; charset=utf-8', 'User-Agent': b'Boto3/1.21.26 Python/3.10.0 Darwin/21.4.0 Botocore/1.24.26', 'X-Amz-Date': b'20220325T191348Z', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIA363SBJH6VSPRWRGV/20220325/us-east-2/ec2/aws4_request, SignedHeaders=content-type;host;x-amz-date, Signature=123a2e297ca7cec281d67e9d48fd990b6326f009c400035698fb39dda5700981', 'amz-sdk-invocation-id': b'9aa836fa-0b6a-45ff-b790-60e36a43e37e', 'amz-sdk-request': b'attempt=1', 'Content-Length': '38'}>
+15:13:48,893 [botocore.httpsession][DEBUG   ] Certificate path: /Users/bowena/.pyenv/versions/3.10.0/lib/python3.10/site-packages/botocore/cacert.pem
+15:13:48,893 [urllib3.connectionpool][DEBUG   ] Starting new HTTPS connection (1): ec2.us-east-2.amazonaws.com:443
+15:13:48,989 [urllib3.connectionpool][DEBUG   ] https://ec2.us-east-2.amazonaws.com:443 "POST / HTTP/1.1" 401 None
+15:13:48,990 [botocore.parsers ][DEBUG   ] Response headers: {'x-amzn-RequestId': 'cb7c4ed9-e307-4bcb-8bd1-216f72484aa6', 'Cache-Control': 'no-cache, no-store', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'Content-Type': 'text/xml;charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Date': 'Fri, 25 Mar 2022 19:13:48 GMT', 'Server': 'AmazonEC2'}
+15:13:48,990 [botocore.parsers ][DEBUG   ] Response body:
+b'<?xml version="1.0" encoding="UTF-8"?>\n<Response><Errors><Error><Code>AuthFailure</Code><Message>AWS was not able to validate the provided access credentials</Message></Error></Errors><RequestID>cb7c4ed9-e307-4bcb-8bd1-216f72484aa6</RequestID></Response>'
+15:13:49,001 [botocore.hooks   ][DEBUG   ] Event needs-retry.ec2.DescribeVpcs: calling handler <botocore.retryhandler.RetryHandler object at 0x10ee5e140>
+15:13:49,001 [botocore.retryhandler][DEBUG   ] No retry needed.
+15:13:49,002 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)
+15:13:49,085 [urllib3.connectionpool][DEBUG   ] https://ec2.us-east-2.amazonaws.com:443 "POST / HTTP/1.1" 401 None
+15:13:49,085 [botocore.parsers ][DEBUG   ] Response headers: {'x-amzn-RequestId': 'ef9b5430-d38c-4416-9540-7e9f02d5adb8', 'Cache-Control': 'no-cache, no-store', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'vary': 'accept-encoding', 'Content-Type': 'text/xml;charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Date': 'Fri, 25 Mar 2022 19:13:48 GMT', 'Server': 'AmazonEC2'}
+15:13:49,086 [botocore.parsers ][DEBUG   ] Response body:
+b'<?xml version="1.0" encoding="UTF-8"?>\n<Response><Errors><Error><Code>AuthFailure</Code><Message>AWS was not able to validate the provided access credentials</Message></Error></Errors><RequestID>ef9b5430-d38c-4416-9540-7e9f02d5adb8</RequestID></Response>'
+15:13:49,096 [botocore.hooks   ][DEBUG   ] Event needs-retry.ec2.DescribeVpcs: calling handler <botocore.retryhandler.RetryHandler object at 0x10fbaf190>
+15:13:49,097 [botocore.retryhandler][DEBUG   ] No retry needed.
+15:13:49,097 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)
+15:13:49,099 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][DEBUG   ] Stopping the event bus
+15:13:49,099 [Users.bowena..pyenv.versions.3.10.0.lib.python3.10.site-packages.pop_config.log.init][INFO    ] Event bus was forced to stop

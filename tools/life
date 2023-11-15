@@ -45,7 +45,7 @@ function echoBoard {
                 # line+="🌱"
 			fi		
 		done
-        echo $line 
+        echo -n $line 
 	done
 }
 

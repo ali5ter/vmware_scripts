@@ -8,6 +8,8 @@
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
 
+export DOMAIN=${1:-google.com}
+export OPTION=${2:-}
 export LOG=~/.dropmon.csv
 export DROP=0
 export EXIT=0
@@ -35,7 +37,7 @@ epochToDate() {
     date -j -f '%s' +'%m/%d/%Y %H:%M:%S' "$epoc"
 }
 
-if [[ "$1" == "-r" ]]; then
+if [[ "$OPTION" == "-r" ]]; then
     if [[ -f "$LOG" ]]; then
         mv "$LOG" "${LOG}-$(date '+%s')"
     fi
@@ -43,14 +45,14 @@ fi
 
 echo -n "Keeping an eye on the connection "
 until [[ $EXIT == 1 ]]; do
-    if ping -i $INTERVAL -t $TIMEOUT google.com >/dev/null 2>&1; then
+    if ping -i $INTERVAL -t $TIMEOUT "$DOMAIN" >/dev/null 2>&1; then
         if [[ "$DROP" == 1 ]]; then
             duration=$(( EPOCHSECONDS - TIMESTAMP ))
             # shellcheck disable=SC2086
             log "$(epochToDate $TIMESTAMP), $duration"
             DROP=0
         fi
-        echo -n "."
+        echo -n "⚡️"
     else
         if [[ "$DROP" == 0 ]]; then
             TIMESTAMP=$EPOCHSECONDS
