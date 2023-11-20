@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# @file vcp_info
+# Current account and location information
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source vcp_env.sh
+
+vcp_auth
+
+VCP_USER=$(vcp -o json account show | jq -r '.sub')
+VCP_ORG_ID=$(vcp -o json account show | jq -r '.tenant')
+VCP_GROUPS=$(vcp -o json account show | jq -r '.groups[]' | cut -d'\' -f2)
+
+echo
+printf "%-18s %s\\n" 'Logged in user:' "$VCP_USER"
+printf "%-18s %s\\n" 'Organization ID:' "$VCP_ORG_ID"
+label='Member of groups:'
+for group in $VCP_GROUPS; do
+    printf "%-18s %s\\n" "$label" "$group"
+    label=''
+done
+printf "%-18s %s\\n" 'Current folder:' "$(vcp -o json folder get | jq -r .Name 2>/dev/null || echo '-')"
+printf "%-18s %s\\n" 'Current project:' "$(vcp -o json project get | jq -r .Name 2>/dev/null || echo '-')"
+printf "%-18s %s\\n" 'Current context:' "$(kubectl config current-context 2>/dev/null | sed 's/-context//' || echo '-')"

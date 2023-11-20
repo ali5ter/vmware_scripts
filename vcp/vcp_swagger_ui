@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# @file vcp_swagger_ui
+# Crank up an instance of Swagger UI to show the VMware Cloud PKS API docs
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1090
+source "$PWD/vcp_env.sh"
+
+"$PWD/vcp_auth"
+
+VCP_ORG_ID=$(vcp -o json account show | jq -r '.tenant')
+
+# retrieve swagger definition  -----------------------------------------------
+
+heading 'Fetching swagger definition file'
+
+SWAGGER_YAML='vcp_api_swagger.yml'
+## Realy need a publicly accessible URL !!
+SWAGGER_DOWNLOAD_URL='https://review.ec.eng.vmware.com/gitweb?p=cascade-api-proxy.git;a=blob_plain;f=idl/api-swagger.yml;hb=refs/heads/develop'
+
+rm -f "$SWAGGER_YAML"
+curl "$SWAGGER_DOWNLOAD_URL" -o "$SWAGGER_YAML" || {
+    echo "Failed to fetch the swagger definition file from $SWAGGER_DOWNLOAD_URL"
+    exit 1
+}
+
+# start swagger-ui contianer -------------------------------------------------
+
+heading 'Starting up a swagger-ui container'
+
+pgrep -f docker > /dev/null || {
+    echo "Your system doesn't appear to be running the Docker daemon."
+    echo "To run swagger-ui in a container, I need to use docker."
+    echo "Please make sure Docker is running and try again."
+    exit 1
+}
+
+SWAGGER_UI_IMAGE='swaggerapi/swagger-ui'
+SWAGGER_UI_PORT=8080
+SWAGGER_URL="http://localhost:$SWAGGER_UI_PORT/"
+
+docker ps -a | grep "$SWAGGER_UI_IMAGE" && {
+    docker ps -a | grep "$SWAGGER_UI_IMAGE" | awk '{print $1}' | xargs docker rm -fv > /dev/null 2>&1
+}
+
+docker run -d --name swagguer-ui \
+    -p "$SWAGGER_UI_PORT":8080 \
+    -e SWAGGER_JSON="/spec/$SWAGGER_YAML" \
+    -v "$VCP_SCRIPT_PATH":/spec \
+    "$SWAGGER_UI_IMAGE" \
+    > /dev/null 2>&1
+
+# Open brower using swagger ui view on the swagger definition ----------------
+
+[[ "$OSTYPE" == "darwin"* ]] && open "$SWAGGER_URL"
+echo -e "Start Swagger-UI in your browser using $SWAGGER_URL\\n"
+echo -e "Authenticate using the OATH token\\nBearer $VCP_API_TOKEN\\n"
+echo -e "You Organization name is\\n$VCP_ORG_ID"

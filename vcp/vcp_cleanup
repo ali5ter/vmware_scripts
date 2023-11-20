@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# @file vcp_cleanup
+# Delete previously created Smart Clusters from a VMware Cloud PKS project.
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source vcp_env.sh
+
+vcp_auth
+
+rm -f "${VCP_LOG}"
+VCP_CLUSTERS=$(vcp -o json cluster list | jq -r '.items[] | .name +":"+ .folderName +":"+ .projectName' | grep "$VCP_CLUSTER_PREFIX")
+
+echo
+for cluster in $VCP_CLUSTERS; do
+    # shellcheck disable=SC2206
+    info=(${cluster//:/ })
+    name=${info[0]}
+    folder=${info[1]}
+    project=${info[2]}
+    read -p "Delete $name? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        (vke cluster delete "$name" --folder "$folder" --project "$project" 2>&1) >>"${VCP_LOG}" &
+    fi
+done

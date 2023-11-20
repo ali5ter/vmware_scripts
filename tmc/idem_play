@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# @file idem_play
+# Playing with idem
+# @ref https://www.idemproject.io/
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+[[ -n $DEBUG ]] && set -x
+set -eou pipefail
+
+CONFIG="${HOME}/.config/idem.yaml"
+
+KEY=$(idem encrypt "$CONFIG" | xargs)
+
+export ACCT_KEY="$KEY"
+export ACCT_FILE="${CONFIG}.fernet"
+
+# @ref: https://learnidem.github.io/getting-started/cloud-plug-ins/idem-aws-plug-in/
+idem describe --acct-key "$KEY" --acct-file "$ACCT_FILE" --log-level debug aws.ec2.vpc
+
+# doesn't work :(
+# Could not describe VPCs ('ClientError: An error occurred (AuthFailure) when calling the DescribeVpcs operation: AWS was not able to validate the provided access credentials',)

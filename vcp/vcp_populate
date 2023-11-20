@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# @file vcp_populate
+# Populate a VMware Kubernetes Engine Project with a Smart Cluster and some Namespaces
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source vcp_env.sh
+
+VCP_CLUSTER_NUM=1
+VCP_CLUSTER_TYPE=''
+VCP_NAMESPACES='y'
+
+help() {
+    echo "Automate the creation of VCP smart clusters"
+    echo
+    echo "By default one smart cluster is created with a random number of"
+    echo "additional namespaces. You are prompted for the cluster type."
+    echo "The options allow you to override these defaults."
+    echo
+    echo "Usage: vcp_populate [options]"
+    echo "Options:"
+    echo "  -h, --help, help .... displays this help information"
+    echo "  -n, --number_clusters ... the number of smart clusters to create"
+    echo "  -d, --development ....... create development type clusters only"
+    echo "  -p, --production ........ create production type clusters only"
+    echo "  -N, --no-namespaces ..... do not create additional namespaces"
+    return 0
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -n | --number_clusters )    VCP_CLUSTER_NUM=$2; shift; shift ;;
+        -d | --development )        VCP_CLUSTER_TYPE='developer'; shift ;;
+        -p | --production )         VCP_CLUSTER_TYPE='production'; shift ;;
+        -N | --no-namespaces )      VCP_NAMESPACES='no'; shift;;
+        help | -h | --help )        help; exit 0;;
+        * ) shift ;;
+    esac
+done
+
+vcp_auth
+
+erun vcp folder set "$VCP_DEFAULT_FOLDER"
+erun vcp project set "$VCP_DEFAULT_PROJECT"
+
+# clean up -------------------------------------------------------------------
+
+heading "Remove existing smart clusters starting with $VCP_CLUSTER_PREFIX"
+read -p "Shall I clear out all existing smart clusters? [y/N] " -n 1 -r
+echo
+[[ $REPLY =~ ^[Yy]$ ]] && vcp_cleanup
+
+# create cluster -------------------------------------------------------------
+
+until (( VCP_CLUSTER_NUM == 0 )); do
+
+    heading "Create smart cluster ($VCP_CLUSTER_NUM left to create)"
+
+    ## Will default to latest anyway but let's test the command to get the list of versions...
+    _version=$(vcp -o json cluster versions list -r "$VCP_DEFAULT_REGION" | jq -r '.items[] | select(.isDefault == true) | .version')
+    
+    ## Prompt for type of cluster unless overridden
+    if [[ "$VCP_CLUSTER_TYPE" == '' ]]; then
+        _types=$(vcp -o json cluster templates list | jq -r '.items[].templateName')
+        _type_index=1
+        for _type in $_types; do
+            _atypes[$_type_index]="$_type"
+            printf "    %3d ... %s\\n" "$_type_index" "$_type"
+            ((_type_index++))
+        done
+        until [[ "$REPLY" =~ ^-?[0-9]+$ && "$REPLY" -gt 0 && "$REPLY" -lt "$(( ${#_atypes[@]} + 1 ))" ]]; do
+            read -p "Select one of these smart cluster types [1-${#_atypes[@]}]: " -r -n 1
+            echo
+        done
+        echo
+        _type=${_atypes[$REPLY]}
+    else
+        _type="$VCP_CLUSTER_TYPE"
+    fi
+
+    ## Construct the name and display name just to test the two
+    _name=$(curl -s https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/tools/generate_word_string | bash -s 2)
+    _name=$(echo "$_type" | cut -c 1-4)"-${_name}"
+    _dname="${VCP_CLUSTER_DNAME_PREFIX}-${_name}"
+    _name="${VCP_CLUSTER_PREFIX}-${_name}"
+    _name=$(echo "$_name" | cut -c 1-26)    ## Name can only be up to 26 characters long :(
+
+    ## Finally create the smart cluster
+    erun vcp cluster create --template "$_type" \
+        --name "$_name" --display-name "$_dname" \
+        --privilegedMode --force \
+        --region "$VCP_DEFAULT_REGION" --version "$_version"
+
+    ## Monitor the state of the cluster before it becomes 'READY'
+    get_cluster_state() { vcp --output json cluster show "$_name" | jq -r '.details.state'; }
+
+    echo -en "\\nWaiting for Smart Cluster to be ready..."
+    until [ "$(get_cluster_state)" == "READY" ]; do
+        sleep 10
+        echo '.'
+    done
+    echo ' done'
+
+    # create additional namespaces -------------------------------------------
+
+    if [[ "$VCP_NAMESPACES" == 'y' ]]; then
+        _namespaces=$(( ( RANDOM % 8 ) + 1)) # a size between 1 and 8
+
+        heading "Create additional namespaces in $_name"
+        for i in $(seq "$_namespaces"); do
+            erun vcp cluster namespace create "$_name" "${_name}-namespace-$i"
+
+        done
+    fi
+
+    # Show who is the real admin for this smart cluster ----------------------
+    _admin=$(vcp_get_admin_for_object $_name)
+    echo -e "\\nAdministrator(s) identities for $_name are:\\n$_admin"
+
+    (( VCP_CLUSTER_NUM-- ))
+done

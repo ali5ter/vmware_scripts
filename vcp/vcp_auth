@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# @file vcp_auth
+# Authenticate with VMware Cloud PKS service using account credentials
+# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# shellcheck disable=SC1091
+source "vcp_env.sh"
+
+## Authentication state held in ~/vcp-cli/vcp-config but can't find
+## a way to determine if I have an expired session, so just login in each time
+
+erun vcp account login -t "$VCP_CSP_ORG_ID" -r "$VCP_TOKEN"
