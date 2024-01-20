@@ -36,7 +36,7 @@ cleanup() {
 install_tanzu() {
   if ! which tanzu &> /dev/null; then
     brew tap vmware-tanzu/tanzu
-    brew update && brew install vmware-tanzu/tanzu/tanzu-cli
+    brew update && brew install tanzu-cli
     brew link --overwrite tanzu-cli
   fi
 }
@@ -44,25 +44,25 @@ install_tanzu() {
 configure_tanzu() {
   tanzu config eula accept          # accept EULA
   tanzu ceip-participation set true # enable CEIP
-  # target staging environment for analytics
-  tanzu config set env.TANZU_CLI_SUPERCOLLIDER_ENVIRONMENT staging
-  # point at staging plugin registry
-  tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
-  # point at sandbox plugin registry
-  tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli/plugins/sandbox/900e7f/plugin-inventory:latest
-  # set up sig verfication
-  tanzu config set env.TANZU_CLI_PLUGIN_DISCOVERY_IMAGE_SIGNATURE_VERIFICATION_SKIP_LIST harbor-repo.vmware.com/tanzu_cli/plugins/sandbox/900e7f/plugin-inventory:latest
+  # # target staging environment for analytics
+  # tanzu config set env.TANZU_CLI_SUPERCOLLIDER_ENVIRONMENT staging
+  # # point at staging plugin registry
+  # tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli_stage/plugins/plugin-inventory:latest
+  # # point at sandbox plugin registry
+  # tanzu config set env.TANZU_CLI_ADDITIONAL_PLUGIN_DISCOVERY_IMAGES_TEST_ONLY harbor-repo.vmware.com/tanzu_cli/plugins/sandbox/900e7f/plugin-inventory:latest
+  # # set up sig verfication
+  # tanzu config set env.TANZU_CLI_PLUGIN_DISCOVERY_IMAGE_SIGNATURE_VERIFICATION_SKIP_LIST harbor-repo.vmware.com/tanzu_cli/plugins/sandbox/900e7f/plugin-inventory:latest
 }
 
 create_tmc_unstable_context() {
   # NOTE: Can only get this to work if by dropping the https:// and adding :443
-  tanzu context create --endpoint tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com:443 --name tmc-unstable --staging
+  tanzu context create tmc-unstable --endpoint tanzumissioncontroluserorgstg.tmc-dev.cloud.vmware.com:443 --staging --type tmc
   # supplying TANZU_API_TOKEN not documented
 }
 
 create_tmc_stable_context() {
   # NOTE: Can only get this to work if by dropping the https:// and adding :443
-  tanzu context create --endpoint tmc-users.stable.tmc-dev.cloud.vmware.com:443 --name tmc-stable --staging
+  tanzu context create tmc-stable --endpoint tmc-users.stable.tmc-dev.cloud.vmware.com:443 --staging --type tmc
   # supplying TANZU_API_TOKEN not documented
 }
 
@@ -70,12 +70,27 @@ create_local_cluster_context() {
   "$DIR/tanzufy_cluster" # create a local cluster
 }
 
+tap_beta1_setup() {
+  # @ref https://docs.google.com/document/d/1g-T1CCW38Rl9NF9gsMRlfxvsB-UfkuIcxdllKJuEcIM/edit?usp=sharing
+  create_tap_beta1_context() {
+    # Used with staging CSP Org, “App Engine - SE Org”
+    # shellcheck disable=SC2155
+    export TANZU_API_TOKEN=$(cat "$HOME/.config/tap-beta-1-workshop-token") # change to location of your stored CSP API Token
+    tanzu context create tap-integration --endpoint api.tanzu-stable.cloud.vmware.com --staging --type tanzu
+  }
+  create_tap_beta1_context
+  tanzu plugin install space
+  tanzu plugin install project
+  tanzu project list
+}
+
 cleanup
 install_tanzu
 configure_tanzu
 create_tmc_stable_context
 create_tmc_unstable_context
-create_local_cluster_context
+# create_local_cluster_context
+tap_beta1_setup
 
 tanzu version
 tanzu plugin source list
